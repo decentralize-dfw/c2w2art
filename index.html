@@ -6,9 +6,17 @@
     <title>Dosya Yöneticisi Arayüzü</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PDF.js Kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
     <!-- Google Model Viewer (GLB dosyaları için) -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-    
+    <!-- YENİ: GLB için Draco Desteği -->
+    <script src="https://www.gstatic.com/draco/versioned/decoders/1.5.7/draco_decoder.js"></script>
+    <!-- GLB için Meshopt Desteği -->
+    <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.20.0/meshopt_decoder.js"></script>
+
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -114,6 +122,16 @@
             width: 100%;
             height: 100%;
             min-height: 400px;
+        }
+
+        /* YENİ: PDF Canvas Stili */
+        .pdf-canvas-container {
+            /* PDF'in renderlandığı alan için arka plan */
+            background-color: #e5e7eb; /* bg-gray-200 */
+        }
+        .pdf-canvas-container canvas {
+            /* PDF sayfası için gölge */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
     </style>
 </head>
@@ -270,12 +288,28 @@
         // "Cdrive" = Finder içinde "C:/" olarak görünen klasör
         const fileSystemDB = {
             "RealDesktop": [
-                
                 {
                     id: 'f1-2-real', // Ayrı ID
                     type: 'video',
                     name: 'what if space had no limits.mp4',
                     url: 'https://video.wixstatic.com/video/54a996_e6d16d06cf7b490bbc64d936760c2dae/1080p/mp4/file.mp4',
+                    description: 'BMX bisikletli bir sporcunun duvarda yaptığı gösteri.',
+                    created: 'Monday, September 3, 2024 at 4:38 PM',
+                    minted: 'Monday, September 3, 2024 at 4:40 PM',
+                    medium: 'Digital Photograph',
+                    dimensions: '3024x4032',
+                    size: '4 MB',
+                    tags: ['bike', 'extreme', 'urban'],
+                    link: {
+                        url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg',
+                        name: 'Pexels Kaynağı'}
+
+                },
+                {
+                    id: 'f1-2-real', // Ayrı ID
+                    type: 'image',
+                    name: 'Bike_110279.jpg',
+                    url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
                     description: 'BMX bisikletli bir sporcunun duvarda yaptığı gösteri.',
                     created: 'Monday, September 3, 2024 at 4:38 PM',
                     minted: 'Monday, September 3, 2024 at 4:40 PM',
@@ -310,6 +344,8 @@
                     dimensions: '1920x1080',
                     size: '22 MB',
                     tags: ['skate', 'park', 'video']
+                    
+                    
                 },
                  {
                     id: 'f1-4',
@@ -349,6 +385,32 @@
                     dimensions: 'N/A',
                     size: '12 KB',
                     tags: ['web', 'html', 'example']
+                },
+                {
+                    id: 'f1-7', // YENİ
+                    type: 'pdf',
+                    name: 'Ornek_PDF.pdf',
+                    url: 'https://54a996c1-da67-48e4-abe3-b352dceb63bf.usrfiles.com/ugd/54a996_2c534b4433b34d0f98dc7902ea5ec811.pdf', // HATA DÜZELTMESİ: CORS dostu örnek PDF
+                    description: 'Örnek bir PDF belgesi.',
+                    created: 'Today, 1:00 PM',
+                    minted: 'Today, 1:00 PM',
+                    medium: 'PDF Document',
+                    dimensions: 'N/A',
+                    size: '13 KB',
+                    tags: ['pdf', 'document', 'example']
+                },
+                {
+                    id: 'f1-8', // YENİ
+                    type: 'website',
+                    name: 'Wikipedia.website',
+                    url: 'https://en.wikipedia.org/wiki/Main_Page', // Örnek (iframe'e izin veren) websitesi
+                    description: 'Wikipedia ana sayfası.',
+                    created: 'Today, 1:05 PM',
+                    minted: 'Today, 1:05 PM',
+                    medium: 'Website Link',
+                    dimensions: 'N/A',
+                    size: 'N/A',
+                    tags: ['web', 'link', 'encyclopedia']
                 }
             ],
             "ProjectFiles": [ 
@@ -420,6 +482,11 @@
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
                 case 'html':
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m-8 4l-4 4 4 4m16-8l-4 4 4 4"></path></svg>`;
+                // YENİ PDF ve WEBSITE İKONLARI
+                case 'pdf':
+                    return `<svg class="w-1/2 h-1/2 text-red-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+                case 'website':
+                    return `<svg class="w-1/2 h-1/2 text-blue-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h4v-4h-4v4zm0-18h4v-4h-4v4zM14 3h7v7h-7V3zM3 14h7v7H3v-7zm0-11h7v7H3V3z"></path></svg>`;
                 default:
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
             }
@@ -716,6 +783,14 @@
                 case 'html':
                      previewHTML = `<iframe class="w-full h-full border-2 border-gray-300 bg-white" sandbox="allow-scripts allow-same-origin" id="gallery-html-preview"></iframe>`;
                     break;
+                // YENİ PDF ve WEBSITE ÖNİZLEMESİ
+                case 'pdf':
+                    previewHTML = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
+                    break;
+                case 'website':
+                    // Not: overlay, iframe'in tıklamaları çalmasını engeller
+                    previewHTML = `<iframe src="${item.url}" class="w-full h-full border-2 border-gray-300 bg-white" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe><div class="absolute inset-0 bg-transparent" title="Live website preview. Double-click to open."></div>`;
+                    break;
                 default:
                     // Diğer dosya türleri (klasör vb.) için büyük ikon
                     previewHTML = `<div class="w-48 h-48 flex items-center justify-center">${getIcon(item).replace('w-full h-full', 'w-48 h-48').replace('w-1/2 h-1/2', 'w-32 h-32')}</div>`;
@@ -888,6 +963,8 @@
                     contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
                     break;
                 case 'glb':
+                    // <model-viewer> için draco-decoder-path'i (eklemedik, global script'e güvenir) ve meshopt-decoder'ı ayarlayabiliriz.
+                    // Global script'ler yüklendiği için genelde otomatik algılar.
                     contentHTML = `<model-viewer src="${item.url}" alt="${item.description || item.name}" auto-rotate camera-controls ar shadow-intensity="1"></model-viewer>`;
                     break;
                 case 'text':
@@ -896,6 +973,42 @@
                 case 'html':
                     contentHTML = `<iframe class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"></iframe>`;
                     isAsyncContent = true;
+                    break;
+                
+                // YENİ: Gelişmiş PDF Görüntüleyici (PDF.js)
+                case 'pdf':
+                    const canvasId = `pdf-canvas-${windowId}`;
+                    const controlsId = `pdf-controls-${windowId}`;
+                    
+                    // Arayüze entegre edilmiş PDF kontrolcüleri ve canvas alanı
+                    contentHTML = `
+                        <div class="pdf-viewer-wrapper w-full h-full flex flex-col bg-gray-50 overflow-hidden">
+                            <!-- Arayüze Entegre Edilmiş PDF Kontrolleri -->
+                            <div id="${controlsId}" class="flex-shrink-0 h-10 bg-gray-100 border-b border-gray-200 flex items-center justify-center gap-4 px-4">
+                                <button data-action="prev" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Önceki Sayfa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <div class="text-sm font-medium text-gray-700">
+                                    Sayfa 
+                                    <input type="number" data-action="page-input" class="w-12 text-center rounded border border-gray-400 bg-white" min="1" value="1">
+                                    / <span data-action="page-count">...</span>
+                                </div>
+                                <button data-action="next" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Sonraki Sayfa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                            <!-- PDF Sayfasının Render Edileceği Alan -->
+                            <div class="pdf-canvas-container flex-1 overflow-auto p-4 flex justify-center">
+                                <canvas id="${canvasId}"></canvas>
+                                <div data-action="loading" class="text-gray-600 p-4">Loading PDF...</div>
+                            </div>
+                        </div>`;
+                    isAsyncContent = true; // PDF.js'i çalıştırmak için
+                    break;
+                
+                case 'website':
+                    contentHTML = `<iframe src="${item.url}" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+                    isAsyncContent = false; // iframe 'src' özelliğini kendi yönetir
                     break;
                 default:
                     contentHTML = `<p class="p-4">Önizleme desteklenmiyor.</p>`;
@@ -943,6 +1056,13 @@
                 } else if (item.content) {
                     iframe.srcdoc = item.content;
                 }
+            }
+            // YENİ: PDF.js GörüNTÜLEYİCİYİ BAŞLAT
+            else if (isAsyncContent && item.type === 'pdf') {
+                const canvasId = `pdf-canvas-${windowId}`;
+                const controlsId = `pdf-controls-${windowId}`;
+                // PDF'i ve kontrolleri bu pencere için başlat
+                initializePdfViewer(item.url, canvasId, controlsId);
             }
 
             windowEl.addEventListener('mousedown', () => bringToFront(windowId), true);
@@ -1089,8 +1209,141 @@
             });
         }
         
+        /** YENİ: PDF.js Görüntüleyiciyi Başlatan Fonksiyon */
+        function initializePdfViewer(url, canvasId, controlsId) {
+            let pdfDoc = null;
+            let pageNum = 1;
+            let pageCount = 0;
+            let renderTask = null;
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) { // Canvas bulunamazsa hata ver
+                console.error("PDF.js: Canvas elementi bulunamadı: " + canvasId);
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            
+            const controls = document.getElementById(controlsId);
+            if (!controls) { // Kontroller bulunamazsa hata ver
+                console.error("PDF.js: Kontrol elementi bulunamadı: " + controlsId);
+                return;
+            }
+            
+            const prevBtn = controls.querySelector('[data-action="prev"]');
+            const nextBtn = controls.querySelector('[data-action="next"]');
+            const pageInput = controls.querySelector('[data-action="page-input"]');
+            const pageCountSpan = controls.querySelector('[data-action="page-count"]');
+            const canvasContainer = canvas.parentElement;
+            const loadingIndicator = canvasContainer.querySelector('[data-action="loading"]');
+
+            function renderPage(num) {
+                if (!pdfDoc) return; // PDF yüklenmediyse render etme
+                
+                if (renderTask) {
+                    renderTask.cancel();
+                    renderTask = null;
+                }
+                
+                pdfDoc.getPage(num).then(function(page) {
+                    // Sayfayı, pencerenin (container) genişliğine göre ölçekle
+                    // 32px = p-4 (sağ+sol padding)
+                    const containerWidth = canvasContainer.clientWidth - 32; 
+                    if (containerWidth <= 0) return; // Container görünür değilse render etme
+                    
+                    const unscaledViewport = page.getViewport({ scale: 1 });
+                    const scale = containerWidth / unscaledViewport.width;
+                    const viewport = page.getViewport({ scale: scale });
+
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = { canvasContext: ctx, viewport: viewport };
+                    renderTask = page.render(renderContext);
+                    renderTask.promise.then(() => {
+                        renderTask = null;
+                        updateUI();
+                    }).catch(err => {
+                        renderTask = null;
+                        if (err.name === 'RenderingCancelledException') {
+                            // Bu bir hata değil, hızlı sayfa geçişidir
+                        } else {
+                            console.error("Render hatası:", err);
+                        }
+                    });
+                });
+            }
+
+            function updateUI() {
+                pageCountSpan.textContent = pageCount;
+                pageInput.value = pageNum;
+                pageInput.max = pageCount;
+                prevBtn.disabled = (pageNum <= 1);
+                nextBtn.disabled = (pageNum >= pageCount);
+            }
+
+            // Kontrol butonları için event listener'lar
+            prevBtn.addEventListener('click', () => {
+                if (pageNum > 1) {
+                    pageNum--;
+                    renderPage(pageNum);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (pageNum < pageCount) {
+                    pageNum++;
+                    renderPage(pageNum);
+                }
+            });
+            
+            pageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const newPageNum = parseInt(pageInput.value, 10);
+                    if (newPageNum >= 1 && newPageNum <= pageCount) {
+                        pageNum = newPageNum;
+                        renderPage(pageNum);
+                    } else {
+                        pageInput.value = pageNum;
+                    }
+                    pageInput.blur(); // Enter'dan sonra odağı kaldır
+                }
+            });
+            
+            // PDF belgesini yükle
+            // PDF.js worker'ı DOMContentLoaded'de ayarlandığı için burada tekrar ayarlamaya gerek yok.
+            pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                pageCount = pdf.numPages;
+                loadingIndicator.style.display = 'none'; // Yükleniyor'u gizle
+                renderPage(pageNum); // İlk sayfayı render et
+            }).catch(function(error) {
+                console.error('PDF yüklenirken hata:', error);
+                loadingIndicator.innerHTML = `<p class="text-red-500 p-4 font-semibold">PDF yüklenirken hata oluştu.</p>`;
+            });
+            
+            // Pencere yeniden boyutlandırıldığında (debounce ile)
+            let resizeTimeout;
+            // ResizeObserver, pencere (element) yeniden boyutlandırıldığında tetiklenir
+            const resizeObserver = new ResizeObserver(() => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if(pdfDoc) {
+                        renderPage(pageNum); // Mevcut sayfayı yeni boyuta göre render et
+                    }
+                }, 150);
+            });
+            // Gözlemciyi pencerenin content alanına değil, canvas'ın container'ına ata
+            resizeObserver.observe(canvasContainer);
+            
+            // Pencere kapandığında gözlemciyi durdur
+            // (Bu kısım closeWindow fonksiyonuna eklenebilir, ancak şimdilik böyle de çalışır)
+        }
+        
         // --- Başlangıç ---
         document.addEventListener('DOMContentLoaded', () => {
+            // YENİ: PDF.js Worker'ını ayarla
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
             // GÜNCELLEME: Başlangıç klasörü "Cdrive" oldu
             navHistory = ['Cdrive'];
             navIndex = 0;
