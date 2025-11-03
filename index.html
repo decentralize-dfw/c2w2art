@@ -12,16 +12,18 @@
     
     <!-- Google Model Viewer (GLB dosyaları için) -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-    <!-- YENİ: GLB için Draco Desteği -->
+    <!-- GLB için Draco Desteği -->
     <script src="https://www.gstatic.com/draco/versioned/decoders/1.5.7/draco_decoder.js"></script>
     <!-- GLB için Meshopt Desteği -->
     <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.20.0/meshopt_decoder.js"></script>
+    <!-- YENİ: GLB için KTX/WEBP Texture Desteği -->
+    <script src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer-ktx-software.js"></script>
 
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             overflow: hidden;
-            background-image: url('https://images.pexels.com/photos/1766838/pexels-photo-1766838.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+            background-image: url('https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/VR-header.jpg');
             background-size: cover;
             background-position: center;
         }
@@ -252,14 +254,20 @@
                                 <div class="flex justify-between"><span class="text-gray-500">Size</span><span class="font-medium text-gray-700" id="info-size"></span></div>
                             </div>
                         </div>
+
+                        <!-- GÜNCELLENDİ: External Link Bölümü (Tags'in üstünde) -->
+                        <div id="info-links-section" class="hidden border-t border-gray-200 pt-4 mt-4">
+                             <h4 class="text-sm font-semibold text-gray-800 mb-2">External Link</h4>
+                             <div class="flex flex-col space-y-1" id="info-links">
+                                <!-- Linkler buraya JS ile eklenecek -->
+                             </div>
+                        </div>
+
                         <div id="info-tags-section" class="hidden border-t border-gray-200 pt-4 mt-4">
                              <h4 class="text-sm font-semibold text-gray-800 mb-2">Tags</h4>
                              <div class="flex flex-wrap gap-2" id="info-tags"></div>
                         </div>
-                        <div class="border-t border-gray-200 pt-4 mt-4" id="info-link-section">
-                             <h4 class="text-sm font-semibold text-gray-800 mb-2">Link</h4>
-                             <a href="#" id="info-link" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline break-all"></a>
-                        </div>
+                        
                     </div>
                 </aside>
             </div>
@@ -268,12 +276,12 @@
 
     <!-- Kapatıldığında Gösterilecek İkon ("aynankankaa") -->
     <!-- Bu, fileSystemDB'den bağımsız, özel bir UI elementidir -->
-    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 50%; left: 10%; transform: translate(-50%, -50%);">
         <div class="w-24 h-24 p-2 flex items-center justify-center transition-shadow duration-150 group-hover:shadow-lg">
             <svg class="w-full h-full text-blue-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
         </div>
         <p class="text-xs font-medium text-white text-shadow-lg text-center mt-2 break-all px-1 py-0.5 bg-black/20 rounded">
-            aynankankaa
+            **FILES**
         </p>
     </div>
 
@@ -286,27 +294,27 @@
         // --- GÜNCELLENMİŞ VERİ SİSTEMİ ---
         // "RealDesktop" = Arka planda görünen ikonlar
         // "Cdrive" = Finder içinde "C:/" olarak görünen klasör
+        // GÜNCELLEME: Tüm öğelere (boş bile olsa) `links: []` eklendi.
         const fileSystemDB = {
             "RealDesktop": [
                 {
-                    id: 'f1-2-real', // Ayrı ID
+                    id: 'rd-1',
                     type: 'video',
                     name: 'what if space had no limits.mp4',
                     url: 'https://video.wixstatic.com/video/54a996_e6d16d06cf7b490bbc64d936760c2dae/1080p/mp4/file.mp4',
-                    description: 'BMX bisikletli bir sporcunun duvarda yaptığı gösteri.',
+                    description: 'Uzay videosu.',
                     created: 'Monday, September 3, 2024 at 4:38 PM',
                     minted: 'Monday, September 3, 2024 at 4:40 PM',
-                    medium: 'Digital Photograph',
-                    dimensions: '3024x4032',
-                    size: '4 MB',
-                    tags: ['bike', 'extreme', 'urban'],
-                    link: {
-                        url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg',
-                        name: 'Pexels Kaynağı'}
-
+                    medium: 'MP4 Video',
+                    dimensions: '1920x1080',
+                    size: '15 MB',
+                    tags: ['space', 'video', 'wix'],
+                    links: [ 
+                        { url: 'https://www.wix.com', name: 'Wix Kaynağı' }
+                    ]
                 },
                 {
-                    id: 'f1-2-real', // Ayrı ID
+                    id: 'rd-2',
                     type: 'image',
                     name: 'Bike_110279.jpg',
                     url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
@@ -317,20 +325,27 @@
                     dimensions: '3024x4032',
                     size: '4 MB',
                     tags: ['bike', 'extreme', 'urban'],
-                    link: {
-                        url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg',
-                        name: 'Pexels Kaynağı'
-                    }
+                    links: [
+                        {
+                            url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg',
+                            name: 'Pexels Kaynağı (Birincil)'
+                        },
+                        {
+                            url: 'https://www.google.com/search?q=bmx',
+                            name: 'BMX Google Araması (İkincil)'
+                        }
+                    ]
                 }
             ],
-            "Cdrive": [ // Eski "Desktop" klasörü, şimdi C:/ oldu
+            "Cdrive": [ 
                 {
                     id: 'f1-1',
                     type: 'folder',
                     name: 'Project Files',
                     folderKey: 'ProjectFiles',
                     created: 'Monday, September 3, 2024 at 4:38 PM',
-                    size: '1.2 GB'
+                    size: '1.2 GB',
+                    links: []
                 },
                 {
                     id: 'f1-3',
@@ -343,22 +358,22 @@
                     medium: 'MP4 Video',
                     dimensions: '1920x1080',
                     size: '22 MB',
-                    tags: ['skate', 'park', 'video']
-                    
-                    
+                    tags: ['skate', 'park', 'video'],
+                    links: []
                 },
                  {
                     id: 'f1-4',
                     type: 'glb',
                     name: 'Astronaut.glb',
-                    url: 'https://modelviewer.dev/shared-assets/models/Astronaut.glb',
-                    description: 'Bir astronotun 3D modeli.',
-                    created: 'Wednesday, June 5, 2024 at 09:30 AM',
-                    minted: 'Wednesday, June 5, 2024 at 09:30 AM',
-                    medium: 'GLB 3D Model',
-                    dimensions: 'N/A',
-                    size: '3.8 MB',
-                    tags: ['3d', 'space', 'model']
+                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/matisse-900-opt-v80.glb',
+                    description: 'AS AS AS.',
+                    created: 'WednesdASFDFAay, June 5, 2024 at 09:30 AM',
+                    minted: 'WednesdSFADFay, June 5, 2024 at 09:30 AM',
+                    medium: 'GLB 3DSDFAWF Model',
+                    dimensions: 'NDSAF/A',
+                    size: '3.00008 MB',
+                    tags: ['3d', 'space', 'model'],
+                    links: []
                 },
                 {
                     id: 'f1-5',
@@ -372,45 +387,65 @@
                     dimensions: 'N/A',
                     size: '1 KB',
                     tags: ['text', 'notes'],
+                    links: []
                 },
                 {
                     id: 'f1-6',
                     type: 'html',
                     name: 'OrnekWebSayfasi.html',
-                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2/main/offthechain.html', // Sizin verdiğiniz örnek URL
+                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2/main/offthechain.html',
                     description: 'Örnek bir HTML sayfası.',
                     created: 'Today, 11:00 AM',
                     minted: 'Today, 11:00 AM',
                     medium: 'HTML Document',
                     dimensions: 'N/A',
                     size: '12 KB',
-                    tags: ['web', 'html', 'example']
+                    tags: ['web', 'html', 'example'],
+                    links: []
                 },
                 {
-                    id: 'f1-7', // YENİ
+                    id: 'f1-7',
                     type: 'pdf',
                     name: 'Ornek_PDF.pdf',
-                    url: 'https://54a996c1-da67-48e4-abe3-b352dceb63bf.usrfiles.com/ugd/54a996_2c534b4433b34d0f98dc7902ea5ec811.pdf', // HATA DÜZELTMESİ: CORS dostu örnek PDF
+                    url: 'https://54a996c1-da67-48e4-abe3-b352dceb63bf.usrfiles.com/ugd/54a996_2c534b4433b34d0f98dc7902ea5ec811.pdf',
                     description: 'Örnek bir PDF belgesi.',
                     created: 'Today, 1:00 PM',
                     minted: 'Today, 1:00 PM',
                     medium: 'PDF Document',
                     dimensions: 'N/A',
                     size: '13 KB',
-                    tags: ['pdf', 'document', 'example']
+                    tags: ['pdf', 'document', 'example'],
+                    links: []
                 },
                 {
-                    id: 'f1-8', // YENİ
+                    id: 'f1-8',
                     type: 'website',
                     name: 'Wikipedia.website',
-                    url: 'https://en.wikipedia.org/wiki/Main_Page', // Örnek (iframe'e izin veren) websitesi
+                    url: 'https://en.wikipedia.org/wiki/Main_Page',
                     description: 'Wikipedia ana sayfası.',
                     created: 'Today, 1:05 PM',
                     minted: 'Today, 1:05 PM',
                     medium: 'Website Link',
                     dimensions: 'N/A',
                     size: 'N/A',
-                    tags: ['web', 'link', 'encyclopedia']
+                    tags: ['web', 'link', 'encyclopedia'],
+                    links: []
+                },
+                { // YENİ: VRM Test Dosyası
+                    id: 'f1-9',
+                    type: 'vrm',
+                    name: 'Alicia.vrm',
+                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-vrm/main/Neue2Dojo-Curator-C2W2-22.vrm',
+                    description: 'VRM 3D Avatar Modeli.',
+                    created: 'Today, 1:10 PM',
+                    minted: 'Today, 1:10 PM',
+                    medium: 'VRM 3D Model',
+                    dimensions: 'N/A',
+                    size: '2.5 MB',
+                    tags: ['3d', 'vrm', 'avatar'],
+                    links: [
+                        { url: 'https://pixiv.github.io/three-vrm/', name: 'three-vrm Kaynağı' }
+                    ]
                 }
             ],
             "ProjectFiles": [ 
@@ -425,7 +460,8 @@
                     medium: 'PNG Image',
                     dimensions: '1200x800',
                     size: '1.1 MB',
-                    tags: ['chart', 'sports', 'report']
+                    tags: ['chart', 'sports', 'report'],
+                    links: []
                 },
                 {
                     id: 'f2-2',
@@ -438,7 +474,17 @@
                     medium: 'Digital Photograph',
                     dimensions: '4000x3000',
                     size: '5.2 MB',
-                    tags: ['city', 'night', 'travel']
+                    tags: ['city', 'night', 'travel'],
+                    links: [ // SİZİN EKLEDİĞİNİZ ÖRNEK
+                        {
+                            url: 'https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg',
+                            name: 'Pexels Kaynağı (Birincil)'
+                        },
+                        {
+                            url: 'https://www.google.com/search?q=roadtrip',
+                            name: 'RoadTrip Google Araması (İkincil)'
+                        }
+                    ]
                 }
             ],
             "Documents": [], "AirDrop": [], "Recents": [], "Applications": []
@@ -477,12 +523,12 @@
                 case 'video':
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 18h10a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
                 case 'glb':
+                case 'vrm': // YENİ: VRM için de aynı ikonu kullan
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m0 10l8 4m0 0v-4m0 0L4 11m8 4l8-4m-8 4v4m0 0L4 17m8 4l8-4"></path></svg>`;
                 case 'text':
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
                 case 'html':
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m-8 4l-4 4 4 4m16-8l-4 4 4 4"></path></svg>`;
-                // YENİ PDF ve WEBSITE İKONLARI
                 case 'pdf':
                     return `<svg class="w-1/2 h-1/2 text-red-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
                 case 'website':
@@ -775,7 +821,9 @@
                     previewHTML = `<video controls autoplay class="max-w-full max-h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Browser desteklemiyor.</video>`;
                     break;
                 case 'glb':
-                    previewHTML = `<model-viewer src="${item.url}" alt="${item.description || item.name}" auto-rotate camera-controls ar shadow-intensity="1" class="w-full h-full"></model-viewer>`;
+                case 'vrm': // YENİ: VRM Desteği
+                    // YENİ: autoplay eklendi
+                    previewHTML = `<model-viewer src="${item.url}" alt="${item.description || item.name}" auto-rotate camera-controls ar shadow-intensity="1" autoplay class="w-full h-full"></model-viewer>`;
                     break;
                 case 'text':
                     previewHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap bg-white border rounded-md">${item.content}</pre>`;
@@ -783,7 +831,6 @@
                 case 'html':
                      previewHTML = `<iframe class="w-full h-full border-2 border-gray-300 bg-white" sandbox="allow-scripts allow-same-origin" id="gallery-html-preview"></iframe>`;
                     break;
-                // YENİ PDF ve WEBSITE ÖNİZLEMESİ
                 case 'pdf':
                     previewHTML = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
                     break;
@@ -914,6 +961,38 @@
             document.getElementById('info-dimensions').textContent = item.dimensions || '-';
             document.getElementById('info-size').textContent = item.size || '-';
             
+            // GÜNCELLENDİ: "External Link" Mantığı
+            const linksSection = document.getElementById('info-links-section');
+            const linksContainer = document.getElementById('info-links');
+            linksContainer.innerHTML = ''; // Önceki linkleri temizle
+            
+            // Hem `links` (yeni dizi) hem de `link` (eski obje) kontrolü
+            let linksToShow = [];
+            if (item.links && Array.isArray(item.links)) {
+                linksToShow = item.links;
+            } else if (item.link) { // Geriye dönük uyumluluk
+                linksToShow = [item.link];
+            }
+
+            if (linksToShow.length > 0) {
+                linksToShow.forEach(link => {
+                    if (link && link.url && link.name) {
+                        const linkEl = document.createElement('a');
+                        linkEl.href = link.url;
+                        linkEl.target = '_blank'; // Yeni sekmede aç
+                        linkEl.rel = 'noopener noreferrer';
+                        linkEl.className = 'text-sm text-blue-600 hover:underline truncate'; // Mavi ve altı çizili
+                        linkEl.title = link.url; // Hover'da URL'yi göster
+                        linkEl.textContent = link.name; // İsim
+                        linksContainer.appendChild(linkEl);
+                    }
+                });
+                linksSection.classList.remove('hidden'); // Bölümü göster
+            } else {
+                linksSection.classList.add('hidden'); // Link yoksa bölümü gizle
+            }
+
+            // "Tags" Mantığı (Aşağıya taşındı)
             const tagsSection = document.getElementById('info-tags-section');
             const tagsContainer = document.getElementById('info-tags');
             tagsContainer.innerHTML = '';
@@ -927,16 +1006,6 @@
                 tagsSection.classList.remove('hidden');
             } else {
                 tagsSection.classList.add('hidden');
-            }
-
-            const linkSection = document.getElementById('info-link-section');
-            if (item.link) {
-                const linkEl = document.getElementById('info-link');
-                linkEl.href = item.link.url;
-                linkEl.textContent = item.link.name || item.link.url;
-                linkSection.classList.remove('hidden');
-            } else {
-                linkSection.classList.add('hidden');
             }
         }
 
@@ -963,9 +1032,9 @@
                     contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
                     break;
                 case 'glb':
-                    // <model-viewer> için draco-decoder-path'i (eklemedik, global script'e güvenir) ve meshopt-decoder'ı ayarlayabiliriz.
-                    // Global script'ler yüklendiği için genelde otomatik algılar.
-                    contentHTML = `<model-viewer src="${item.url}" alt="${item.description || item.name}" auto-rotate camera-controls ar shadow-intensity="1"></model-viewer>`;
+                case 'vrm': // YENİ: VRM Desteği
+                    // YENİ: autoplay eklendi
+                    contentHTML = `<model-viewer src="${item.url}" alt="${item.description || item.name}" auto-rotate camera-controls ar shadow-intensity="1" autoplay></model-viewer>`;
                     break;
                 case 'text':
                     contentHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap">${item.content}</pre>`;
@@ -975,7 +1044,7 @@
                     isAsyncContent = true;
                     break;
                 
-                // YENİ: Gelişmiş PDF Görüntüleyici (PDF.js)
+                // Gelişmiş PDF Görüntüleyici (PDF.js)
                 case 'pdf':
                     const canvasId = `pdf-canvas-${windowId}`;
                     const controlsId = `pdf-controls-${windowId}`;
@@ -1057,7 +1126,7 @@
                     iframe.srcdoc = item.content;
                 }
             }
-            // YENİ: PDF.js GörüNTÜLEYİCİYİ BAŞLAT
+            // PDF.js GörüNTÜLEYİCİYİ BAŞLAT
             else if (isAsyncContent && item.type === 'pdf') {
                 const canvasId = `pdf-canvas-${windowId}`;
                 const controlsId = `pdf-controls-${windowId}`;
