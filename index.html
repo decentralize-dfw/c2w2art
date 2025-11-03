@@ -10,20 +10,19 @@
     <!-- PDF.js Kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
-    <!-- Google Model Viewer (GLB dosyaları için) -->
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
-    <!-- GLB için Draco Desteği -->
-    <script src="https://www.gstatic.com/draco/versioned/decoders/1.5.7/draco_decoder.js"></script>
-    <!-- GLB için Meshopt Desteği -->
-    <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.20.0/meshopt_decoder.js"></script>
-    <!-- YENİ: GLB için KTX/WEBP Texture Desteği -->
-    <script src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer-ktx-software.js"></script>
+    <!-- Three.js ve Gerekli Loader'lar (GLB için) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://unpkg.com/meshoptimizer@0.18.1/meshopt_decoder.js"></script>
 
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             overflow: hidden;
-            background-image: url('https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/VR-header.jpg');
+            background-image: url('https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
             background-size: cover;
             background-position: center;
         }
@@ -120,12 +119,6 @@
         ::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #71717a; }
         
-        model-viewer {
-            width: 100%;
-            height: 100%;
-            min-height: 400px;
-        }
-
         /* YENİ: PDF Canvas Stili */
         .pdf-canvas-container {
             /* PDF'in renderlandığı alan için arka plan */
@@ -134,6 +127,38 @@
         .pdf-canvas-container canvas {
             /* PDF sayfası için gölge */
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* Loading Indicator Stili */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+        .loading-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .loading-progress {
+            width: 200px;
+            height: 6px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3b82f6;
+            width: 0%;
+            transition: width 0.3s ease;
         }
     </style>
 </head>
@@ -276,12 +301,12 @@
 
     <!-- Kapatıldığında Gösterilecek İkon ("aynankankaa") -->
     <!-- Bu, fileSystemDB'den bağımsız, özel bir UI elementidir -->
-    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 50%; left: 10%; transform: translate(-50%, -50%);">
+    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
         <div class="w-24 h-24 p-2 flex items-center justify-center transition-shadow duration-150 group-hover:shadow-lg">
             <svg class="w-full h-full text-blue-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
         </div>
         <p class="text-xs font-medium text-white text-shadow-lg text-center mt-2 break-all px-1 py-0.5 bg-black/20 rounded">
-            **FILES**
+            aynankankaa
         </p>
     </div>
 
@@ -317,7 +342,7 @@
                     id: 'rd-2',
                     type: 'image',
                     name: 'Bike_110279.jpg',
-                    url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                    url: 'https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
                     description: 'BMX bisikletli bir sporcunun duvarda yaptığı gösteri.',
                     created: 'Monday, September 3, 2024 at 4:38 PM',
                     minted: 'Monday, September 3, 2024 at 4:40 PM',
@@ -327,7 +352,7 @@
                     tags: ['bike', 'extreme', 'urban'],
                     links: [
                         {
-                            url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg',
+                            url: 'https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg',
                             name: 'Pexels Kaynağı (Birincil)'
                         },
                         {
@@ -361,19 +386,21 @@
                     tags: ['skate', 'park', 'video'],
                     links: []
                 },
-                 {
+                 { // GÜNCELLEME: Sizin verdiğiniz linkle değiştirildi
                     id: 'f1-4',
                     type: 'glb',
-                    name: 'Astronaut.glb',
+                    name: 'matisse-900.glb',
                     url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/matisse-900-opt-v80.glb',
-                    description: 'AS AS AS.',
-                    created: 'WednesdASFDFAay, June 5, 2024 at 09:30 AM',
-                    minted: 'WednesdSFADFay, June 5, 2024 at 09:30 AM',
-                    medium: 'GLB 3DSDFAWF Model',
-                    dimensions: 'NDSAF/A',
-                    size: '3.00008 MB',
-                    tags: ['3d', 'space', 'model'],
-                    links: []
+                    description: 'WEBP Texturelı Matisse 3D modeli.',
+                    created: 'Wednesday, June 5, 2024 at 09:30 AM',
+                    minted: 'Wednesday, June 5, 2024 at 09:30 AM',
+                    medium: 'GLB 3D Model',
+                    dimensions: 'N/A',
+                    size: '1.5 MB',
+                    tags: ['3d', 'matisse', 'model', 'webp'],
+                    links: [
+                         { url: 'https://github.com/decentralize-dfw/c2w2-glb', name: 'GitHub Kaynağı' }
+                    ]
                 },
                 {
                     id: 'f1-5',
@@ -435,7 +462,7 @@
                     id: 'f1-9',
                     type: 'vrm',
                     name: 'Alicia.vrm',
-                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-vrm/main/Neue2Dojo-Curator-C2W2-22.vrm',
+                    url: 'https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/AliciaSolid.vrm',
                     description: 'VRM 3D Avatar Modeli.',
                     created: 'Today, 1:10 PM',
                     minted: 'Today, 1:10 PM',
@@ -460,7 +487,7 @@
                     medium: 'PNG Image',
                     dimensions: '1200x800',
                     size: '1.1 MB',
-                    tags: ['chart', 'sports', 'report'],
+                    tags: ['bike', 'sports', 'report'],
                     links: []
                 },
                 {
@@ -524,7 +551,7 @@
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 18h10a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
                 case 'glb':
                 case 'vrm': // YENİ: VRM için de aynı ikonu kullan
-                    return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m0 10l8 4m0 0v-4m0 0L4 11m8 4l8-4m-8 4v4m0 0L4 17m8 4l8-4"></path></svg>`;
+                    return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m0 10l8 4m6 0v-4m0 0L4 11m6 4l8-4m-8 4v4m0 0L4 17m6 4l8-4"></path></svg>`;
                 case 'text':
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
                 case 'html':
@@ -821,15 +848,22 @@
                     previewHTML = `<video controls autoplay class="max-w-full max-h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Browser desteklemiyor.</video>`;
                     break;
                 case 'glb':
-                case 'vrm': // YENİ: VRM Desteği
-                    // YENİ: autoplay eklendi
-                    previewHTML = `<model-viewer src="${item.url}" alt="${item.description || item.name}" auto-rotate camera-controls ar shadow-intensity="1" autoplay class="w-full h-full"></model-viewer>`;
+                case 'vrm':
+                    previewHTML = `<div id="glb-preview-${item.id}" class="w-full h-full relative">
+                        <div class="loading-overlay">
+                            <div class="loading-text">Loading... <span class="loading-percentage">0%</span></div>
+                            <div class="loading-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                    loadGlbInGallery(item.url, `glb-preview-${item.id}`);
                     break;
                 case 'text':
                     previewHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap bg-white border rounded-md">${item.content}</pre>`;
                     break;
                 case 'html':
-                     previewHTML = `<iframe class="w-full h-full border-2 border-gray-300 bg-white" sandbox="allow-scripts allow-same-origin" id="gallery-html-preview"></iframe>`;
+                    previewHTML = `<iframe class="w-full h-full border-2 border-gray-300 bg-white" sandbox="allow-scripts allow-same-origin" id="gallery-html-preview"></iframe>`;
                     break;
                 case 'pdf':
                     previewHTML = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
@@ -970,7 +1004,7 @@
             let linksToShow = [];
             if (item.links && Array.isArray(item.links)) {
                 linksToShow = item.links;
-            } else if (item.link) { // Geriye dönük uyumluluk
+            } else if (item.link && typeof item.link === 'object') { // Geriye dönük uyumluluk
                 linksToShow = [item.link];
             }
 
@@ -1032,9 +1066,16 @@
                     contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
                     break;
                 case 'glb':
-                case 'vrm': // YENİ: VRM Desteği
-                    // YENİ: autoplay eklendi
-                    contentHTML = `<model-viewer src="${item.url}" alt="${item.description || item.name}" auto-rotate camera-controls ar shadow-intensity="1" autoplay></model-viewer>`;
+                case 'vrm':
+                    contentHTML = `<div id="glb-canvas-container-${windowId}" class="w-full h-full relative">
+                        <div class="loading-overlay">
+                            <div class="loading-text">Loading... <span class="loading-percentage">0%</span></div>
+                            <div class="loading-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                    isAsyncContent = true;
                     break;
                 case 'text':
                     contentHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap">${item.content}</pre>`;
@@ -1132,6 +1173,8 @@
                 const controlsId = `pdf-controls-${windowId}`;
                 // PDF'i ve kontrolleri bu pencere için başlat
                 initializePdfViewer(item.url, canvasId, controlsId);
+            } else if (isAsyncContent && (item.type === 'glb' || item.type === 'vrm')) {
+                loadGlbInWindow(item.url, `glb-canvas-container-${windowId}`);
             }
 
             windowEl.addEventListener('mousedown', () => bringToFront(windowId), true);
@@ -1407,7 +1450,250 @@
             // Pencere kapandığında gözlemciyi durdur
             // (Bu kısım closeWindow fonksiyonuna eklenebilir, ancak şimdilik böyle de çalışır)
         }
-        
+
+        // --- YENİ: GLB/VRM'i Pencerede Yükleyen Fonksiyon (Three.js ile) ---
+        function loadGlbInWindow(modelUrl, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const loadingPercentage = container.querySelector('.loading-percentage');
+            const progressBar = container.querySelector('.progress-bar');
+            const loadingOverlay = container.querySelector('.loading-overlay');
+
+            function updateLoadingProgress(percent) {
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (loadingPercentage) loadingPercentage.textContent = `${Math.round(percent)}%`;
+            }
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.01, 1000);
+            camera.position.set(0, 1, 4);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.physicallyCorrectLights = true;
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = true;
+            controls.minDistance = 0.01;
+            controls.maxDistance = 8;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.0;
+            controls.target.set(0, 0.5, 0);
+            controls.minPolarAngle = Math.PI / 4;
+            controls.maxPolarAngle = Math.PI / 1.5;
+            controls.enabled = true;
+            controls.update();
+
+            // Temel Aydınlatma
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            // HDRI (Sadece Light 1 kullanıldı)
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+            new THREE.RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', texture => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = envMap;
+                texture.dispose();
+                pmremGenerator.dispose();
+            });
+
+            let mixer = null;
+
+            // GLB Yükleme
+            const gltfLoader = new THREE.GLTFLoader();
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            gltfLoader.setDRACOLoader(dracoLoader);
+            gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+            gltfLoader.load(modelUrl, gltf => {
+                const model = gltf.scene;
+                const bbox = new THREE.Box3().setFromObject(model);
+                const center = bbox.getCenter(new THREE.Vector3());
+                model.position.x = -center.x;
+                model.position.z = -center.z;
+                model.position.y = -0.8;
+                scene.add(model);
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+                // Animasyonlar
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach(clip => {
+                        const action = mixer.clipAction(clip);
+                        action.setLoop(THREE.LoopRepeat);
+                        action.play();
+                    });
+                }
+            }, xhr => {
+                if (xhr.lengthComputable) {
+                    const percent = (xhr.loaded / xhr.total) * 100;
+                    updateLoadingProgress(percent);
+                }
+            }, error => console.error('GLB yükleme hatası:', error));
+
+            // Animasyon Döngüsü
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                if (mixer) mixer.update(clock.getDelta());
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Yeniden Boyutlandırma - Güncellenmiş Hata Düzeltme
+            let lastWidth = container.clientWidth;
+            let lastHeight = container.clientHeight;
+            const resizeObserver = new ResizeObserver(() => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                if (newWidth === lastWidth && newHeight === lastHeight) return;
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+                requestAnimationFrame(() => {
+                    camera.aspect = newWidth / newHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(newWidth, newHeight);
+                });
+            });
+            resizeObserver.observe(container);
+        }
+
+        // --- YENİ: GLB/VRM'i Galeri'de Yükleyen Fonksiyon (Three.js ile) ---
+        function loadGlbInGallery(modelUrl, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const loadingPercentage = container.querySelector('.loading-percentage');
+            const progressBar = container.querySelector('.progress-bar');
+            const loadingOverlay = container.querySelector('.loading-overlay');
+
+            function updateLoadingProgress(percent) {
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (loadingPercentage) loadingPercentage.textContent = `${Math.round(percent)}%`;
+            }
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.01, 1000);
+            camera.position.set(0, 1, 4);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.physicallyCorrectLights = true;
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = true;
+            controls.minDistance = 0.01;
+            controls.maxDistance = 8;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.0;
+            controls.target.set(0, 0.5, 0);
+            controls.minPolarAngle = Math.PI / 4;
+            controls.maxPolarAngle = Math.PI / 1.5;
+            controls.enabled = true;
+            controls.update();
+
+            // Temel Aydınlatma
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            // HDRI (Sadece Light 1 kullanıldı)
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+            new THREE.RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', texture => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = envMap;
+                texture.dispose();
+                pmremGenerator.dispose();
+            });
+
+            let mixer = null;
+
+            // GLB Yükleme
+            const gltfLoader = new THREE.GLTFLoader();
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            gltfLoader.setDRACOLoader(dracoLoader);
+            gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+            gltfLoader.load(modelUrl, gltf => {
+                const model = gltf.scene;
+                const bbox = new THREE.Box3().setFromObject(model);
+                const center = bbox.getCenter(new THREE.Vector3());
+                model.position.x = -center.x;
+                model.position.z = -center.z;
+                model.position.y = -0.8;
+                scene.add(model);
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+                // Animasyonlar
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach(clip => {
+                        const action = mixer.clipAction(clip);
+                        action.setLoop(THREE.LoopRepeat);
+                        action.play();
+                    });
+                }
+            }, xhr => {
+                if (xhr.lengthComputable) {
+                    const percent = (xhr.loaded / xhr.total) * 100;
+                    updateLoadingProgress(percent);
+                }
+            }, error => console.error('GLB yükleme hatası:', error));
+
+            // Animasyon Döngüsü
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                if (mixer) mixer.update(clock.getDelta());
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Yeniden Boyutlandırma - Güncellenmiş Hata Düzeltme
+            let lastWidth = container.clientWidth;
+            let lastHeight = container.clientHeight;
+            const resizeObserver = new ResizeObserver(() => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                if (newWidth === lastWidth && newHeight === lastHeight) return;
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+                requestAnimationFrame(() => {
+                    camera.aspect = newWidth / newHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(newWidth, newHeight);
+                });
+            });
+            resizeObserver.observe(container);
+        }
+
+        // --- YENİ: Galeri için Güncellenmiş Fonksiyon (GLB yükleme eklendi) ---
+        function updateGallery(item) {
+            updateGalleryPreview(item);
+        }
+
         // --- Başlangıç ---
         document.addEventListener('DOMContentLoaded', () => {
             // YENİ: PDF.js Worker'ını ayarla
@@ -1519,4 +1805,3 @@
     </script>
 </body>
 </html>
-
