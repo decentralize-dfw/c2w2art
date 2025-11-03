@@ -1,0 +1,2322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>DFWy</title>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <style>
+ * {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+ font-family: "Helvetica", monospace;
+ }
+ 
+ body {
+ background-color: transparent;
+ overflow: hidden;
+ color: #000;
+ }
+ 
+.grid-item {
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column; /* Stack image and title vertically */
+    align-items: center; /* Center align items */
+    justify-content: flex-start; /* Start from top */
+}
+
+.grid-item img {
+    width: 100%;
+    aspect-ratio: 1; /* Maintain square aspect ratio for image only */
+    object-fit: contain;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    margin-bottom: 5px; /* Space for name */
+}
+
+.grid-item-name {
+    background-color: white;
+    color: rgba(0, 0, 0, 1);
+    padding: 5px;
+    font-size: 10px;
+    text-align: center;
+    word-break: break-word;
+    opacity: 1; /* Always visible */
+    width: 100%; /* Match thumbnail width */
+}
+
+ .container {
+ display: flex;
+ flex-direction: column;
+ height: 800px;
+ width: 100vw;
+ margin: 0 auto;
+ overflow: hidden;
+ position: relative;
+ }
+ 
+ .top-section {
+ height: 32px;
+ width: 400px;
+ display: flex;
+ flex-direction: column;
+ padding: 0;
+ background-color: rgba(255, 255, 255, 0);
+ z-index: 10;
+ position: absolute;
+ margin-top: 43px; /* Adds 35px space above the section */
+ left: 15px;
+ top: 15px;
+ }
+
+ .collections-row {
+ display: flex;
+ width: 400px;
+ gap: 8px;
+ }
+
+ .collections {
+ display: flex;
+ gap: 8px;
+ z-index: 6;
+ height: 32px;
+ width: 100%;
+ white-space: nowrap;
+ }
+.collection-btn {
+    padding: 5px 4px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    font-size: 9px;
+    transition: all 0.2s;
+    color: #000;
+    box-shadow: none;
+    text-shadow: none;
+    height: 32px;
+    line-height: 20px;
+    flex: 1;
+    outline: none;
+}
+
+.collection-btn:hover {
+    background-color: rgba(240, 240, 240, 0.9);
+}
+
+.collection-btn.active {
+    background-color: rgba(60, 60, 60, 0.9);
+    color: white;
+}
+ 
+ .all-btn {
+ font-weight: bolder !important;
+ background-color: rgba(240, 240, 240, 0.9);
+ }
+
+ .viewer-container {
+ position: absolute;
+ top: 60px;
+ left: 10px;
+ right: 10px;
+ bottom: 120px;
+ z-index: 1;
+ overflow: visible;
+ pointer-events: auto;
+ background: transparent !important;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ }
+ 
+ .media-preview {
+ width: 50%;
+ height: 50%;
+ margin: 0 auto;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ overflow: visible;
+ background: transparent !important;
+ position: relative;
+ }
+ 
+ .media-image {
+ max-width: 100%;
+ max-height: 100%;
+ object-fit: contain;
+ }
+ 
+.media-video-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent !important;
+    position: relative;
+}
+
+.video-controls {
+    position: absolute;
+    top: -40px; /* 100px from the top of the screen */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+.video-control-btn {
+    width: 15px;
+    height: 15px;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.video-control-btn:hover {
+    background-color: #333;
+}
+
+/* Hide controls for YouTube videos */
+.youtube-iframe-container + .video-controls {
+    display: none;
+}
+
+.media-video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    width: auto;
+    height: auto;
+    background: transparent !important;
+    aspect-ratio: 16/9;
+}
+
+/* YouTube iframe container to match Wix video sizing */
+.youtube-iframe-container {
+    width: 57%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent !important;
+    overflow: hidden;
+}
+/* YouTube iframe to fill container like Wix video */
+.youtube-iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    aspect-ratio: 16/9;
+    border: none;
+    box-sizing: border-box;
+}
+ 
+ .media-text {
+ width: 50%;
+ height: 90%;
+ padding: 0px;
+ padding-right: 10px;
+ letter-spacing: -0.15px;
+ background-color: rgba(255, 255, 255, 0);
+ overflow-y: auto;
+ border-radius: 0px;
+ color: #000;
+ font-size: 16px;
+ line-height: 1.5;
+ text-align: justify;
+ text-align-last: left;
+ justify-content: flex-start;
+ max-height: 80%;
+ box-sizing: border-box;
+ }
+
+ .media-text p {
+ margin: 0 0 1.5em 0;
+ padding: 0;
+ }
+
+ .media-text p:empty {
+ display: none;
+ }
+
+ .media-text h2 {
+ margin-bottom: 1em;
+ }
+ 
+ .avatar-details {
+ position: absolute;
+ padding: 0;
+ max-height: 80vh;
+ overflow: hidden;
+ z-index: 4;
+ color: #000;
+ background-color: transparent;
+ width: 500px;
+ display: flex;
+ flex-direction: column;
+ margin: 0;
+ left: 15px;
+ top: 120px;
+ box-sizing: border-box;
+ }
+ 
+ .details-title {
+ font-size: 28px;
+ font-weight: bold;
+ margin-bottom: 10px;
+ width: 100%;
+ padding: 0;
+ }
+ 
+ .compact-info {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ margin-bottom: 15px;
+ align-items: center;
+ width: 100%;
+ padding: 0;
+ }
+ 
+ .info-pill, .link-pill {
+ background-color: rgba(255, 255, 255, 0.4);
+ padding: 3px 8px;
+ border-radius: 4px;
+ font-size: 9px;
+ white-space: nowrap;
+ border: 1px solid rgba(0, 0, 0, 0.1);
+ }
+ 
+ .link-pill {
+ cursor: pointer;
+ }
+ 
+ .description-text {
+ font-size: 10px;
+ font-weight: bold;
+ line-height: 1.5;
+ text-align: left;
+ margin-bottom: 10px;
+ letter-spacing: -0.2px;
+ width: 100%;
+ padding: 0;
+ }
+ 
+ .collection-text {
+ font-size: 9px;
+ font-style: italic;
+ line-height: 1.4;
+ text-align: justify;
+ width: 100%;
+ padding: 0;
+ }
+ 
+ .control-row {
+ display: flex;
+ width: 100%;
+ gap: 14px;
+ margin-bottom: 10px;
+ align-items: center;
+ padding: 0;
+ }
+ 
+ .action-btn {
+ padding: 8px 0;
+ border: 1px solid rgba(0, 0, 0, 0.2);
+ border-radius: 4px;
+ background-color: rgba(255, 255, 255, 0.5);
+ color: #000;
+ cursor: pointer;
+ font-size: 9px;
+ transition: all 0.2s;
+ text-align: center;
+ flex: 1;
+ box-sizing: border-box;
+ }
+ 
+ .action-btn:hover {
+ background-color: rgba(220, 220, 220, 0.9);
+ }
+ 
+ .bottom-section {
+ position: absolute;
+ left: 0;
+ right: 0;
+ height: 80px;
+ bottom: 0px;
+ z-index: 5;
+ text-align: center;
+ }
+ 
+ .avatar-selector {
+ width: 100%;
+ height: 100%;
+ position: relative;
+ }
+ 
+ .avatar-carousel {
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ position: relative;
+ width: 100%;
+ height: 100%;
+ }
+ 
+ .media-item {
+ position: absolute;
+ width: 80px;
+ height: 80px;
+ transition: all 0.3s ease;
+ cursor: pointer;
+ transform-origin: center center;
+ opacity: 0.7;
+ z-index: 10;
+ border-radius: 8px;
+ overflow: visible;
+ margin-top: 25px;
+ display: flex;
+ align-items: flex-end;
+ justify-content: center;
+ }
+ 
+ .media-item.promotional, .media-item.featured, .media-item.overview {
+ background-color: white;
+ }
+ 
+ .media-item-thumbnail {
+ width: 100%;
+ height: 100%;
+ object-fit: contain;
+ border-radius: 8px;
+ border: 2px solid transparent; 
+ transition: all 0.3s ease;
+ z-index: 11;
+ position: relative;
+ margin-bottom: 0;
+ }
+ 
+ .media-item.active .media-item-thumbnail {
+ border-color: rgba(0, 120, 255, 0.8);
+ box-shadow: 0 0 10px rgba(0, 120, 255, 0.5);
+ }
+ 
+ .media-item-name {
+ position: absolute;
+ top: -25px;
+ left: 50%;
+ transform: translateX(-50%);
+ background-color: rgba(255, 255, 255, 0.8);
+ color: #000;
+ padding: 3px 8px;
+ border-radius: 4px;
+ font-size: 12px;
+ white-space: nowrap;
+ transition: opacity 0.3s ease;
+ pointer-events: none;
+ z-index: 50;
+ opacity: 0;
+ font-weight: normal;
+ }
+ 
+ .media-item:hover .media-item-name {
+ opacity: 1;
+ }
+ 
+ .loading-overlay {
+ position: absolute;
+ top: 0;
+ left: 0;
+ width: 100%;
+ height: 100%;
+ background-color: transparent;
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+ z-index: 100;
+ color: #000;
+ }
+ 
+ .loading-text {
+ font-size: 18px;
+ margin-bottom: 10px;
+ background-color: rgba(255, 255, 255, 0);
+ padding: 5px 15px;
+ border-radius: 4px;
+ font-family: "Lucida Console", monospace;
+ letter-spacing: -1px;
+ }
+ 
+ .loading-progress {
+ width: 200px;
+ height: 6px;
+ background-color: rgba(0, 0, 0, 0.1);
+ border-radius: 3px;
+ overflow: hidden;
+ }
+ 
+ .progress-bar {
+ height: 100%;
+ background-color: rgba(0, 120, 255, 0.8);
+ width: 0%;
+ transition: width 0.3s ease;
+ }
+ 
+ .avatar-grid-container {
+ position: absolute;
+ top: 215px;
+ left: 0;
+ right: 0;
+ bottom: 0px;
+ padding: 15px;
+ overflow-y: auto;
+ z-index: 6;
+ background-color: rgba(255, 255, 255, 1);
+ display: none;
+ }
+
+ .avatar-grid {
+ display: grid;
+ grid-template-columns: repeat(7, 1fr);
+ gap: 100px;
+ padding: 10px;
+ }
+
+
+
+ .grid-item:hover img {
+ transform: scale(1.05);
+ border-color: rgba(0, 120, 255, 0.8);
+ }
+
+
+
+ .grid-item:hover .grid -item-name {
+ opacity: 1;
+ }
+
+ .grid-toggle-button {
+ position: absolute;
+ bottom: 150px;
+ left: 50%;
+ transform: translateX(-50%);
+ width: 40px;
+ height: 40px;
+ background-color: rgba(255, 255, 255, 0.85);
+ border-radius: 50%;
+ display: flex;
+ justify-content: center;
+ align-items: center;
+ cursor: pointer;
+ z-index: 10;
+ box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+ transition: all 0.3s ease;
+ }
+
+ .grid-toggle-button:hover {
+ background-color: rgba(220, 220, 220, 0.9);
+ }
+
+ .no-results {
+ grid-column: 1 / -1;
+ text-align: center;
+ padding: 20px;
+ font-size: 14px;
+ color: #666;
+ }
+ 
+
+ </style>
+</head>
+<body>
+ <div class="container">
+ <div class="top-section">
+ <div class="collections-row">
+ <div class="collections" id="collections"></div>
+ </div>
+ </div>
+
+ <div class="avatar-grid-container" id="avatar-grid-container">
+ <div class="avatar-grid" id="avatar-grid"></div>
+ </div>
+ 
+ <div class="viewer-container" id="viewer-container">
+ <div class="media-preview" id="media-preview"></div>
+ <div class="avatar-details" id="avatar-details">
+ <div class="details-title" id="avatar-title"></div>
+ <div class="details-info" id="details-info"></div>
+ <div class="control-row">
+ 
+ <button class="action-btn" id="go-page-btn">Go to the page</button>
+ <button class="action-btn" id="tweet-btn">Tweet</button>
+ <button class="action-btn" id="buy-btn">Buy</button>
+ <button class="action-btn" id="order-btn">Order</button>
+ </div>
+ <div class="description-text" id="description-text"></div>
+ <div class="collection-text" id="collection-text"></div>
+ </div>
+ <div class="loading-overlay" id="loading-overlay">
+ <div class="loading-text">Loading... <span id="loading-percentage">0%</span></div>
+ <div class="loading-progress">
+ <div class="progress-bar" id="progress-bar"></div>
+ </div>
+ </div>
+ </div>
+
+ <div class="grid-toggle-button" id="grid-toggle-button">
+ <i class="fas fa-th-large"></i>
+ </div>
+ 
+ <div class="bottom-section" id="bottom-section">
+ <div class="avatar-selector">
+ <div class="avatar-carousel" id="avatar-carousel"></div>
+ </div>
+ </div>
+ </div>
+ 
+ <script>
+ const CONFIG = {
+ thumbnails: { size: 80, spacing: 40, minSideOffset: 40 },
+ ui: { detailsBox: { top: 100, left: 15, width: 400 } },
+ media: { top: 60, left: 10, right: 10, bottom: 120 },
+ sectionPositions: { avatarBar: { bottom: 55 } }
+ };
+
+ let mediaData = [], activeMediaIndex = 0, activeCollection = "ALL";
+ let isGridView = true, hasMediaBeenSelected = false;
+ let collections = [];
+
+ const collectionDescriptions = {
+ "C2W2": "Click to Wear season 2, 2025 Visual Materials",
+ "Avatars": "Designed Identities of C2W2",
+ "C2W (2023)": "First Season, 2023, made during VCA x Draup Virtual Fashion Residency.",
+ "DFW": "Digital Forgery Workshop, Milan based design practice for virtual habitats and beings."
+ 
+ };
+
+ document.addEventListener('DOMContentLoaded', () => {
+ applyUIConfiguration();
+ initApp();
+ });
+
+ function applyUIConfiguration() {
+ const viewerContainer = document.getElementById('viewer-container');
+ if (viewerContainer) {
+ viewerContainer.style.top = `${CONFIG.media.top}px`;
+ viewerContainer.style.left = `${CONFIG.media.left}px`;
+ viewerContainer.style.right = `${CONFIG.media.right}px`;
+ viewerContainer.style.bottom = `${CONFIG.media.bottom}px`;
+ }
+
+ const avatarDetails = document.getElementById('avatar-details');
+ if (avatarDetails) {
+ avatarDetails.style.top = `${CONFIG.ui.detailsBox.top}px`;
+ avatarDetails.style.left = `${CONFIG.ui.detailsBox.left}px`;
+ avatarDetails.style.width = `${CONFIG.ui.detailsBox.width}px`;
+ }
+
+ const bottomSection = document.getElementById('bottom-section');
+ if (bottomSection) {
+ bottomSection.style.bottom = `${CONFIG.sectionPositions.avatarBar.bottom}px`;
+ }
+ }
+
+function initApp() {
+    loadMediaData();
+    setupEventListeners();
+    activeCollection = collections[0] || 'C2W2'; // Set default to the first collection (C2W2)
+    const filteredMedia = getFilteredMedia();
+    populateCollections();
+    populateMediaItems(filteredMedia);
+    populateMediaGrid(filteredMedia);
+    toggleGridView(true);
+    if (filteredMedia.length > 0) {
+        activeMediaIndex = 0;
+        updateMediaDetails(filteredMedia[0]);
+        updateActionButtons(filteredMedia[0]);
+        updateMediaCarousel();
+    }
+}
+
+
+function getFilteredMedia() {
+    return mediaData.filter(media => media.collection === activeCollection);
+}
+
+
+function setupEventListeners() {
+    const avatarSelector = document.querySelector('.avatar-selector');
+    if (avatarSelector) {
+        avatarSelector.addEventListener('wheel', e => {
+            e.preventDefault();
+            const scrollDirection = e.deltaY > 0 ? 1 : -1;
+            changeActiveMedia(scrollDirection);
+        }, { passive: false });
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') changeActiveMedia(-1);
+        else if (e.key === 'ArrowRight') changeActiveMedia(1);
+    });
+
+    document.addEventListener('click', e => {
+        if (e.target.classList.contains('collection-btn')) handleCollectionClick(e.target);
+    });
+
+    const gridToggleButton = document.getElementById('grid-toggle-button');
+    if (gridToggleButton) {
+        gridToggleButton.addEventListener('click', () => toggleGridView(!isGridView));
+    }
+
+    const goPageBtn = document.getElementById('go-page-btn');
+    const tweetBtn = document.getElementById('tweet-btn');
+    const buyBtn = document.getElementById('buy-btn');
+    const orderBtn = document.getElementById('order-btn');
+
+    if (goPageBtn) goPageBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.pageLink) {
+            if (filteredMedia[activeMediaIndex]?.openInNewTab) {
+                window.open(filteredMedia[activeMediaIndex].pageLink, '_blank');
+            } else {
+                window.top.location.href = filteredMedia[activeMediaIndex].pageLink;
+            }
+        }
+    });
+    if (tweetBtn) tweetBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.tweetLink) {
+            window.open(filteredMedia[activeMediaIndex].tweetLink, '_blank');
+        }
+    });
+    if (buyBtn) buyBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.buyLink) {
+            window.open(filteredMedia[activeMediaIndex].buyLink, '_blank');
+        }
+    });
+    if (orderBtn) orderBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.orderLink) {
+            window.open(filteredMedia[activeMediaIndex].orderLink, '_blank');
+        }
+    });
+}
+
+// kankaa
+ function loadMediaData() {
+
+    mediaData = [
+        
+            //  
+
+{
+            id: 83,
+            name: "C2W2 Runway Explained",
+            tag: null,
+            collection: "C2W2",
+            url: "https://video.wixstatic.com/video/54a996_7f4f6350ae5b453690337f0beef40204/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_05023d2bcc35475e81a7db0ac85de42c~mv2.jpg",
+            title: "memelegance - c2w2 early demo",
+            description: "Quick recap of PDF Info. Please visit PDF Info for the complete booklet.",
+            openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+
+
+
+{
+            id: 83,
+            name: "C2W2 Runway Trailer 1",
+            tag: null,
+            collection: "C2W2",
+            url: "https://video.wixstatic.com/video/54a996_ea3130e79d884a37b2a82059a2663325/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_f0e9777a9506435c9f0fac3890074c71~mv2.jpg",
+            title: "memelegance - c2w2 early demo",
+            description: "1 minute trailer of 30 min Virtual Runway",
+            openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+
+         {
+            id: 83,
+            name: "C2W2 Virtual Runway on Hyperfy [SHOW VERSION]",
+            tag: null,
+            collection: "C2W2",
+            url: "https://www.youtube.com/embed/KeH--53RYxA",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_2c88a74269b344d6b9481a4381487ff9~mv2.png",
+            title: "memelegance - c2w2 early demo",
+            description: "Runway live recording from web browser. Show version includes copyrighted items and has only exhibition purposes.",
+            openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+
+
+{
+            id: 83,
+            name: "C2W2 Virtual Runway on Hyperfy [COMMERCIAL]",
+            tag: null,
+            collection: "C2W2",
+            url: "https://www.youtube.com/embed/FJeMDH-w7PA",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_d907f0f9d7114c9aad3e67ecdc6162ec~mv2.jpg",
+            title: "memelegance - c2w2 early demo",
+            description: "Runway live recording from web browser. Commercial version includes non-copyrighted items and has allowed to be distibuted.",
+            openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        {
+            id: 83,
+            name: "MEDITATION [CREATORS NOTE]",
+            tag: null,
+            collection: "C2W2",
+            url: "https://www.youtube.com/embed/nyEjJ9KvnQc",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_afb636799cc04acabb635a8a01091267~mv2.jpg",
+            title: "memelegance - c2w2 early demo",
+            description: "10 minute long freeflow mind storm of ideas that constructs and deconstructs the runway and the collection.",
+            openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+{   
+            id: 83,
+            name: "C2W2 Runway Pitchtalk",
+            tag: null,
+            collection: "C2W2",
+            url: "https://www.youtube.com/embed/nEvDjGkuvnk",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_f19beb328e9a4a669be9efb3a4128f09~mv2.png",
+            title: "memelegance - c2w2 early demo",
+            description: "Why it matters? 3 minutes.",
+            openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+
+{
+    id: 87,
+    name: "REVOFEV Song",
+    tag: null,
+    collection: "C2W2",
+    url: "https://video.wixstatic.com/video/54a996_a5d98402ce57459fa2c3448998051112/1080p/mp4/file.mp4",
+    thumbnailUrl: "https://static.wixstatic.com/media/54a996_ce08ea97df9f49138633fa425027d51c~mv2.png",
+    title: "C2w2- Aiatars",
+    description: "AI made song that features all the avatars on motion, and creates the ideological frame of the preferred aesthetics.",
+     openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+},
+         
+{
+    id: 85,
+    name: "Fund Me Song",
+    tag: null,
+    collection: "C2W2",
+    url: "https://video.wixstatic.com/video/54a996_f6c39e0aa5294454af870e5ee275f942/1080p/mp4/file.mp4",
+    thumbnailUrl: "https://static.wixstatic.com/media/54a996_5405006d9a5f4764b3ca6dc6a95beaf9~mv2.png",
+    title: "Fund Me Song",
+    description: "Fund me, hey VCs, don't be shy!",
+     openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+},
+{
+    id: 86,
+    name: "ClicctoBe Song",
+    tag: null,
+    collection: "C2W2",
+    url: "https://video.wixstatic.com/video/54a996_2aaaafa5eaaa45db90f654f6266f3520/1080p/mp4/file.mp4",
+    thumbnailUrl: "https://static.wixstatic.com/media/54a996_618ba9dea2e64786857c190f6d44f013~mv2.jpg",
+    title: "ClictoBe",
+    description: "Standing tall across carbons!",
+     openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+},
+
+       
+
+        {
+            id: 30,
+            name: "Retail Song 2",
+            tag: null,
+            collection: "C2W2",
+            url: "https://video.wixstatic.com/video/54a996_e0ba18b9aa464e099a55f3518072ebbc/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_3a566c9262264a2490ba38ecba6e65b5~mv2.png",
+            title: "Retail",
+            description: "Retail in the metaverse bridges the gap between fashion and daily life, offering a unique platform for connection and innovation. The concept of retail extends beyond mere transactions; it serves as a vital link that introduces individuals to new cultures and innovations through fashion. As the digital and physical realms converge, especially in the metaverse, this connection evolves, presenting untapped potential for immersive brand experiences. The challenge lies in reimagining retail in a space where traditional physical interactions are absent, yet the opportunity to engage and educate remains paramount.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+
+ {
+            id: 27,
+            name: "C2W2 Runway Trailer 2",
+            tag: "Featured",
+            collection: "C2W2",
+            url: "https://video.wixstatic.com/video/54a996_029c9577e1d245f386a0ebe2c64a9b6e/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_f0e9777a9506435c9f0fac3890074c71~mv2.jpg",
+            title: "c2w2 Runway Trailer",
+            description: "The C2W2 virtual runway on Hyperfy, accessible via VR or PC through the link hyperfy.io/c2w2, is a 30-minute metaverse event showcasing nearly 50 AI-designed avatars across six thematic parts, blending traditional art, virtual fashion, NFTs, and transhumanism. Through dramatic lighting and a minimalist setting, it explores identity, technology, and belonging in a fragmented, three-dimensional narrative.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+
+{
+            id: 83,
+            name: "memelegance - c2w2 early demo",
+            tag: null,
+            collection: "C2W2",
+            url: "https://video.wixstatic.com/video/54a996_18ce69160dc64eaa88c1343afa08cd43/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_41f56c4ddbae480b96f5521508a4f7a3~mv2.jpg",
+            title: "memelegance - c2w2 early demo",
+            description: "Elegance born from memes, 2024, made for DFDC launch by David Cash, curated by Dani Loftus.",
+            openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        {
+    id: 84,
+    name: "memelegance - c2w2 remixx",
+    tag: null,
+    collection: "C2W2",
+    url: "https://video.wixstatic.com/video/54a996_716b93f1589a442fb9d65b8ed68aa803/1080p/mp4/file.mp4",
+    thumbnailUrl: "https://static.wixstatic.com/media/54a996_41f56c4ddbae480b96f5521508a4f7a3~mv2.jpg",
+    title: "memelegance - c2w2 remixx",
+    description: "Elegance born from memes, 2024, emotionnal early sketch",
+     openInNewTab: false,
+     pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+},
+
+ 
+
+// avatarsss
+{
+        id: 1,
+        name: "Neue²Dojo Curator",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_1e4a766e4eae430582194bf1a145923e/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/neuedojo.png",
+        title: "Neue²Dojo Curator",
+        description: "Fit No: 22, Runway Part: Evolution of 2D Art (Part 1)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 2,
+        name: "Lydia",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_f8c1f3cdf61b46cb8e159b1af7879b82/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/purplecoat.png",
+        title: "Lydia",
+        description: "Fit No: 36, Runway Part: Evolution of 2D Art (Part 1)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 3,
+        name: "Lucien",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_7c69be9444f141f89a6f19c0495e6c10/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/frued.png",
+        title: "Lucien",
+        description: "Fit No: 27, Runway Part: Evolution of 2D Art (Part 1)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 4,
+        name: "The Wrestler of Silence",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_054e886262bf41e0bef2cbe7bf171cb2/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/baconscene-humanstudy.png",
+        title: "The Wrestler of Silence",
+        description: "Fit No: 26, Runway Part: Evolution of 2D Art (Part 1)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 5,
+        name: "The Devoured Remnant",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_a5891f1820864145948ff33c448b0904/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/mutantbacon.png",
+        title: "The Devoured Remnant",
+        description: "Fit No: 28, Runway Part: Evolution of 2D Art (Part 1)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 6,
+        name: "Squallor Shark",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_a75d12fbeee54e93bf08b6e04a8e3b64/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/squallo.png",
+        title: "Squallor Shark",
+        description: "Fit No: 24, Runway Part: Evolution of 2D Art (Part 1)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 7,
+        name: "Belli Capelli",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_6ccbcfdbeaae4693847ffe0eae39531c/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/bellicapelli.png",
+        title: "Belli Capelli",
+        description: "Fit No: 16, Runway Part: Evolution of 2D Art (Part 1)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 8,
+        name: "Joker",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_b1ab3d15f57f4beeb6d73d493e16f018/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/joker.png",
+        title: "Joker",
+        description: "Fit No: 3, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 9,
+        name: "Bulky Bride",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_90faa1d54d78450ab9fe0a25c5273415/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/blukybride.png",
+        title: "Bulky Bride",
+        description: "Fit No: 11, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 10,
+        name: "Mare",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_28a29d80253843719217a4a969777b8c/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/mare.png",
+        title: "Mare",
+        description: "Fit No: 2, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 11,
+        name: "Vertical CT Feed Person",
+        tag: null,
+        collection: "Avatars",
+        url: null,
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/memelegencedress.png",
+        title: "Vertical CT Feed Person",
+        description: "Fit No: 8, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 12,
+        name: "Astral Kindergarten Teacher",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_581f5cb5939245ab9435037ccfb4ec76/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/astral_kindergarten_teacher.png",
+        title: "Astral Kindergarten Teacher",
+        description: "Fit No: 21, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 13,
+        name: "Samu",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_aadea4356aff4304956582ab83030e76/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/SAMU.png",
+        title: "Samu",
+        description: "Fit No: 14, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 14,
+        name: "Call_2_Sim",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_0ebdbd926d4248b7bfa6bd8c54b9ef2e/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/call2sim.png",
+        title: "Call_2_Sim",
+        description: "Fit No: 17, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 15,
+        name: "Private Pile",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_95977a0aa9514c5b954f13652b015739/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/pile.png",
+        title: "Private Pile",
+        description: "Fit No: 4, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 16,
+        name: "Xoku",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_f5a49740685643a59ebae485c033e6c5/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/XOKU_memeleganceShitpostagent.png",
+        title: "Xoku",
+        description: "Fit No: 14, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 17,
+        name: "Xoqou",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_35e3a2403a2d48558fa7b6511600c6f7/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/xoku_fup_14_2.png",
+        title: "Xoqou",
+        description: "Fit No: 14_2, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 18,
+        name: "Zhoukouh",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_a9bb99c8e7944610bf6e7ed342f6b8ae/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/xoku_fup_decons-hayvangibi-14_3.png",
+        title: "Zhoukouh",
+        description: "Fit No: 14_3, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    
+    {
+        id: 22,
+        name: "FUP_Smiley",
+        tag: null,
+        collection: "Avatars",
+        url: null,
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/memeagent-decons-NVERTSM-15_4.png",
+        title: "FUP_Smiley",
+        description: "Fit No: 15_4, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 23,
+        name: "FUP_Rebrand",
+        tag: null,
+        collection: "Avatars",
+        url: null,
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/memeagent-decons-WHT-15_5.png",
+        title: "FUP_Rebrand",
+        description: "Fit No: 15_5, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 24,
+        name: "Uncle Red",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_9c3191423a114ba498f22d6360050e1d/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/redpunk.png",
+        title: "Uncle Red",
+        description: "Fit No: 6, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 25,
+        name: "Weekend @ Saturn",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_412b0709a7bb481ea59a855cc3eb6134/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/saturnalien.png",
+        title: "Weekend @ Saturn",
+        description: "Fit No: 7, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 26,
+        name: "Midemoiselle",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_ce10187fb31a480a9237fe65a9fde5d5/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/artdecc0.png",
+        title: "Midemoiselle",
+        description: "Fit No: 38, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 27,
+        name: "Ferryman",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_716f2529747e4fab84b80a3f5e360934/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/ferryman.png",
+        title: "Ferryman",
+        description: "Fit No: 31, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 28,
+        name: "Founder Ape",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_8463a9b69be4467d83539f8c4598aa76/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/founder-ape.png",
+        title: "Founder Ape",
+        description: "Fit No: 34, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 29,
+        name: "Davicni",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_e748d24ff648460891b4718e8f98a48b/720p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/davinic.png",
+        title: "Davicni",
+        description: "Fit No: 5, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 30,
+        name: "Can't See Beep Bop Crap",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_74595772826646a8949ba88ffd66a6a6/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/beeple1.png",
+        title: "Can't See Beep Bop Crap",
+        description: "Fit No: 30, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 31,
+        name: "Dogers",
+        tag: null,
+        collection: "Avatars",
+        url: null,
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/beeple2.png",
+        title: "Dogers",
+        description: "Fit No: 30_2, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 32,
+        name: "Ashium",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_e47f8938681c4ce38056f9aaaebbaf39/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/ash.png",
+        title: "Ashium",
+        description: "Fit No: 35, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 33,
+        name: "Asiah",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_b4cf70db44db487c875205baf309a689/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/asiah-rr.png",
+        title: "Asiah",
+        description: "Fit No: 35_2, Runway Part: Evolution Of Medium Of Art From NFT to Being (Part 3)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 34,
+        name: "Teddyminator",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_77e02e061d5f4ef4bfe2501f4c986db5/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/teddyminator.png",
+        title: "Teddyminator",
+        description: "Fit No: 45, Runway Part: AI Powered (Part 4)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 35,
+        name: "Bad Luck",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_6b0158e98cb94d63b0c9bc12eed61707/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/badluck.png",
+        title: "Bad Luck",
+        description: "Fit No: 25, Runway Part: AI Powered (Part 4)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 36,
+        name: "Baincaigai",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_a94fdd486c4a409f9c9f15420b4bb3d6/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/baiencaigai.png",
+        title: "Baincaigai",
+        description: "Fit No: 23, Runway Part: AI Powered (Part 4)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 37,
+        name: "exBunny",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_40bed824f51f47ec81c0bb4c1abd71d4/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/c-rabbit.png",
+        title: "exBunny",
+        description: "Fit No: 46, Runway Part: AI Powered (Part 4)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 38,
+        name: "Xeu2",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_21380e15250f4860ab253ce027ffec12/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/xeu2.png",
+        title: "Xeu2",
+        description: "Fit No: 41, Runway Part: AI Powered (Part 4)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 39,
+        name: "Thomas_DT",
+        tag: null,
+        collection: "Avatars",
+        url: null,
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/neo-dt.png",
+        title: "Thomas_DT",
+        description: "Fit No: 19, Runway Part: Virtual Fashion (Part 2)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 40,
+        name: "sleekrobobİtch/SPIKES",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_fff14803e98c4b34a81533f69fdb9fb3/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/sleekrobobitch-spkiey.png",
+        title: "sleekrobobİtch/SPIKES",
+        description: "Fit No: 10, Runway Part: Transhumanism (Part 5)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 41,
+        name: "Don Mac Don",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_107f106845df4475be02b83cfe6973db/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/donmac.png",
+        title: "Don Mac Don",
+        description: "Fit No: 18, Runway Part: Transhumanism (Part 5)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 42,
+        name: "Steroive iObs",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_13f8091ed15e4b65b7b9bb072740cb18/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/steroive.png",
+        title: "Steroive iObs",
+        description: "Fit No: 29, Runway Part: Transhumanism (Part 5)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 43,
+        name: "Dobby Millefuille",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_dc486f357fde4d0e9da74c1a58192a53/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/millefeuille-dobby.png",
+        title: "Dobby Millefuille",
+        description: "Fit No: 13, Runway Part: Transhumanism (Part 5)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 44,
+        name: "Elextrogxd",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_b206681159f04e2ead711405f8d94e66/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/ELEXTROGOD.png",
+        title: "Elextrogxd",
+        description: "Fit No: 43, Runway Part: AI Powered (Part 4)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 45,
+        name: "Ya Bish Opps",
+        tag: null,
+        collection: "Avatars",
+        url: "https://video.wixstatic.com/video/54a996_f57f45e9964a412d9f733cbc0bf0e7ff/1080p/mp4/file.mp4",
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/papaz.png",
+        title: "Ya Bish Opps",
+        description: "Fit No: 1, Runway Part: Transhumanism (Part 5)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 46,
+        name: "Ya Bish Opps Red",
+        tag: null,
+        collection: "Avatars",
+        url: null,
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/ya-bish-RED.png",
+        title: "Ya Bish Opps Red",
+        description: "Fit No: 1_2, Runway Part: Transhumanism (Part 5)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    {
+        id: 47,
+        name: "Ya Bish Opps Mono",
+        tag: null,
+        collection: "Avatars",
+        url: null,
+        thumbnailUrl: "https://raw.githubusercontent.com/decentralize-dfw/thmbnl/refs/heads/main/ya-bish-WHT.png",
+        title: "Ya Bish Opps Mono",
+        description: "Fit No: 1_3, Runway Part: Transhumanism (Part 5)",
+        openInNewTab: false,
+        pageLink: null,
+        tweetLink: null,
+        buyLink: null,
+        orderLink: null,
+        content: null
+    },
+    
+
+
+
+
+        // c2w 
+
+        {
+            id: 28,
+            name: "c2w Runway Ticket Artwork",
+            tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_008a92463e2c490bae5c5176ccd0fa13/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_8b9ecdfee9b0416497b06cd601c515df~mv2.png",
+            title: "c2w Runway Ticket Artwork",
+            description: "The C2W Metaverse Runway event, held on 9.11.23 and was accessible through a $20 ticket purchased between 1-2.11.23 following the Digital Fashion Showcase at New Codes in London by VCA x Draup, showcased a distinctive digital fashion collection. This event provided attendees with an immersive virtual fashion show experience directly from their browsers without the need for downloads, marking a significant step in exploring and redefining personal expression in digital realms. Alongside their ticket, attendees received a complimentary avatar, The Viewer, which they showcased during this token-gated event. The show is available for free to anyone now.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        
+       {
+            id: 49,
+            name: "Click-to-B Hyperfy Video Clip @ Retail_v4, C2W",
+            tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_21a2c46e200b4c8d872f84bc1ae72f48/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_8b9ecdfee9b0416497b06cd601c515df~mv2.png",
+            title: "Click-to-B Hyperfy Video Clip @ Retail_v4, C2W",
+            description: "The C2W Metaverse Runway event, held on 9.11.23 and was accessible through a $20 ticket purchased between 1-2.11.23 following the Digital Fashion Showcase at New Codes in London by VCA x Draup, showcased a distinctive digital fashion collection. This event provided attendees with an immersive virtual fashion show experience directly from their browsers without the need for downloads, marking a significant step in exploring and redefining personal expression in digital realms. Alongside their ticket, attendees received a complimentary avatar, The Viewer, which they showcased during this token-gated event. The show is available for free to anyone now.",
+            openInNewTab: true,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink: null,
+            content: null
+        },
+        {
+            id: 48,
+            name: "C2W New Codes Exhibition",
+            tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_0232a6790a7647ef862d91e3f8e7a223/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_8b9ecdfee9b0416497b06cd601c515df~mv2.png",
+            title: "C2W New Codes Exhibition",
+            description: "The C2W Metaverse Runway event, held on 9.11.23 and was accessible through a $20 ticket purchased between 1-2.11.23 following the Digital Fashion Showcase at New Codes in London by VCA x Draup, showcased a distinctive digital fashion collection. This event provided attendees with an immersive virtual fashion show experience directly from their browsers without the need for downloads, marking a significant step in exploring and redefining personal expression in digital realms. Alongside their ticket, attendees received a complimentary avatar, The Viewer, which they showcased during this token-gated event. The show is available for free to anyone now.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        
+        {
+            id: 34,
+            name: "Afterparty",
+           tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_b120f236c9854ed1a890426666252145/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_1a93147f925a464d8068faf9b6888895~mv2.png",
+            title: "Afterparty",
+            description: "Designed as an afterparty venue to enjoy after the runway show, where models party with the attendees, and there are click-to-wearable options instantly.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        
+        
+        
+        {
+            id: 47,
+            name: "C2W Collection Promo 1",
+            tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_ec462c493fd541a6801a7b1e1ccd59fb/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_8b9ecdfee9b0416497b06cd601c515df~mv2.png",
+            title: "C2W Collection Promo 1",
+            description: "The C2W Metaverse Runway event, held on 9.11.23 and was accessible through a $20 ticket purchased between 1-2.11.23 following the Digital Fashion Showcase at New Codes in London by VCA x Draup, showcased a distinctive digital fashion collection. This event provided attendees with an immersive virtual fashion show experience directly from their browsers without the need for downloads, marking a significant step in exploring and redefining personal expression in digital realms. Alongside their ticket, attendees received a complimentary avatar, The Viewer, which they showcased during this token-gated event. The show is available for free to anyone now.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        
+        
+        {
+            id: 50,
+            name: "C2W Polaroid Shots",
+            tag: null,
+           collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_06faa3498bf146b5aa739b4c1012aadd/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_8b9ecdfee9b0416497b06cd601c515df~mv2.png",
+            title: "C2W Polaroid Shots",
+            description: "The C2W Metaverse Runway event, held on 9.11.23 and was accessible through a $20 ticket purchased between 1-2.11.23 following the Digital Fashion Showcase at New Codes in London by VCA x Draup, showcased a distinctive digital fashion collection. This event provided attendees with an immersive virtual fashion show experience directly from their browsers without the need for downloads, marking a significant step in exploring and redefining personal expression in digital realms. Alongside their ticket, attendees received a complimentary avatar, The Viewer, which they showcased during this token-gated event. The show is available for free to anyone now.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        {
+            id: 51,
+            name: "CYNNX Live Recording of C2W Event",
+            tag: null,
+            collection: "C2W (2023)", 
+            url: "https://www.youtube.com/embed/Ougtz4jod9c?t=1112s",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_8b9ecdfee9b0416497b06cd601c515df~mv2.png",
+            title: "CYNNX Live Recording of C2W Event",
+            description: "The C2W Metaverse Runway event, held on 9.11.23 and was accessible through a $20 ticket purchased between 1-2.11.23 following the Digital Fashion Showcase at New Codes in London by VCA x Draup, showcased a distinctive digital fashion collection. This event provided attendees with an immersive virtual fashion show experience directly from their browsers without the need for downloads, marking a significant step in exploring and redefining personal expression in digital realms. Alongside their ticket, attendees received a complimentary avatar, The Viewer, which they showcased during this token-gated event. The show is available for free to anyone now.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        {
+            id: 52,
+            name: "C2W, Afterparty Recording Voxvienne",
+            tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_99bf250049af451596a557301c399b48/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_1a93147f925a464d8068faf9b6888895~mv2.png",
+            title: "C2W, Afterparty Recording Voxvienne",
+            description: "Designed as an afterparty venue to enjoy after the runway show, where models party with the attendees, and there are click-to-wearable options instantly.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+       
+        {
+            id: 74,
+            name: "c2w event -promo 5",
+            tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_da9bac51d12f425182b687f06b6452a5/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_8b9ecdfee9b0416497b06cd601c515df~mv2.png",
+            title: "c2w event -promo 5",
+            description: "The C2W Metaverse Runway event, held on 9.11.23 and was accessible through a $20 ticket purchased between 1-2.11.23 following the Digital Fashion Showcase at New Codes in London by VCA x Draup, showcased a distinctive digital fashion collection. This event provided attendees with an immersive virtual fashion show experience directly from their browsers without the need for downloads, marking a significant step in exploring and redefining personal expression in digital realms. Alongside their ticket, attendees received a complimentary avatar, The Viewer, which they showcased during this token-gated event. The show is available for free to anyone now.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+        
+        {
+            id: 77,
+            name: "retail biggie song",
+            tag: null,
+            collection: "C2W (2023)",
+            url: "https://video.wixstatic.com/video/54a996_2b529cb35fda488f8486f0a11871ee5c/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_3a566c9262264a2490ba38ecba6e65b5~mv2.png",
+            title: "retail biggie song",
+            description: "AI-generated Notorious BIG song about C2W collection, its retail space, and other cloudy thoughts.",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+       
+       
+
+{  // DFW videos
+            id: 1,
+            name: "dfw metaoffice",
+            tag: null,
+           collection: "DFW",
+            url: "https://video.wixstatic.com/video/54a996_e6d16d06cf7b490bbc64d936760c2dae/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_5a17303dc4d246f1818591922f059ebe~mv2.png",
+            title: "DFW Metaoffice",
+            description: "how we think? what we build?",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        }, 
+        {
+            id: 2,
+            name: "steve jobs explaining dfw",
+            tag: null,
+            collection: "DFW",
+            url: "https://video.wixstatic.com/video/54a996_6da48d6916b24734aba549bb585d4675/720p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_ead4c487ac7845a88691622c600a9cac~mv2.png",
+            title: "iObs explaining DFW",
+            description: "Digital Forgery Workshop Who?",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        },
+       
+        {
+            id: 10,
+            name: "dfw presentation 2022",
+            tag: null,
+            collection: "DFW",
+            url: "https://video.wixstatic.com/video/54a996_dcc34db653704ed9962289d9ed73dcd7/1080p/mp4/file.mp4",
+            thumbnailUrl: "https://static.wixstatic.com/media/54a996_5a17303dc4d246f1818591922f059ebe~mv2.png",
+            title: "dfw presentation 2022",
+            description: "Vintage DFW Presentation about spatial design in metaverse",
+             openInNewTab: false,
+            pageLink: null,
+            tweetLink: null,
+            buyLink: null,
+            orderLink:null,
+            content: null
+        }
+
+    ];
+
+
+ // kankaa2
+ collections = [...new Set(mediaData.map(media => media.collection))];
+
+ }
+function getDefaultThumbnail(tag) {
+    return 'https://via.placeholder.com/80'; // Replace with your default thumbnail URL
+}
+
+function populateCollections() {
+    const collectionsContainer = document.getElementById('collections');
+    if (!collectionsContainer) return;
+    collectionsContainer.innerHTML = '';
+
+    // Create collection buttons
+    collections.forEach((collection, index) => {
+        const button = document.createElement('button');
+        button.className = 'collection-btn' + (index === 0 && activeCollection === collection ? ' active' : '');
+        button.textContent = collection;
+        collectionsContainer.appendChild(button);
+    });
+}
+
+function handleCollectionClick(button) {
+    const collection = button.textContent;
+    if (activeCollection === collection) return;
+
+    activeCollection = collection;
+    document.querySelectorAll('.collection-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+
+    const filteredMedia = getFilteredMedia();
+    populateMediaItems(filteredMedia);
+    populateMediaGrid(filteredMedia);
+    
+    if (filteredMedia.length > 0) {
+        activeMediaIndex = 0;
+        updateMediaDetails(filteredMedia[0]);
+        updateActionButtons(filteredMedia[0]);
+        displayMediaContent(filteredMedia[0]);
+        updateMediaCarousel();
+        const avatarDetails = document.getElementById('avatar-details');
+        if (avatarDetails) avatarDetails.style.display = 'none';
+    } else {
+        const carousel = document.getElementById('avatar-carousel');
+        const grid = document.getElementById('avatar-grid');
+        const details = document.getElementById('avatar-details');
+        const mediaPreview = document.getElementById('media-preview');
+        if (carousel) carousel.innerHTML = '<div class="media-item-name">No media found in this collection</div>';
+        if (grid) grid.innerHTML = '<div class="no-results">No media found in this collection</div>';
+        if (mediaPreview) mediaPreview.innerHTML = '';
+        if (details) details.style.display = 'none';
+    }
+    
+    toggleGridView(true);
+}
+
+function populateMediaItems(mediaToShow) {
+    if (!mediaToShow) mediaToShow = getFilteredMedia();
+    const carouselContainer = document.getElementById('avatar-carousel');
+    if (!carouselContainer) return;
+    carouselContainer.innerHTML = '';
+    mediaToShow.forEach((media, index) => {
+        const mediaItem = document.createElement('div');
+        mediaItem.className = `media-item ${media.tag ? media.tag.toLowerCase() : ''}`;
+        mediaItem.dataset.id = media.id;
+        mediaItem.dataset.index = index;
+        const thumbnailUrl = media.thumbnailUrl || getDefaultThumbnail(media.tag);
+        mediaItem.innerHTML = `<img src="${thumbnailUrl}" class="media-item-thumbnail" alt="${media.name}"><div class="media-item-name">${media.name}</div>`;
+        mediaItem.addEventListener('click', () => {
+            hasMediaBeenSelected = true;
+            activeMediaIndex = index;
+            toggleGridView(false);
+            updateMediaCarousel();
+            displayMediaContent(media);
+            updateMediaDetails(media);
+            updateActionButtons(media);
+        });
+        carouselContainer.appendChild(mediaItem);
+    });
+    updateMediaCarousel();
+}
+
+function changeActiveMedia(direction) {
+    const filteredMedia = getFilteredMedia();
+    const numMedia = filteredMedia.length;
+    if (numMedia === 0) return;
+    
+    if (isGridView) toggleGridView(false);
+    
+    activeMediaIndex = (activeMediaIndex + direction + numMedia) % numMedia;
+    updateMediaCarousel();
+    hasMediaBeenSelected = true;
+    const selectedMedia = filteredMedia[activeMediaIndex];
+    displayMediaContent(selectedMedia);
+    updateMediaDetails(selectedMedia);
+    updateActionButtons(selectedMedia);
+}
+
+ function updateMediaCarousel() {
+ const mediaItems = document.querySelectorAll('.media-item');
+ const numItems = mediaItems.length;
+ if (numItems === 0) return;
+ mediaItems.forEach(item => {
+ item.classList.remove('active');
+ item.style.display = 'none';
+ });
+ const windowWidth = window.innerWidth;
+ const itemWidth = CONFIG.thumbnails.size;
+ const spacing = CONFIG.thumbnails.spacing;
+ const minSideOffset = CONFIG.thumbnails.minSideOffset;
+ const availableWidth = windowWidth - (2 * minSideOffset);
+ const maxItemsVisible = Math.floor(availableWidth / (itemWidth + spacing));
+ const itemsPerSide = Math.floor(maxItemsVisible / 2);
+ const centerX = windowWidth / 2;
+ for (let i = 0; i < numItems; i++) {
+ let relativePos = ((i - activeMediaIndex) + numItems) % numItems;
+ if (relativePos > numItems / 2) relativePos -= numItems;
+ if (Math.abs(relativePos) <= itemsPerSide) {
+ const item = mediaItems[i];
+ item.style .display = '';
+ const xPos = centerX - (itemWidth / 2) + (relativePos * (itemWidth + spacing));
+ item.style.left = `${xPos}px`;
+ item.style.top = '0px';
+ item.style.opacity = relativePos === 0 ? '1' : '0.7';
+ item.style.zIndex = 100 - Math.abs(relativePos);
+ if (i === activeMediaIndex) item.classList.add('active');
+ }
+ }
+ const bottomSection = document.getElementById('bottom-section');
+ if (bottomSection && !isGridView) bottomSection.style.opacity = '1';
+ }
+
+function displayMediaContent(media) {
+    if (!media) return;
+    const mediaPreview = document.getElementById('media-preview');
+    if (!mediaPreview) return;
+    mediaPreview.innerHTML = '';
+    updateLoadingProgress(0, 'Loading media...');
+    const avatarDetails = document.getElementById('avatar-details');
+    if (avatarDetails) avatarDetails.style.display = 'block';
+    updateMediaDetails(media);
+    updateActionButtons(media);
+
+    if (media.content) {
+        const textDiv = document.createElement('div');
+        textDiv.className = 'media-text';
+        textDiv.innerHTML = media.content || `<h2>${media.title || media.name}</h2><p>${media.description || ''}</p>`;
+        textDiv.style.overflowY = 'auto';
+        textDiv.style.maxHeight = '100%';
+        mediaPreview.appendChild(textDiv);
+        updateLoadingProgress(100, 'Media loaded');
+    } else if (media.url.includes('youtube.com') || media.url.includes('youtu.be')) {
+        const videoContainer = document.createElement('div');
+        videoContainer.className = 'media-video-container';
+        const youtubeContainer = document.createElement('div');
+        youtubeContainer.className = 'youtube-iframe-container';
+        
+        // Improved YouTube video ID extraction
+        let videoId = '';
+        if (media.url.includes('youtube.com/embed/')) {
+            videoId = media.url.split('youtube.com/embed/')[1]?.split('?')[0];
+        } else if (media.url.includes('youtube.com')) {
+            videoId = media.url.split('v=')[1]?.split('&')[0];
+        } else if (media.url.includes('youtu.be')) {
+            videoId = media.url.split('youtu.be/')[1]?.split('?')[0];
+        }
+
+        if (!videoId) {
+            console.error('Invalid YouTube URL:', media.url);
+            mediaPreview.innerHTML = '<div class="no-results">Error: Invalid YouTube URL</div>';
+            updateLoadingProgress(100, 'Error loading media');
+            return;
+        }
+
+        const iframe = document.createElement('iframe');
+        iframe.className = 'media-video';
+        iframe.src = `https://www.youtube.com/embed/${videoId}?controls=1&rel=0&autoplay=0&enablejsapi=1`;
+        iframe.allow = 'encrypted-media; fullscreen';
+        iframe.allowFullscreen = true;
+        iframe.onload = () => updateLoadingProgress(100, 'Media loaded');
+        iframe.onerror = () => {
+            console.error('YouTube iframe error for URL:', media.url);
+            mediaPreview.innerHTML = '<div class="no-results">Error: Failed to load YouTube video</div>';
+            updateLoadingProgress(100, 'Error loading media');
+        };
+        youtubeContainer.appendChild(iframe);
+        videoContainer.appendChild(youtubeContainer);
+        mediaPreview.appendChild(videoContainer);
+    } else if (media.url.match(/\.(jpeg|jpg|png)$/i)) {
+        const imgContainer = document.createElement('div');
+        imgContainer.style.position = 'relative';
+        imgContainer.style.width = '100%';
+        imgContainer.style.height = '100%';
+        imgContainer.style.display = 'flex';
+        imgContainer.style.justifyContent = 'center';
+        imgContainer.style.alignItems = 'center';
+        const img = document.createElement('img');
+        img.className = 'media-image';
+        img.src = media.url;
+        img.alt = media.name;
+        img.onload = () => updateLoadingProgress(100, 'Media loaded');
+        imgContainer.appendChild(img);
+        mediaPreview.appendChild(imgContainer);
+    } else {
+        const videoContainer = document.createElement('div');
+        videoContainer.className = 'media-video-container';
+        const video = document.createElement('video');
+        video.className = 'media-video';
+        video.src = media.url;
+        video.controls = false; // Disable default controls
+        video.autoplay = true; // Enable autoplay
+        video.muted = true; // Start muted to allow autoplay in most browsers
+        video.onloadeddata = () => updateLoadingProgress(100, 'Media loaded');
+        videoContainer.appendChild(video);
+
+        // Add mute/unmute control
+        const controlsContainer = document.createElement('div');
+        controlsContainer.className = 'video-controls';
+
+        const muteBtn = document.createElement('button');
+        muteBtn.className = 'video-control-btn';
+        muteBtn.innerHTML = '<i class="fas fa-volume-mute"></i>'; // Start with muted icon
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            muteBtn.innerHTML = video.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+        });
+
+        controlsContainer.appendChild(muteBtn);
+        videoContainer.appendChild(controlsContainer);
+        mediaPreview.appendChild(videoContainer);
+    }
+    const bottomSection = document.getElementById('bottom-section');
+    if (bottomSection) bottomSection.style.display = 'block';
+}
+
+ function updateMediaDetails(media) {
+ const titleElement = document.getElementById('avatar-title');
+ const detailsInfo = document.getElementById('details-info');
+ const descriptionText = document.getElementById('description-text');
+ const collectionText = document.getElementById('collection-text');
+
+ if (!titleElement || !detailsInfo || !descriptionText || !collectionText) {
+ console.error('Missing DOM elements:', { titleElement, detailsInfo, descriptionText, collectionText });
+ return;
+ }
+
+ titleElement.textContent = media.name;
+ let compactInfoHTML = '<div class="compact-info">';
+ if (media.tag) compactInfoHTML += `<div class="info-pill">${media.tag}</div>`;
+ if (media.collection) compactInfoHTML += `<div class="info-pill">${media.collection}</div>`;
+ compactInfoHTML += '</div>';
+ detailsInfo.innerHTML = compactInfoHTML;
+ descriptionText.textContent = media.description || `This is ${media.name}, a ${media.tag} media from the ${media.collection} collection.`;
+ collectionText.textContent = collectionDescriptions[media.collection] || `The ${media.collection}  Click to wear 2..`;
+ }
+
+// Replace the setupEventListeners function
+
+function setupEventListeners() {
+    const avatarSelector = document.querySelector('.avatar-selector');
+    if (avatarSelector) {
+        avatarSelector.addEventListener('wheel', e => {
+            e.preventDefault();
+            const scrollDirection = e.deltaY > 0 ? 1 : -1;
+            changeActiveMedia(scrollDirection);
+        }, { passive: false });
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') changeActiveMedia(-1);
+        else if (e.key === 'ArrowRight') changeActiveMedia(1);
+    });
+
+    document.addEventListener('click', e => {
+        if (e.target.classList.contains('collection-btn')) handleCollectionClick(e.target);
+    });
+
+    const gridToggleButton = document.getElementById('grid-toggle-button');
+    if (gridToggleButton) {
+        gridToggleButton.addEventListener('click', () => toggleGridView(!isGridView));
+    }
+
+    const goPageBtn = document.getElementById('go-page-btn');
+    const tweetBtn = document.getElementById('tweet-btn');
+    const buyBtn = document.getElementById('buy-btn');
+    const orderBtn = document.getElementById('order-btn');
+
+    if (goPageBtn) goPageBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.pageLink) {
+            if (filteredMedia[activeMediaIndex]?.openInNewTab) {
+                window.open(filteredMedia[activeMediaIndex].pageLink, '_blank');
+            } else {
+                window.top.location.href = filteredMedia[activeMediaIndex].pageLink;
+            }
+        }
+    });
+    if (tweetBtn) tweetBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.tweetLink) {
+            window.open(filteredMedia[activeMediaIndex].tweetLink, '_blank');
+        }
+    });
+    if (buyBtn) buyBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.buyLink) {
+            window.open(filteredMedia[activeMediaIndex].buyLink, '_blank');
+        }
+    });
+    if (orderBtn) orderBtn.addEventListener('click', () => {
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia[activeMediaIndex]?.orderLink) {
+            window.open(filteredMedia[activeMediaIndex].orderLink, '_blank');
+        }
+    });
+}
+
+
+
+function updateActionButtons(media) {
+    const goPageBtn = document.getElementById('go-page-btn');
+    const tweetBtn = document.getElementById('tweet-btn');
+    const buyBtn = document.getElementById('buy-btn');
+    const orderBtn = document.getElementById('order-btn');
+    // Remove: const openTabBtn = document.getElementById('open-tab-btn');
+
+    // Remove: if (openTabBtn) openTabBtn.style.display = 'none';
+    if (goPageBtn) goPageBtn.style.display = media?.pageLink ? 'block' : 'none';
+    if (tweetBtn) tweetBtn.style.display = media?.tweetLink ? 'block' : 'none';
+    if (buyBtn) buyBtn.style.display = media?.buyLink ? 'block' : 'none';
+    if (orderBtn) orderBtn.style.display = media?.orderLink ? 'block' : 'none';
+}
+
+function populateMediaGrid(mediaToShow) {
+    if (!mediaToShow) mediaToShow = getFilteredMedia();
+    const gridContainer = document.getElementById('avatar-grid');
+    if (!gridContainer) return;
+    gridContainer.innerHTML = '';
+    
+    if (mediaToShow.length === 0) {
+        gridContainer.innerHTML = '<div class="no-results">No media found</div>';
+        return;
+    }
+    
+    mediaToShow.forEach((media, index) => {
+        const gridItem = document.createElement('div');
+        gridItem.className = 'grid-item';
+        gridItem.dataset.id = media.id;
+        gridItem.dataset.index = index;
+        const thumbnailUrl = media.thumbnailUrl || getDefaultThumbnail(media.tag);
+        gridItem.innerHTML = `<img src="${thumbnailUrl}" alt="${media.name}" loading="lazy"><div class="grid-item-name">${media.name}</div>`;
+        gridItem.addEventListener('click', () => {
+            hasMediaBeenSelected = true;
+            activeMediaIndex = index;
+            toggleGridView(false);
+            updateMediaCarousel();
+            displayMediaContent(media);
+            updateMediaDetails(media);
+            updateActionButtons(media);
+        });
+        gridContainer.appendChild(gridItem);
+    });
+
+    if (mediaToShow.length > 0 && !hasMediaBeenSelected) {
+        updateMediaDetails(mediaToShow[0]);
+        updateActionButtons(mediaToShow[0]);
+    }
+}
+
+function toggleGridView(show) {
+    const gridContainer = document.getElementById('avatar-grid-container');
+    const viewerContainer = document.getElementById('viewer-container');
+    const avatarDetails = document.getElementById('avatar-details');
+    const bottomSection = document.getElementById('bottom-section');
+    const toggleButton = document.getElementById('grid-toggle-button');
+    const mediaPreview = document.getElementById('media-preview');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    if (!gridContainer || !viewerContainer || !avatarDetails || !bottomSection || !toggleButton) return;
+    
+    isGridView = show;
+    
+    if (show) {
+        gridContainer.style.display = 'block';
+        viewerContainer.style.opacity = '0.3';
+        avatarDetails.style.opacity = '0';
+        avatarDetails.style.display = 'none';
+        bottomSection.style.opacity = '0.3';
+        toggleButton.innerHTML = '<i class="fas fa-arrow-down"></i>';
+        if (mediaPreview) mediaPreview.innerHTML = '';
+        if (loadingOverlay) loadingOverlay.style.display = 'none';
+    } else {
+        gridContainer.style.display = 'none';
+        viewerContainer.style.opacity = '1';
+        avatarDetails.style.opacity = '1';
+        avatarDetails.style.display = 'block';
+        bottomSection.style.opacity = '1';
+        bottomSection.style.display = 'block';
+        toggleButton.innerHTML = '<i class="fas fa-th-large"></i>';
+        const filteredMedia = getFilteredMedia();
+        if (filteredMedia.length > 0) {
+            if (!hasMediaBeenSelected || activeMediaIndex >= filteredMedia.length) {
+                activeMediaIndex = 0;
+            }
+            displayMediaContent(filteredMedia[activeMediaIndex]);
+            updateMediaDetails(filteredMedia[activeMediaIndex]);
+            updateActionButtons(filteredMedia[activeMediaIndex]);
+            updateMediaCarousel();
+        }
+    }
+}
+
+ function updateLoadingProgress(percent, message = 'Loading...') {
+ const progressBar = document.getElementById('progress-bar');
+ const loadingPercentage = document.getElementById('loading-percentage');
+ const loadingOverlay = document.getElementById('loading-overlay');
+ if (progressBar && loadingPercentage && loadingOverlay) {
+ progressBar.style.width = `${percent}%`;
+ loadingPercentage.textContent = `${Math.round(percent)}%`;
+ loadingOverlay.style.display = percent >= 100 ? 'none' : 'flex';
+ }
+ }
+ </script>
+</body>
+</html>
