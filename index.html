@@ -14,7 +14,10 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             overflow: hidden; /* Sayfanın kaymasını engelle */
-            background-color: #d1d5db; /* Arka planı hafif gri yapar (duvar kağıdı hissi için) */
+            /* İsteğiniz üzerine eklenen arka plan görseli */
+            background-image: url('https://images.pexels.com/photos/1766838/pexels-photo-1766838.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+            background-size: cover;
+            background-position: center;
         }
 
         /* Aktif olarak sürüklenen pencere */
@@ -107,10 +110,10 @@
         }
     </style>
 </head>
-<body class="bg-gray-200 p-8 flex items-center justify-center min-h-screen">
+<body class="p-8 flex items-center justify-center min-h-screen">
 
     <!-- Ana Finder Penceresi -->
-    <div class="finder-window w-full max-w-6xl h-[80vh] bg-gray-50 rounded-xl shadow-2xl flex overflow-hidden border border-gray-300">
+    <div class="finder-window w-full max-w-6xl h-[80vh] bg-gray-50/90 backdrop-blur-sm rounded-xl shadow-2xl flex overflow-hidden border border-gray-300 transition-all duration-300 ease-in-out">
 
         <!-- Sol Sidebar -->
         <aside class="w-56 bg-gray-100/80 backdrop-blur-sm p-3 space-y-4 overflow-y-auto border-r border-gray-200 flex-shrink-0">
@@ -118,17 +121,17 @@
             <div>
                 <h3 class="text-xs font-semibold text-gray-500 px-2 mt-2 mb-1">Favorites</h3>
                 <nav class="space-y-0.5">
-                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200">
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-airdrop">
                         <!-- SVG Icon: AirDrop -->
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         AirDrop
                     </a>
-                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200">
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-recents">
                         <!-- SVG Icon: Recents -->
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Recents
                     </a>
-                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200">
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-applications">
                         <!-- SVG Icon: Applications -->
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.358A2.975 2.975 0 0119.022 16H4.978A2.975 2.975 0 013 13.358V11A2 2 0 015 9h14a2 2 0 012 2v2.358z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9a2 2 0 11-4 0m4 0V6a2 2 0 00-2-2h-1.172a2 2 0 00-1.414.586L9 6M5 9a2 2 0 104 0M5 9V6a2 2 0 012-2h1.172a2 2 0 011.414.586L10 6"></path></svg>
                         Applications
@@ -168,7 +171,7 @@
                     <!-- Pencere Kontrolleri -->
                     <div class="flex items-center gap-1.5">
                         <div class="window-control close" id="main-close"></div>
-                        <div class="window-control minimize" id="main-minimize"></div>
+                        <!-- <div class="window-control minimize" id="main-minimize"></div> --> <!-- Küçült tuşu kaldırıldı -->
                         <div class="window-control maximize" id="main-maximize"></div>
                     </div>
                     
@@ -208,8 +211,8 @@
             <!-- Dosya Tarayıcısı Alanı -->
             <div class="flex-1 flex overflow-hidden">
                 <!-- Dosya Listesi -->
-                <section class="flex-1 p-6 overflow-y-auto overflow-x-auto" id="file-browser-container">
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-6 min-w-max" id="file-browser">
+                <section class="flex-1 p-6 overflow-auto" id="file-browser-container"> <!-- overflow-y-auto -> overflow-auto olarak değişti -->
+                    <div class="grid" id="file-browser">
                         <!-- Dosyalar buraya JS ile eklenecek -->
                     </div>
                 </section>
@@ -259,24 +262,37 @@
                                     <span class="text-gray-500">Dimensions</span>
                                     <span class="font-medium text-gray-700" id="info-dimensions"></span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Size</span>
-                                    <span class="font-medium text-gray-700" id="info-size"></span>
+                                <!-- Tags Section (was nested incorrectly) -->
+                                <div id="info-tags-section" class="hidden">
+                                     <h4 class="text-sm font-semibold text-gray-800 mb-2 mt-4 pt-4 border-t border-gray-200">Tags</h4>
+                                     <div class="flex flex-wrap gap-2" id="info-tags">
+                                         <!-- Tags will be dynamically inserted here -->
+                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tags (Opsiyonel) -->
-                        <div class="border-t border-gray-200 pt-4 mt-4" id="info-tags-section">
-                             <h4 class="text-sm font-semibold text-gray-800 mb-2">Tags</h4>
-                             <div class="flex flex-wrap gap-2" id="info-tags">
-                                <!-- Tags will be dynamically inserted here -->
-                             </div>
+                        <!-- Link (Opsiyonel) -->
+                        <div class="border-t border-gray-200 pt-4 mt-4" id="info-link-section">
+                             <h4 class="text-sm font-semibold text-gray-800 mb-2">Link</h4>
+                             <a href="#" id="info-link" target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline break-all">
+                                <!-- Link will be dynamically inserted here -->
+                             </a>
                         </div>
                     </div>
                 </aside>
             </div>
         </main>
+    </div>
+
+    <!-- Kapatıldığında Gösterilecek İkon -->
+    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group">
+        <div class="w-24 h-24 p-2 flex items-center justify-center transition-shadow duration-150 group-hover:shadow-lg">
+            <svg class="w-full h-full text-blue-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+        </div>
+        <p class="text-xs font-medium text-white text-shadow-lg text-center mt-2 break-all px-1 py-0.5 bg-black/20 rounded">
+            aynankankaa
+        </p>
     </div>
 
     <!-- Pencerelerin oluşturulacağı alan -->
@@ -307,7 +323,11 @@
                     medium: 'Digital Photograph',
                     dimensions: '3024x4032',
                     size: '4 MB',
-                    tags: ['bike', 'extreme', 'urban']
+                    tags: ['bike', 'extreme', 'urban'],
+                    link: {
+                        url: 'https://images.pexels.com/photos/597330/pexels-photo-597330.jpeg',
+                        name: 'Pexels Kaynağı'
+                    }
                 },
                 {
                     id: 'f1-3',
@@ -393,21 +413,17 @@
             "Documents": [
                 // Şimdilik boş, buraya da dosya eklenebilir.
             ],
+            "AirDrop": [
+                // Şimdilik boş
+            ],
+            "Recents": [
+                // Şimdilik boş
+            ],
             "Applications": [
-                // Şimdilik boş, buraya da dosya eklenebilir.
+                // Şimdilik boş
             ]
-
         };
-
-        // --- GLOBAL STATE ---
-        let currentFolder = 'Desktop';
-        let selectedItemId = null;
-        let openWindows = []; // { id, zIndex, element }
-        let zIndexCounter = 10;
-        let navHistory = ['Desktop']; // Navigasyon geçmişi
-        let navIndex = 0; // Aktif geçmiş indeksi
-        let currentViewMode = 'grid'; // 'grid' or 'list'
-        
+ 
         // --- DOM ELEMENTLERİ ---
         const fileBrowser = document.getElementById('file-browser');
         const fileBrowserContainer = document.getElementById('file-browser-container');
@@ -416,6 +432,15 @@
         const infoContent = document.getElementById('info-content');
         const windowContainer = document.getElementById('window-container');
         const currentFolderTitle = document.getElementById('current-folder-title');
+
+        // --- GLOBAL STATE ---
+        let currentFolder = ''; // Mevcut klasörün key'i
+        let selectedItemId = null; // Seçili olan dosyanın ID'si
+        let zIndexCounter = 10; // Pencerelerin z-index'i için
+        let openWindows = []; // Açık pencerelerin listesi
+        let currentViewMode = 'grid'; // 'grid' or 'list'
+        let navHistory = []; // Geri/İleri için [ 'Desktop', 'ProjectFiles', ... ]
+        let navIndex = -1; // navHistory'deki mevcut pozisyon
 
         // --- FONKSİYONLAR ---
 
@@ -441,19 +466,23 @@
 
         /** Yeni bir klasöre gider (geçmişi yönetir) */
         function navigateTo(folderName) {
+            if (folderName === currentFolder) return; // Zaten o klasördeysek bir şey yapma
+            
             if (!fileSystemDB[folderName]) {
                 console.warn(`Folder key "${folderName}" not found in fileSystemDB.`);
                 folderName = 'Desktop'; // Hata durumunda Desktop'a dön
             }
             
-            // Eğer yeni bir yere gidiyorsak (ileri/geri değil)
-            if (folderName !== currentFolder && navHistory[navIndex] === currentFolder) {
-                // İleri geçmişini temizle
+            // --- YENİ NAVİGASYON MANTIĞI ---
+            // Eğer bu 'yeni' bir navigasyonsa (geri/ileri tuşuyla gelmediysek)
+            // 'İleri' geçmişini temizle ve bunu yeni adres olarak ekle
+            if (navHistory[navIndex] !== folderName) {
                 navHistory = navHistory.slice(0, navIndex + 1);
-                // Yeni adresi ekle
                 navHistory.push(folderName);
                 navIndex++;
             }
+            // --- BİTTİ ---
+            
             renderFileSystem(folderName);
         }
         
@@ -479,9 +508,13 @@
 
             // Görünüm moduna göre grid/list sınıflarını ayarla
             if (currentViewMode === 'grid') {
-                fileBrowser.className = 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-6 min-w-max';
+                // Bu sınıf, panel açıldığında (alan daraldığında) öğelerin otomatik olarak alta kaymasını sağlar
+                fileBrowserContainer.style.overflowX = 'hidden'; // Yatay kaydırmayı kapat
+                fileBrowser.className = 'grid grid-cols-[repeat(auto-fit,minmax(112px,1fr))] gap-x-4 gap-y-6';
             } else { // list view
+                fileBrowserContainer.style.overflowX = 'auto'; // Yatay kaydırmaya izin ver
                 fileBrowser.className = 'flex flex-col min-w-max p-2 list-view'; // list-view sınıfı eklendi
+                /* Hatalı yorum satırı buradan kaldırıldı. */
             }
             
             if (items.length === 0) {
@@ -667,6 +700,17 @@
                 tagsSection.classList.remove('hidden');
             } else {
                 tagsSection.classList.add('hidden');
+            }
+
+            // Link
+            const linkSection = document.getElementById('info-link-section');
+            if (item.link) {
+                const linkEl = document.getElementById('info-link');
+                linkEl.href = item.link.url;
+                linkEl.textContent = item.link.name || item.link.url;
+                linkSection.classList.remove('hidden');
+            } else {
+                linkSection.classList.add('hidden');
             }
         }
 
@@ -907,9 +951,23 @@
         // --- Başlangıç ---
         document.addEventListener('DOMContentLoaded', () => {
             // Başlangıçta ilk klasörü yükle
-            navigateTo('Desktop');
+            navHistory = ['Desktop']; // Geçmişi başlat
+            navIndex = 0;
+            renderFileSystem('Desktop'); // Sadece render et
             
             // Sol sidebar navigasyonu
+            document.getElementById('nav-airdrop').addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo('AirDrop');
+            });
+            document.getElementById('nav-recents').addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo('Recents');
+            });
+            document.getElementById('nav-applications').addEventListener('click', (e) => {
+                e.preventDefault();
+                navigateTo('Applications');
+            });
             document.getElementById('nav-desktop').addEventListener('click', (e) => {
                 e.preventDefault();
                 navigateTo('Desktop');
@@ -954,12 +1012,45 @@
                     renderFileSystem(currentFolder); // Arayüzü yeniden çiz
                 }
             });
+
+            // --- YENİ: Ana Pencere Kontrolleri ---
+            const finderWindow = document.querySelector('.finder-window');
+            const minimizedIcon = document.getElementById('minimized-icon-container');
+
+            // Kapat Tuşu
+            document.getElementById('main-close').addEventListener('click', () => {
+                finderWindow.classList.add('hidden');
+                minimizedIcon.classList.remove('hidden');
+                minimizedIcon.classList.add('flex', 'flex-col', 'items-center', 'justify-center');
+            });
+
+            // Geri Getir İkonu
+            minimizedIcon.addEventListener('click', () => {
+                finderWindow.classList.remove('hidden');
+                minimizedIcon.classList.add('hidden');
+                minimizedIcon.classList.remove('flex', 'flex-col', 'items-center', 'justify-center');
+            });
+
+            // Büyüt/Küçült Tuşu
+            document.getElementById('main-maximize').addEventListener('click', () => {
+                if (finderWindow.classList.contains('fullscreen')) {
+                    // Küçült
+                    finderWindow.classList.remove('fullscreen', 'w-screen', 'h-screen', 'p-0', 'rounded-none');
+                    finderWindow.classList.add('w-full', 'max-w-6xl', 'h-[80vh]', 'rounded-xl');
+                    document.body.classList.add('p-8');
+                } else {
+                    // Büyüt
+                    finderWindow.classList.add('fullscreen', 'w-screen', 'h-screen', 'p-0', 'rounded-none');
+                    finderWindow.classList.remove('w-full', 'max-w-6xl', 'h-[80vh]', 'rounded-xl');
+                    document.body.classList.remove('p-8');
+                }
+            });
+            // --- BİTTİ ---
         });
 
     </script>
 </body>
 </html>
-
 
 
 
