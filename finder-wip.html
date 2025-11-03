@@ -1,0 +1,1807 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dosya Yöneticisi Arayüzü</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PDF.js Kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- Three.js ve Gerekli Loader'lar (GLB için) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://unpkg.com/meshoptimizer@0.18.1/meshopt_decoder.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+            background-image: url('https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* --- Seçim Stilleri --- */
+        /* Grid View */
+        .file-item.selected > div {
+            background-color: #eff6ff; /* bg-blue-50 */
+            outline: 2px solid #3b82f6; /* border-blue-500 */
+        }
+        .file-item.selected > p {
+            background-color: #3b82f6; /* bg-blue-600 */
+            color: white;
+            border-radius: 0.375rem;
+        }
+        /* List View */
+        .list-view .file-item.selected {
+            background-color: #3b82f6; /* bg-blue-600 */
+        }
+        .list-view .file-item.selected > p,
+        .list-view .file-item.selected .get-icon-svg {
+            color: white !important;
+        }
+        /* Gallery View */
+        .gallery-thumb-item.selected {
+            background-color: #eff6ff;
+            outline: 2px solid #3b82f6;
+        }
+        /* Desktop View */
+        .desktop-item.selected > p {
+            background-color: #3b82f6;
+            color: white;
+            text-shadow: none;
+        }
+        /* Minimized Icon */
+        #minimized-icon-container.selected > p {
+            background-color: #3b82f6;
+            color: white;
+            text-shadow: none;
+        }
+        
+        /* --- Pencere Stilleri --- */
+        .dragging {
+            user-select: none;
+            cursor: grabbing !important;
+            opacity: 0.8;
+            transition: none !important;
+        }
+        .resizing {
+            user-select: none;
+            transition: none !important;
+        }
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .window-control.close { background-color: #fecaca; }
+        .window-control.close:hover { background-color: #ef4444; }
+        .window-control.maximize { background-color: #bbf7d0; }
+        .window-control.maximize:hover { background-color: #22c55e; }
+        .window-control .icon {
+            visibility: hidden;
+            width: 8px;
+            height: 8px;
+            color: rgba(0,0,0,0.5);
+        }
+        .window-control:hover .icon {
+            visibility: visible;
+        }
+
+        /* --- Pop-up Pencere Yeniden Boyutlandırma Kolları --- */
+        .resize-handle {
+            position: absolute;
+            z-index: 1;
+        }
+        .resize-handle[data-direction="n"] { top: -3px; left: 6px; right: 6px; height: 6px; cursor: n-resize; }
+        .resize-handle[data-direction="s"] { bottom: -3px; left: 6px; right: 6px; height: 6px; cursor: s-resize; }
+        .resize-handle[data-direction="w"] { top: 6px; bottom: 6px; left: -3px; width: 6px; cursor: w-resize; }
+        .resize-handle[data-direction="e"] { top: 6px; bottom: 6px; right: -3px; width: 6px; cursor: e-resize; }
+        .resize-handle[data-direction="nw"] { top: -3px; left: -3px; width: 12px; height: 12px; cursor: nw-resize; }
+        .resize-handle[data-direction="ne"] { top: -3px; right: -3px; width: 12px; height: 12px; cursor: ne-resize; }
+        .resize-handle[data-direction="sw"] { bottom: -3px; left: -3px; width: 12px; height: 12px; cursor: sw-resize; }
+        .resize-handle[data-direction="se"] { bottom: -3px; right: -3px; width: 12px; height: 12px; cursor: se-resize; }
+
+
+        /* Scrollbar stilleri (macOS benzeri) */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #71717a; }
+        
+        /* YENİ: PDF Canvas Stili */
+        .pdf-canvas-container {
+            /* PDF'in renderlandığı alan için arka plan */
+            background-color: #e5e7eb; /* bg-gray-200 */
+        }
+        .pdf-canvas-container canvas {
+            /* PDF sayfası için gölge */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        /* Loading Indicator Stili */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+        .loading-text {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .loading-progress {
+            width: 200px;
+            height: 6px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #3b82f6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="p-8 flex items-center justify-center min-h-screen">
+
+    <!-- YENİ: Masaüstü İkonları Alanı -->
+    <div id="desktop-icons" class="absolute top-0 left-0 p-4 z-0 space-y-4">
+        <!-- Masaüstü ikonları ("RealDesktop") buraya JS ile eklenecek -->
+    </div>
+
+    <!-- Ana Finder Penceresi -->
+    <div class="finder-window w-full max-w-6xl h-[80vh] bg-gray-50/90 backdrop-blur-sm rounded-xl shadow-2xl flex overflow-hidden border border-gray-300 transition-all duration-300 ease-in-out">
+
+        <!-- Sol Sidebar -->
+        <aside class="w-56 bg-gray-100/80 backdrop-blur-sm p-3 space-y-4 overflow-y-auto border-r border-gray-200 flex-shrink-0">
+            <!-- Favoriler -->
+            <div>
+                <h3 class="text-xs font-semibold text-gray-500 px-2 mt-2 mb-1">Favorites</h3>
+                <nav class="space-y-0.5">
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-airdrop">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        AirDrop
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-recents">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Recents
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-applications">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.358A2.975 2.975 0 0119.022 16H4.978A2.975 2.975 0 013 13.358V11A2 2 0 015 9h14a2 2 0 012 2v2.358z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9a2 2 0 11-4 0m4 0V6a2 2 0 00-2-2h-1.172a2 2 0 00-1.414.586L9 6M5 9a2 2 0 104 0M5 9V6a2 2 0 012-2h1.172a2 2 0 011.414.586L10 6"></path></svg>
+                        Applications
+                    </a>
+                    <!-- GÜNCELLEME: "Desktop" adı "C:/" olarak ve ID'si "nav-cdrive" olarak değiştirildi -->
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-900 bg-gray-200" id="nav-cdrive">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        C:/
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-documents">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        Documents
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Ana İçerik Alanı -->
+        <main class="flex-1 flex flex-col bg-white overflow-hidden">
+            
+            <!-- Toolbar -->
+            <header class="h-14 flex-shrink-0 flex items-center justify-between px-4 border-b border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5">
+                        <div class="window-control close" id="main-close"></div>
+                        <div class="window-control maximize" id="main-maximize"></div>
+                    </div>
+                    
+                    <button id="nav-back" class="p-1 rounded-md text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button id="nav-forward" class="p-1 rounded-md text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+
+                <h2 class="text-sm font-semibold text-gray-800" id="current-folder-title">C:/</h2>
+
+                <!-- Sağ Kontroller (Görünüm) -->
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center bg-gray-100 rounded-md p-0.5 border border-gray-300">
+                        <button id="view-grid" class="p-1.5 rounded text-gray-700 bg-white shadow-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        </button>
+                        <button id="view-list" class="p-1.5 rounded text-gray-500 hover:bg-gray-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                        </button>
+                        <!-- YENİ: Galeri Modu Düğmesi (3. Düğme) -->
+                        <button id="view-gallery" class="p-1.5 rounded text-gray-500 hover:bg-gray-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 18m6-6l.01.01"></path></svg>
+                        </button>
+                        <!-- 4. Düğme SİLİNDİ -->
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dosya Tarayıcısı Alanı -->
+            <div class="flex-1 flex overflow-hidden">
+                <section class="flex-1 p-6 overflow-auto" id="file-browser-container">
+                    <!-- Dosya Alanı (Grid, List, Gallery buraya render edilecek) -->
+                    <div id="file-browser">
+                        <!-- JS ile doldurulacak -->
+                    </div>
+                </section>
+
+                <!-- Sağ Bilgi Paneli -->
+                <aside class="w-80 bg-gray-50 border-l border-gray-200 p-4 overflow-y-auto hidden" id="info-panel">
+                    <div class="flex flex-col items-center text-center" id="info-placeholder">
+                        <svg class="w-24 h-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <p class="text-lg font-semibold text-gray-700 mt-2">Bilgi Al</p>
+                        <p class="text-sm text-gray-500 mt-1">Bilgilerini görmek için bir öğe seçin.</p>
+                    </div>
+                    
+                    <div id="info-content" class="hidden">
+                        <div class="flex flex-col items-center text-center mb-4">
+                            <div class="w-32 h-32 flex items-center justify-center mb-3" id="info-preview"></div>
+                            <h3 class="font-semibold text-gray-800" id="info-name"></h3>
+                            <p class="text-sm text-gray-500" id="info-meta"></p>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4">
+                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Description</h4>
+                            <p class="text-sm text-gray-600" id="info-description"></p>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4 mt-4">
+                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Details</h4>
+                            <div class="space-y-1.5 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Created</span><span class="font-medium text-gray-700" id="info-created"></span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Minted</span><span class="font-medium text-gray-700" id="info-minted"></span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Medium</span><span class="font-medium text-gray-700" id="info-medium"></span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Dimensions</span><span class="font-medium text-gray-700" id="info-dimensions"></span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Size</span><span class="font-medium text-gray-700" id="info-size"></span></div>
+                            </div>
+                        </div>
+
+                        <!-- GÜNCELLENDİ: External Link Bölümü (Tags'in üstünde) -->
+                        <div id="info-links-section" class="hidden border-t border-gray-200 pt-4 mt-4">
+                             <h4 class="text-sm font-semibold text-gray-800 mb-2">External Link</h4>
+                             <div class="flex flex-col space-y-1" id="info-links">
+                                <!-- Linkler buraya JS ile eklenecek -->
+                             </div>
+                        </div>
+
+                        <div id="info-tags-section" class="hidden border-t border-gray-200 pt-4 mt-4">
+                             <h4 class="text-sm font-semibold text-gray-800 mb-2">Tags</h4>
+                             <div class="flex flex-wrap gap-2" id="info-tags"></div>
+                        </div>
+                        
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Kapatıldığında Gösterilecek İkon ("aynankankaa") -->
+    <!-- Bu, fileSystemDB'den bağımsız, özel bir UI elementidir -->
+    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <div class="w-24 h-24 p-2 flex items-center justify-center transition-shadow duration-150 group-hover:shadow-lg">
+            <svg class="w-full h-full text-blue-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+        </div>
+        <p class="text-xs font-medium text-white text-shadow-lg text-center mt-2 break-all px-1 py-0.5 bg-black/20 rounded">
+            aynankankaa
+        </p>
+    </div>
+
+    <!-- Pencerelerin oluşturulacağı alan -->
+    <div id="window-container" class="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <!-- Açılan pencereler buraya JS ile eklenecek -->
+    </div>
+
+    <script>
+        // --- GÜNCELLENMİŞ VERİ SİSTEMİ ---
+        // "RealDesktop" = Arka planda görünen ikonlar
+        // "Cdrive" = Finder içinde "C:/" olarak görünen klasör
+        // GÜNCELLEME: Tüm öğelere (boş bile olsa) `links: []` eklendi.
+        const fileSystemDB = {
+            "RealDesktop": [
+                {
+                    id: 'rd-1',
+                    type: 'video',
+                    name: 'what if space had no limits.mp4',
+                    url: 'https://video.wixstatic.com/video/54a996_e6d16d06cf7b490bbc64d936760c2dae/1080p/mp4/file.mp4',
+                    description: 'Uzay videosu.',
+                    created: 'Monday, September 3, 2024 at 4:38 PM',
+                    minted: 'Monday, September 3, 2024 at 4:40 PM',
+                    medium: 'MP4 Video',
+                    dimensions: '1920x1080',
+                    size: '15 MB',
+                    tags: ['space', 'video', 'wix'],
+                    links: [ 
+                        { url: 'https://www.wix.com', name: 'Wix Kaynağı' }
+                    ]
+                },
+                {
+                    id: 'rd-2',
+                    type: 'image',
+                    name: 'Bike_110279.jpg',
+                    url: 'https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                    description: 'BMX bisikletli bir sporcunun duvarda yaptığı gösteri.',
+                    created: 'Monday, September 3, 2024 at 4:38 PM',
+                    minted: 'Monday, September 3, 2024 at 4:40 PM',
+                    medium: 'Digital Photograph',
+                    dimensions: '3024x4032',
+                    size: '4 MB',
+                    tags: ['bike', 'extreme', 'urban'],
+                    links: [
+                        {
+                            url: 'https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg',
+                            name: 'Pexels Kaynağı (Birincil)'
+                        },
+                        {
+                            url: 'https://www.google.com/search?q=bmx',
+                            name: 'BMX Google Araması (İkincil)'
+                        }
+                    ]
+                }
+            ],
+            "Cdrive": [ 
+                {
+                    id: 'f1-1',
+                    type: 'folder',
+                    name: 'Project Files',
+                    folderKey: 'ProjectFiles',
+                    created: 'Monday, September 3, 2024 at 4:38 PM',
+                    size: '1.2 GB',
+                    links: []
+                },
+                {
+                    id: 'f1-3',
+                    type: 'video',
+                    name: 'Skate_Park_Clip.mp4',
+                    url: 'https://videos.pexels.com/video-files/852400/852400-hd_1280_720_25fps.mp4',
+                    description: 'Kaykay parkında bir gösteri.',
+                    created: 'Friday, October 10, 2024 at 11:00 AM',
+                    minted: 'Friday, October 10, 2024 at 11:01 AM',
+                    medium: 'MP4 Video',
+                    dimensions: '1920x1080',
+                    size: '22 MB',
+                    tags: ['skate', 'park', 'video'],
+                    links: []
+                },
+                 { // GÜNCELLEME: Sizin verdiğiniz linkle değiştirildi
+                    id: 'f1-4',
+                    type: 'glb',
+                    name: 'matisse-900.glb',
+                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/matisse-900-opt-v80.glb',
+                    description: 'WEBP Texturelı Matisse 3D modeli.',
+                    created: 'Wednesday, June 5, 2024 at 09:30 AM',
+                    minted: 'Wednesday, June 5, 2024 at 09:30 AM',
+                    medium: 'GLB 3D Model',
+                    dimensions: 'N/A',
+                    size: '1.5 MB',
+                    tags: ['3d', 'matisse', 'model', 'webp'],
+                    links: [
+                         { url: 'https://github.com/decentralize-dfw/c2w2-glb', name: 'GitHub Kaynağı' }
+                    ]
+                },
+                {
+                    id: 'f1-5',
+                    type: 'text',
+                    name: 'Proje Notları.txt',
+                    content: 'Bu bir deneme metin dosyasıdır.\n\nArayüz geliştirme notları:\n- Pencere yönetimi tamamlanacak.\n- Bilgi paneli dinamik hale getirilecek.\n- Sürükle bırak özelliği eklenecek.',
+                    description: 'Proje ile ilgili temel notlar.',
+                    created: 'Today, 10:05 AM',
+                    minted: 'Today, 10:05 AM',
+                    medium: 'Text Document',
+                    dimensions: 'N/A',
+                    size: '1 KB',
+                    tags: ['text', 'notes'],
+                    links: []
+                },
+                {
+                    id: 'f1-6',
+                    type: 'html',
+                    name: 'OrnekWebSayfasi.html',
+                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2/main/offthechain.html',
+                    description: 'Örnek bir HTML sayfası.',
+                    created: 'Today, 11:00 AM',
+                    minted: 'Today, 11:00 AM',
+                    medium: 'HTML Document',
+                    dimensions: 'N/A',
+                    size: '12 KB',
+                    tags: ['web', 'html', 'example'],
+                    links: []
+                },
+                {
+                    id: 'f1-7',
+                    type: 'pdf',
+                    name: 'Ornek_PDF.pdf',
+                    url: 'https://54a996c1-da67-48e4-abe3-b352dceb63bf.usrfiles.com/ugd/54a996_2c534b4433b34d0f98dc7902ea5ec811.pdf',
+                    description: 'Örnek bir PDF belgesi.',
+                    created: 'Today, 1:00 PM',
+                    minted: 'Today, 1:00 PM',
+                    medium: 'PDF Document',
+                    dimensions: 'N/A',
+                    size: '13 KB',
+                    tags: ['pdf', 'document', 'example'],
+                    links: []
+                },
+                {
+                    id: 'f1-8',
+                    type: 'website',
+                    name: 'Wikipedia.website',
+                    url: 'https://en.wikipedia.org/wiki/Main_Page',
+                    description: 'Wikipedia ana sayfası.',
+                    created: 'Today, 1:05 PM',
+                    minted: 'Today, 1:05 PM',
+                    medium: 'Website Link',
+                    dimensions: 'N/A',
+                    size: 'N/A',
+                    tags: ['web', 'link', 'encyclopedia'],
+                    links: []
+                },
+                { // YENİ: VRM Test Dosyası
+                    id: 'f1-9',
+                    type: 'vrm',
+                    name: 'Alicia.vrm',
+                    url: 'https://pixiv.github.io/three-vrm/packages/three-vrm/examples/models/AliciaSolid.vrm',
+                    description: 'VRM 3D Avatar Modeli.',
+                    created: 'Today, 1:10 PM',
+                    minted: 'Today, 1:10 PM',
+                    medium: 'VRM 3D Model',
+                    dimensions: 'N/A',
+                    size: '2.5 MB',
+                    tags: ['3d', 'vrm', 'avatar'],
+                    links: [
+                        { url: 'https://pixiv.github.io/three-vrm/', name: 'three-vrm Kaynağı' }
+                    ]
+                }
+            ],
+            "ProjectFiles": [ 
+                 {
+                    id: 'f2-1',
+                    type: 'image',
+                    name: 'Brentwood Hurricanes.png',
+                    url: 'https://placehold.co/800x600/0033a0/white?text=Brentwood+Hurricanes+Triathlon',
+                    description: 'Triatlon grafiği.',
+                    created: 'Sunday, August 1, 2024 at 2:17 PM',
+                    minted: 'Sunday, August 1, 2024 at 2:17 PM',
+                    medium: 'PNG Image',
+                    dimensions: '1200x800',
+                    size: '1.1 MB',
+                    tags: ['bike', 'sports', 'report'],
+                    links: []
+                },
+                {
+                    id: 'f2-2',
+                    type: 'image',
+                    name: 'RoadTrip_024.jpg',
+                    url: 'https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+                    description: 'Gece şehir manzarası.',
+                    created: 'Tuesday, July 20, 2024 at 8:55 PM',
+                    minted: 'Tuesday, July 20, 2024 at 8:56 PM',
+                    medium: 'Digital Photograph',
+                    dimensions: '4000x3000',
+                    size: '5.2 MB',
+                    tags: ['city', 'night', 'travel'],
+                    links: [ // SİZİN EKLEDİĞİNİZ ÖRNEK
+                        {
+                            url: 'https://images.pexels.com/photos/1034662/pexels-photo-1034662.jpeg',
+                            name: 'Pexels Kaynağı (Birincil)'
+                        },
+                        {
+                            url: 'https://www.google.com/search?q=roadtrip',
+                            name: 'RoadTrip Google Araması (İkincil)'
+                        }
+                    ]
+                }
+            ],
+            "Documents": [], "AirDrop": [], "Recents": [], "Applications": []
+        };
+ 
+        // --- DOM ELEMENTLERİ ---
+        const fileBrowser = document.getElementById('file-browser');
+        const fileBrowserContainer = document.getElementById('file-browser-container');
+        const infoPanel = document.getElementById('info-panel');
+        const infoPlaceholder = document.getElementById('info-placeholder');
+        const infoContent = document.getElementById('info-content');
+        const windowContainer = document.getElementById('window-container');
+        const currentFolderTitle = document.getElementById('current-folder-title');
+        const desktopIconsContainer = document.getElementById('desktop-icons');
+
+        // --- GLOBAL STATE ---
+        let currentFolder = '';
+        let selectedItemId = null;
+        let zIndexCounter = 10;
+        let openWindows = [];
+        let currentViewMode = 'grid'; // 'grid', 'list', 'gallery'
+        let navHistory = [];
+        let navIndex = -1;
+
+        // --- YARDIMCI FONKSİYONLAR ---
+
+        /** Dosya/Klasörler için ikon oluşturan yardımcı fonksiyon */
+        function getIcon(item) {
+            // Not: Bu fonksiyon küçük ikonlar ve thumbnail'ler için kullanılır.
+            // Büyük önizlemeler (Galeri modu) render fonksiyonları içinde ayrıca ele alınır.
+            switch(item.type) {
+                case 'folder':
+                    return `<svg class="w-full h-full text-blue-400 get-icon-svg" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>`;
+                case 'image':
+                    return `<img src="${item.url}" alt="${item.name}" class="w-full h-full object-cover rounded-md" onerror="this.src='https://placehold.co/100x100/e0e0e0/909090?text=Image';">`;
+                case 'video':
+                    return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 18h10a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+                case 'glb':
+                case 'vrm': // YENİ: VRM için de aynı ikonu kullan
+                    return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m0 10l8 4m6 0v-4m0 0L4 11m6 4l8-4m-8 4v4m0 0L4 17m6 4l8-4"></path></svg>`;
+                case 'text':
+                    return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+                case 'html':
+                    return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m-8 4l-4 4 4 4m16-8l-4 4 4 4"></path></svg>`;
+                case 'pdf':
+                    return `<svg class="w-1/2 h-1/2 text-red-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+                case 'website':
+                    return `<svg class="w-1/2 h-1/2 text-blue-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 21h4v-4h-4v4zm0-18h4v-4h-4v4zM14 3h7v7h-7V3zM3 14h7v7H3v-7zm0-11h7v7H3V3z"></path></svg>`;
+                default:
+                    return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
+            }
+        }
+        
+        /** Tıklama olaylarını yöneten yardımcı fonksiyon */
+        function addClickListeners(element, item) {
+            let clickTimer = null;
+            element.addEventListener('click', (e) => {
+                e.stopPropagation(); // Diğer tıklamaları engelle
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                    handleDoubleClick(item);
+                } else {
+                    clickTimer = setTimeout(() => {
+                        handleSingleClick(item);
+                        clickTimer = null;
+                    }, 250);
+                }
+            });
+        }
+
+        // --- ANA FONKSİYONLAR ---
+
+        /** Yeni bir klasöre gider (geçmişi yönetir) */
+        function navigateTo(folderName) {
+            if (folderName === currentFolder) return;
+            
+            if (!fileSystemDB[folderName]) {
+                console.warn(`Folder key "${folderName}" not found in fileSystemDB.`);
+                folderName = 'Cdrive'; // Başlangıç klasörü Cdrive oldu
+            }
+            
+            if (navHistory[navIndex] !== folderName) {
+                navHistory = navHistory.slice(0, navIndex + 1);
+                navHistory.push(folderName);
+                navIndex++;
+            }
+            
+            renderFileSystem(folderName);
+        }
+        
+        /** Dosya tarayıcısını (ana router) render eder */
+        function renderFileSystem(folderName) {
+            currentFolder = folderName;
+            const items = fileSystemDB[folderName] || [];
+            
+            // Başlığı C:/ olarak düzelt
+            currentFolderTitle.textContent = (folderName === 'Cdrive') ? 'C:/' : folderName;
+
+            document.getElementById('nav-back').disabled = (navIndex <= 0);
+            document.getElementById('nav-forward').disabled = (navIndex >= navHistory.length - 1);
+            
+            document.querySelectorAll('aside nav a').forEach(a => a.classList.remove('bg-gray-200', 'text-gray-900'));
+            // ID'yi "cdrive" olarak arayacak şekilde düzeltildi
+            const activeNavId = (folderName === 'Cdrive') ? 'nav-cdrive' : `nav-${folderName.toLowerCase()}`;
+            const activeNav = document.getElementById(activeNavId);
+            if (activeNav) {
+                activeNav.classList.add('bg-gray-200', 'text-gray-900');
+            }
+
+            fileBrowser.innerHTML = ''; // Önceki görünümü temizle
+            
+            if (items.length === 0) {
+                fileBrowser.innerHTML = `<p class="text-gray-500 col-span-full text-center mt-10">This folder is empty.</p>`;
+                fileBrowserContainer.style.overflowX = 'hidden';
+                fileBrowser.className = 'grid'; // Reset class
+                return;
+            }
+
+            // Görünüm moduna göre render fonksiyonunu çağır
+            if (currentViewMode === 'grid') {
+                renderGridView(items);
+            } else if (currentViewMode === 'list') {
+                renderListView(items);
+            } else if (currentViewMode === 'gallery') {
+                renderGalleryView(items);
+            }
+            
+            // Eğer bir öğe seçiliyse, onu yeniden seçili hale getir
+            if (selectedItemId) {
+                let itemEl;
+                if (currentViewMode === 'gallery') {
+                    itemEl = document.querySelector(`.gallery-thumb-item[data-id="${selectedItemId}"]`);
+                } else {
+                    itemEl = document.querySelector(`.file-item[data-id="${selectedItemId}"]`);
+                }
+                if (itemEl) {
+                    itemEl.classList.add('selected');
+                } else {
+                    // Öğe bu klasörde değilse seçimi temizle
+                    deselectAll();
+                }
+            }
+        }
+
+        /** YENİ: Masaüstü ikonlarını render eder (RealDesktop'tan) */
+        function renderDesktopIcons() {
+            desktopIconsContainer.innerHTML = '';
+            // GÜNCELLEME: "RealDesktop" anahtarını kullanır
+            const items = fileSystemDB['RealDesktop'] || [];
+            
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.dataset.id = item.id;
+                itemEl.className = 'desktop-item w-24 flex flex-col items-center justify-start text-center cursor-pointer group';
+                
+                const iconContainer = document.createElement('div');
+                iconContainer.className = 'w-20 h-20 p-2 flex items-center justify-center';
+                
+                let iconHTML = getIcon(item);
+                if (item.type === 'image') {
+                    iconHTML = `<img src="${item.url}" class="w-full h-full object-cover rounded-md shadow-md" onerror="this.src='https://placehold.co/100x100/e0e0e0/909090?text=Image';">`;
+                } else {
+                    iconContainer.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))';
+                }
+                iconContainer.innerHTML = iconHTML;
+
+                const nameEl = document.createElement('p');
+                nameEl.className = 'text-xs font-medium text-white mt-1 break-all px-1 py-0.5 rounded';
+                nameEl.style.textShadow = '0 1px 2px rgba(0,0,0,0.7)';
+                nameEl.textContent = item.name;
+
+                itemEl.appendChild(iconContainer);
+                itemEl.appendChild(nameEl);
+                
+                addClickListeners(itemEl, item); // Tıklama olaylarını ekle
+                
+                desktopIconsContainer.appendChild(itemEl);
+            });
+        }
+        
+        /** Grid (Izgara) Görünümünü Render Eder */
+        function renderGridView(items) {
+            fileBrowserContainer.style.overflowX = 'hidden';
+            fileBrowser.className = 'grid grid-cols-[repeat(auto-fit,minmax(112px,1fr))] gap-x-4 gap-y-6';
+            
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.dataset.id = item.id;
+                itemEl.className = 'file-item flex flex-col items-center justify-start text-center cursor-pointer group';
+
+                const iconContainer = document.createElement('div');
+                iconContainer.className = 'w-24 h-24 p-2 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 group-hover:shadow-md transition-shadow duration-150';
+                
+                if (item.type === 'image') {
+                     iconContainer.innerHTML = getIcon(item);
+                } else if (item.type === 'folder') {
+                    iconContainer.className = 'w-24 h-24 p-2 flex items-center justify-center rounded-lg transition-shadow duration-150';
+                    iconContainer.innerHTML = getIcon(item);
+                } else {
+                     iconContainer.innerHTML = getIcon(item);
+                }
+
+                const nameEl = document.createElement('p');
+                nameEl.className = 'text-xs font-medium text-gray-700 mt-2 break-all px-1 py-0.5';
+                nameEl.textContent = item.name;
+
+                itemEl.appendChild(iconContainer);
+                itemEl.appendChild(nameEl);
+                
+                addClickListeners(itemEl, item);
+                fileBrowser.appendChild(itemEl);
+            });
+        }
+
+        /** List (Liste) Görünümünü Render Eder */
+        function renderListView(items) {
+            fileBrowserContainer.style.overflowX = 'auto';
+            fileBrowser.className = 'flex flex-col min-w-max list-view'; // p-2 kaldırıldı, item'a eklendi
+            
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.dataset.id = item.id;
+                itemEl.className = 'file-item flex items-center gap-3 p-1.5 rounded-md cursor-pointer group';
+
+                const iconContainer = document.createElement('div');
+                iconContainer.className = 'w-6 h-6 flex-shrink-0 flex items-center justify-center';
+                
+                if (item.type === 'image') {
+                     iconContainer.innerHTML = getIcon(item).replace('rounded-md', 'rounded-sm');
+                } else if (item.type === 'folder') {
+                    iconContainer.innerHTML = getIcon(item);
+                } else {
+                     iconContainer.className = 'w-6 h-6 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded-sm';
+                     iconContainer.innerHTML = getIcon(item).replace('w-1/2 h-1/2', 'w-4 h-4');
+                }
+
+                const nameEl = document.createElement('p');
+                nameEl.className = 'text-sm font-medium text-gray-800 truncate';
+                nameEl.textContent = item.name;
+                
+                const dateEl = document.createElement('p');
+                dateEl.className = 'text-sm text-gray-500 ml-auto w-48 text-right flex-shrink-0';
+                dateEl.textContent = item.created || '-'; // created'a değiştirildi
+                
+                const sizeEl = document.createElement('p');
+                sizeEl.className = 'text-sm text-gray-500 w-24 text-right flex-shrink-0';
+                sizeEl.textContent = item.size || '-';
+
+                itemEl.appendChild(iconContainer);
+                itemEl.appendChild(nameEl);
+                itemEl.appendChild(dateEl);
+                itemEl.appendChild(sizeEl);
+                
+                addClickListeners(itemEl, item);
+                fileBrowser.appendChild(itemEl);
+            });
+        }
+        
+        /** YENİ: Gallery (Galeri) Görünümünü Render Eder */
+        function renderGalleryView(items) {
+            fileBrowserContainer.style.overflowX = 'hidden';
+            fileBrowserContainer.classList.remove('p-6'); // Galeri için padding'i kaldır
+            fileBrowser.className = 'flex flex-col h-full overflow-hidden';
+            
+            fileBrowser.innerHTML = `
+                <div id="gallery-preview" class="flex-1 flex items-center justify-center p-4 bg-gray-100/50 overflow-hidden relative">
+                    <!-- Önizleme buraya gelecek -->
+                </div>
+                <div id="gallery-thumbnails" class="flex-shrink-0 h-32 bg-gray-100 border-t border-gray-200 p-2 overflow-x-auto overflow-y-hidden flex items-center space-x-3">
+                    <!-- Thumbnails buraya gelecek -->
+                </div>
+            `;
+            
+            const previewEl = document.getElementById('gallery-preview');
+            const thumbnailsEl = document.getElementById('gallery-thumbnails');
+            
+            items.forEach((item, index) => {
+                const thumbEl = document.createElement('div');
+                thumbEl.className = 'gallery-thumb-item w-24 h-24 p-1 flex-shrink-0 flex flex-col items-center justify-center rounded-lg border border-gray-300 cursor-pointer hover:shadow-md bg-white';
+                thumbEl.dataset.id = item.id;
+                
+                let thumbIcon = '';
+                if (item.type === 'image') {
+                    thumbIcon = `<img src="${item.url}" class="w-full h-full object-cover rounded-md" onerror="this.src='https://placehold.co/100x100/e0e0e0/909090?text=Image';">`;
+                } else if (item.type === 'folder') {
+                    thumbIcon = getIcon(item);
+                } else {
+                    thumbIcon = getIcon(item).replace('w-1/2 h-1/2', 'w-10 h-10');
+                }
+
+                thumbEl.innerHTML = `
+                    <div class="w-16 h-16 flex items-center justify-center">${thumbIcon}</div>
+                    <p class="text-xs font-medium text-gray-700 truncate w-full text-center mt-1">${item.name}</p>
+                `;
+                
+                // Thumbnail'e tıklama olayı
+                thumbEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    updateGalleryPreview(item);
+                    handleSingleClick(item); // Bu, seçimi ve bilgi panelini günceller
+                });
+                
+                thumbEl.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    handleDoubleClick(item);
+                });
+                
+                thumbnailsEl.appendChild(thumbEl);
+            });
+            
+            // Başlangıçta ilk öğeyi (veya seçili olanı) göster
+            let initialItem = items[0];
+            if (selectedItemId) {
+                const selected = items.find(i => i.id === selectedItemId);
+                if (selected) initialItem = selected;
+            }
+            if (initialItem) {
+                updateGalleryPreview(initialItem);
+            }
+        }
+        
+        /** YENİ: Galeri önizlemesini günceller */
+        function updateGalleryPreview(item) {
+            const previewEl = document.getElementById('gallery-preview');
+            if (!previewEl) return;
+            
+            let previewHTML = '';
+            switch(item.type) {
+                case 'image':
+                    previewHTML = `<img src="${item.url}" class="max-w-full max-h-full object-contain" alt="${item.name}" onerror="this.src='https://placehold.co/400x400/e0e0e0/909090?text=Image+Not+Found';">`;
+                    break;
+                case 'video':
+                    previewHTML = `<video controls autoplay class="max-w-full max-h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Browser desteklemiyor.</video>`;
+                    break;
+                case 'glb':
+                case 'vrm':
+                    previewHTML = `<div id="glb-preview-${item.id}" class="w-full h-full relative">
+                        <div class="loading-overlay">
+                            <div class="loading-text">Loading... <span class="loading-percentage">0%</span></div>
+                            <div class="loading-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                    loadGlbInGallery(item.url, `glb-preview-${item.id}`);
+                    break;
+                case 'text':
+                    previewHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap bg-white border rounded-md">${item.content}</pre>`;
+                    break;
+                case 'html':
+                    previewHTML = `<iframe class="w-full h-full border-2 border-gray-300 bg-white" sandbox="allow-scripts allow-same-origin" id="gallery-html-preview"></iframe>`;
+                    break;
+                case 'pdf':
+                    previewHTML = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
+                    break;
+                case 'website':
+                    // Not: overlay, iframe'in tıklamaları çalmasını engeller
+                    previewHTML = `<iframe src="${item.url}" class="w-full h-full border-2 border-gray-300 bg-white" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe><div class="absolute inset-0 bg-transparent" title="Live website preview. Double-click to open."></div>`;
+                    break;
+                default:
+                    // Diğer dosya türleri (klasör vb.) için büyük ikon
+                    previewHTML = `<div class="w-48 h-48 flex items-center justify-center">${getIcon(item).replace('w-full h-full', 'w-48 h-48').replace('w-1/2 h-1/2', 'w-32 h-32')}</div>`;
+            }
+            previewEl.innerHTML = previewHTML;
+            
+            // Eğer HTML ise, içeriği asenkron yükle
+            if (item.type === 'html') {
+                const iframe = document.getElementById('gallery-html-preview');
+                if (item.url) {
+                    fetch(item.url)
+                        .then(response => response.ok ? response.text() : Promise.reject(`HTTP ${response.status}`))
+                        .then(html => { iframe.srcdoc = html; })
+                        .catch(error => { iframe.srcdoc = `<p>Error: ${error}</p>`; });
+                } else if (item.content) {
+                    iframe.srcdoc = item.content;
+                }
+            }
+        }
+
+        /** Tek Tıklama: Öğeyi seç ve bilgileri göster */
+        function handleSingleClick(item) {
+            if (selectedItemId === item.id) {
+                // Zaten seçiliyse, seçimi kaldır
+                deselectAll();
+            } else {
+                // Yeni bir öğe seç
+                deselectAll();
+                selectedItemId = item.id;
+                
+                // İlgili öğeyi DOM'da bul ve seçili yap
+                let itemEl;
+                if (document.querySelector(`.desktop-item[data-id="${item.id}"]`)) {
+                    itemEl = document.querySelector(`.desktop-item[data-id="${item.id}"]`);
+                } else if (currentViewMode === 'gallery') {
+                    itemEl = document.querySelector(`.gallery-thumb-item[data-id="${item.id}"]`);
+                } else {
+                    itemEl = document.querySelector(`.file-item[data-id="${item.id}"]`);
+                }
+                
+                if (itemEl) {
+                    itemEl.classList.add('selected');
+                }
+                showInfoPanel(item); // Bilgi panelini her zaman göster
+            }
+        }
+
+        /** Çift Tıklama: Pencere aç veya klasöre git */
+        function handleDoubleClick(item) {
+            if (item.type === 'folder') {
+                const folderKey = item.folderKey || item.name; // Fallback
+                
+                // GÜNCELLEME: Eğer masaüstündeki bir klasöre çift tıklandıysa, ana pencereyi aç/göster
+                if (document.querySelector(`.desktop-item[data-id="${item.id}"]`)) {
+                    const finderWindow = document.querySelector('.finder-window');
+                    if (finderWindow.classList.contains('hidden')) {
+                        // "aynankankaa" ikonunu gizle ve pencereyi aç
+                        document.getElementById('minimized-icon-container').classList.add('hidden');
+                        finderWindow.classList.remove('hidden');
+                    }
+                    navigateTo(folderKey); // Pencere içini o klasöre ayarla
+                } else {
+                    // Zaten pencere içindeyse, o klasöre git
+                    navigateTo(folderKey);
+                }
+            } else {
+                openWindow(item);
+            }
+        }
+        
+        /** Tüm seçimleri kaldır */
+        function deselectAll() {
+            selectedItemId = null;
+            document.querySelectorAll('.file-item.selected').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.gallery-thumb-item.selected').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.desktop-item.selected').forEach(el => el.classList.remove('selected'));
+            document.getElementById('minimized-icon-container').classList.remove('selected');
+            
+            hideInfoPanel();
+        }
+        
+        /** Dışarıya tıklayınca seçimi kaldır */
+        document.body.addEventListener('click', (e) => {
+            // Sadece body'nin kendisine (ikonlar veya pencereler değil) tıklanırsa seçimi kaldır
+            if (e.target === document.body || e.target.id === 'desktop-icons') {
+                deselectAll();
+            }
+        });
+        fileBrowserContainer.addEventListener('click', (e) => {
+            if (e.target === fileBrowserContainer || e.target === fileBrowser) {
+                deselectAll();
+            }
+        });
+        
+        /** Bilgi panelini gizle */
+        function hideInfoPanel() {
+            infoPanel.classList.add('hidden');
+            infoPlaceholder.classList.remove('hidden');
+            infoContent.classList.add('hidden');
+        }
+
+        /** Bilgi panelini doldur ve göster */
+        function showInfoPanel(item) {
+            infoPanel.classList.remove('hidden');
+            infoPlaceholder.classList.add('hidden');
+            infoContent.classList.remove('hidden');
+
+            const previewEl = document.getElementById('info-preview');
+            if(item.type === 'image') {
+                previewEl.innerHTML = `<img src="${item.url}" alt="preview" class="max-w-full max-h-full rounded-md object-contain" onerror="this.src='https://placehold.co/100x100/e0e0e0/909090?text=Image';">`;
+            } else {
+                previewEl.innerHTML = getIcon(item).replace('w-1/2 h-1/2', 'w-20 h-20').replace('w-full h-full', 'w-20 h-20');
+            }
+            
+            document.getElementById('info-name').textContent = item.name;
+            document.getElementById('info-meta').textContent = `${item.type.charAt(0).toUpperCase() + item.type.slice(1)} - ${item.size || ''}`;
+            document.getElementById('info-description').textContent = item.description || '-';
+            document.getElementById('info-created').textContent = item.created || '-';
+            document.getElementById('info-minted').textContent = item.minted || '-';
+            document.getElementById('info-medium').textContent = item.medium || '-';
+            document.getElementById('info-dimensions').textContent = item.dimensions || '-';
+            document.getElementById('info-size').textContent = item.size || '-';
+            
+            // GÜNCELLENDİ: "External Link" Mantığı
+            const linksSection = document.getElementById('info-links-section');
+            const linksContainer = document.getElementById('info-links');
+            linksContainer.innerHTML = ''; // Önceki linkleri temizle
+            
+            // Hem `links` (yeni dizi) hem de `link` (eski obje) kontrolü
+            let linksToShow = [];
+            if (item.links && Array.isArray(item.links)) {
+                linksToShow = item.links;
+            } else if (item.link && typeof item.link === 'object') { // Geriye dönük uyumluluk
+                linksToShow = [item.link];
+            }
+
+            if (linksToShow.length > 0) {
+                linksToShow.forEach(link => {
+                    if (link && link.url && link.name) {
+                        const linkEl = document.createElement('a');
+                        linkEl.href = link.url;
+                        linkEl.target = '_blank'; // Yeni sekmede aç
+                        linkEl.rel = 'noopener noreferrer';
+                        linkEl.className = 'text-sm text-blue-600 hover:underline truncate'; // Mavi ve altı çizili
+                        linkEl.title = link.url; // Hover'da URL'yi göster
+                        linkEl.textContent = link.name; // İsim
+                        linksContainer.appendChild(linkEl);
+                    }
+                });
+                linksSection.classList.remove('hidden'); // Bölümü göster
+            } else {
+                linksSection.classList.add('hidden'); // Link yoksa bölümü gizle
+            }
+
+            // "Tags" Mantığı (Aşağıya taşındı)
+            const tagsSection = document.getElementById('info-tags-section');
+            const tagsContainer = document.getElementById('info-tags');
+            tagsContainer.innerHTML = '';
+            if (item.tags && item.tags.length > 0) {
+                item.tags.forEach(tag => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'text-xs font-medium bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full';
+                    tagEl.textContent = tag;
+                    tagsContainer.appendChild(tagEl);
+                });
+                tagsSection.classList.remove('hidden');
+            } else {
+                tagsSection.classList.add('hidden');
+            }
+        }
+
+        /** Yeni bir pencere açar */
+        function openWindow(item) {
+            zIndexCounter++;
+            const windowId = `window-${item.id}-${Date.now()}`;
+            
+            const windowEl = document.createElement('div');
+            windowEl.id = windowId;
+            windowEl.className = 'floating-window absolute w-[600px] h-[400px] bg-white rounded-lg shadow-xl flex flex-col overflow-hidden border border-gray-300 pointer-events-auto';
+            const top = Math.floor(Math.random() * 100) + 50;
+            const left = Math.floor(Math.random() * 200) + 100;
+            windowEl.style.cssText = `top: ${top}px; left: ${left}px; z-index: ${zIndexCounter}; min-width: 300px; min-height: 200px;`;
+
+            let contentHTML = '';
+            let isAsyncContent = false;
+
+            switch(item.type) {
+                case 'image':
+                    contentHTML = `<img src="${item.url}" class="w-full h-full object-contain" alt="${item.name}">`;
+                    break;
+                case 'video':
+                    contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
+                    break;
+                case 'glb':
+                case 'vrm':
+                    contentHTML = `<div id="glb-canvas-container-${windowId}" class="w-full h-full relative">
+                        <div class="loading-overlay">
+                            <div class="loading-text">Loading... <span class="loading-percentage">0%</span></div>
+                            <div class="loading-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                    isAsyncContent = true;
+                    break;
+                case 'text':
+                    contentHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap">${item.content}</pre>`;
+                    break;
+                case 'html':
+                    contentHTML = `<iframe class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"></iframe>`;
+                    isAsyncContent = true;
+                    break;
+                
+                // Gelişmiş PDF Görüntüleyici (PDF.js)
+                case 'pdf':
+                    const canvasId = `pdf-canvas-${windowId}`;
+                    const controlsId = `pdf-controls-${windowId}`;
+                    
+                    // Arayüze entegre edilmiş PDF kontrolcüleri ve canvas alanı
+                    contentHTML = `
+                        <div class="pdf-viewer-wrapper w-full h-full flex flex-col bg-gray-50 overflow-hidden">
+                            <!-- Arayüze Entegre Edilmiş PDF Kontrolleri -->
+                            <div id="${controlsId}" class="flex-shrink-0 h-10 bg-gray-100 border-b border-gray-200 flex items-center justify-center gap-4 px-4">
+                                <button data-action="prev" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Önceki Sayfa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <div class="text-sm font-medium text-gray-700">
+                                    Sayfa 
+                                    <input type="number" data-action="page-input" class="w-12 text-center rounded border border-gray-400 bg-white" min="1" value="1">
+                                    / <span data-action="page-count">...</span>
+                                </div>
+                                <button data-action="next" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Sonraki Sayfa">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                            <!-- PDF Sayfasının Render Edileceği Alan -->
+                            <div class="pdf-canvas-container flex-1 overflow-auto p-4 flex justify-center">
+                                <canvas id="${canvasId}"></canvas>
+                                <div data-action="loading" class="text-gray-600 p-4">Loading PDF...</div>
+                            </div>
+                        </div>`;
+                    isAsyncContent = true; // PDF.js'i çalıştırmak için
+                    break;
+                
+                case 'website':
+                    contentHTML = `<iframe src="${item.url}" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+                    isAsyncContent = false; // iframe 'src' özelliğini kendi yönetir
+                    break;
+                default:
+                    contentHTML = `<p class="p-4">Önizleme desteklenmiyor.</p>`;
+            }
+
+            windowEl.innerHTML = `
+                <header class="window-header h-10 flex-shrink-0 bg-gray-100 flex items-center justify-between px-3 border-b border-gray-200 cursor-grab">
+                    <div class="flex items-center gap-1.5">
+                        <button class="window-control close" data-window-id="${windowId}">
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                        <button class="window-control maximize" data-window-id="${windowId}">
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 8V4h4m12 0h-4v4m0 8v4h-4m-8 0h4v-4"></path></svg>
+                        </button>
+                    </div>
+                    <span class="text-sm font-medium text-gray-700 truncate">${item.name}</span>
+                    <div class="w-16"></div>
+                </header>
+                
+                <div class="window-content flex-1 overflow-auto bg-gray-50">
+                    ${contentHTML}
+                </div>
+                
+                <!-- YENİ: Gelişmiş Yeniden Boyutlandırma Kolları -->
+                <div class="resize-handle" data-direction="n"></div>
+                <div class="resize-handle" data-direction="ne"></div>
+                <div class="resize-handle" data-direction="e"></div>
+                <div class="resize-handle" data-direction="se"></div>
+                <div class="resize-handle" data-direction="s"></div>
+                <div class="resize-handle" data-direction="sw"></div>
+                <div class="resize-handle" data-direction="w"></div>
+                <div class="resize-handle" data-direction="nw"></div>
+            `;
+            
+            windowContainer.appendChild(windowEl);
+            openWindows.push({ id: windowId, element: windowEl, zIndex: zIndexCounter });
+            
+            if (isAsyncContent && item.type === 'html') {
+                const iframe = windowEl.querySelector('iframe');
+                if (item.url) {
+                    fetch(item.url)
+                        .then(response => response.ok ? response.text() : Promise.reject(`HTTP ${response.status}`))
+                        .then(html => { iframe.srcdoc = html; })
+                        .catch(error => { iframe.srcdoc = `<p class="p-4 text-red-500">Hata: ${error}</p>`; });
+                } else if (item.content) {
+                    iframe.srcdoc = item.content;
+                }
+            }
+            // PDF.js GörüNTÜLEYİCİYİ BAŞLAT
+            else if (isAsyncContent && item.type === 'pdf') {
+                const canvasId = `pdf-canvas-${windowId}`;
+                const controlsId = `pdf-controls-${windowId}`;
+                // PDF'i ve kontrolleri bu pencere için başlat
+                initializePdfViewer(item.url, canvasId, controlsId);
+            } else if (isAsyncContent && (item.type === 'glb' || item.type === 'vrm')) {
+                loadGlbInWindow(item.url, `glb-canvas-container-${windowId}`);
+            }
+
+            windowEl.addEventListener('mousedown', () => bringToFront(windowId), true);
+            windowEl.querySelector('.close').addEventListener('click', () => closeWindow(windowId));
+            windowEl.querySelector('.maximize').addEventListener('click', () => maximizeWindow(windowId));
+            
+            makeDraggable(windowEl);
+            makeResizable(windowEl); // Gelişmiş resize fonksiyonunu çağır
+        }
+
+        /** Pencereyi kapatır */
+        function closeWindow(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (windowEl) windowEl.remove();
+            openWindows = openWindows.filter(w => w.id !== windowId);
+        }
+
+        /** Pencereyi öne getirir */
+        function bringToFront(windowId) {
+            const window = openWindows.find(w => w.id === windowId);
+            if (window && window.zIndex < zIndexCounter) {
+                zIndexCounter++;
+                window.zIndex = zIndexCounter;
+                window.element.style.zIndex = zIndexCounter;
+            }
+        }
+        
+        /** Pencereyi maximize/restore eder */
+        function maximizeWindow(windowId) {
+            const windowEl = document.getElementById(windowId);
+            if (!windowEl) return;
+            
+            if (windowEl.classList.contains('fullscreen')) {
+                windowEl.classList.remove('fullscreen');
+                windowEl.style.top = windowEl.dataset.oldTop || '100px';
+                windowEl.style.left = windowEl.dataset.oldLeft || '100px';
+                windowEl.style.width = windowEl.dataset.oldWidth || '600px';
+                windowEl.style.height = windowEl.dataset.oldHeight || '400px';
+            } else {
+                windowEl.dataset.oldTop = windowEl.style.top;
+                windowEl.dataset.oldLeft = windowEl.style.left;
+                windowEl.dataset.oldWidth = windowEl.style.width;
+                windowEl.dataset.oldHeight = windowEl.style.height;
+                
+                windowEl.classList.add('fullscreen');
+                windowEl.style.top = '0';
+                windowEl.style.left = '0';
+                windowEl.style.width = '100vw';
+                windowEl.style.height = '100vh';
+            }
+        }
+
+        /** Bir elementi sürüklenebilir yapar */
+        function makeDraggable(element) {
+            const header = element.querySelector('.window-header');
+            if (!header) return;
+            let offsetX, offsetY, isDragging = false;
+            header.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button')) return;
+                isDragging = true;
+                element.classList.add('dragging');
+                bringToFront(element.id);
+                offsetX = e.clientX - element.offsetLeft;
+                offsetY = e.clientY - element.offsetTop;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp, { once: true });
+                e.preventDefault();
+            });
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                let newX = e.clientX - offsetX;
+                let newY = e.clientY - offsetY;
+                newX = Math.max(0, Math.min(newX, window.innerWidth - element.offsetWidth));
+                newY = Math.max(0, Math.min(newY, window.innerHeight - element.offsetHeight));
+                element.style.left = `${newX}px`;
+                element.style.top = `${newY}px`;
+            }
+            function onMouseUp() {
+                isDragging = false;
+                element.classList.remove('dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+            }
+        }
+        
+        /** YENİ: Gelişmiş Yeniden Boyutlandırma Fonksiyonu */
+        function makeResizable(element) {
+            const resizeHandles = element.querySelectorAll('.resize-handle');
+            
+            resizeHandles.forEach(handle => {
+                handle.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    bringToFront(element.id);
+                    element.classList.add('resizing');
+                    
+                    const direction = handle.dataset.direction;
+                    const startX = e.clientX;
+                    const startY = e.clientY;
+                    const rect = element.getBoundingClientRect();
+                    const startWidth = rect.width;
+                    const startHeight = rect.height;
+                    const startTop = element.offsetTop;
+                    const startLeft = element.offsetLeft;
+                    const minWidth = 300;
+                    const minHeight = 200;
+
+                    function onMouseMove(e) {
+                        let newWidth = startWidth;
+                        let newHeight = startHeight;
+                        let newTop = startTop;
+                        let newLeft = startLeft;
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+
+                        if (direction.includes('e')) newWidth = startWidth + dx;
+                        if (direction.includes('w')) {
+                            newWidth = startWidth - dx;
+                            newLeft = startLeft + dx;
+                        }
+                        if (direction.includes('s')) newHeight = startHeight + dy;
+                        if (direction.includes('n')) {
+                            newHeight = startHeight - dy;
+                            newTop = startTop + dy;
+                        }
+
+                        if (newWidth >= minWidth) {
+                            element.style.width = `${newWidth}px`;
+                            element.style.left = `${newLeft}px`;
+                        }
+                        if (newHeight >= minHeight) {
+                            element.style.height = `${newHeight}px`;
+                            element.style.top = `${newTop}px`;
+                        }
+                    }
+                    function onMouseUp() {
+                        element.classList.remove('resizing');
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.removeEventListener('mouseup', onMouseUp);
+                    }
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+            });
+        }
+        
+        /** YENİ: PDF.js Görüntüleyiciyi Başlatan Fonksiyon */
+        function initializePdfViewer(url, canvasId, controlsId) {
+            let pdfDoc = null;
+            let pageNum = 1;
+            let pageCount = 0;
+            let renderTask = null;
+
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) { // Canvas bulunamazsa hata ver
+                console.error("PDF.js: Canvas elementi bulunamadı: " + canvasId);
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            
+            const controls = document.getElementById(controlsId);
+            if (!controls) { // Kontroller bulunamazsa hata ver
+                console.error("PDF.js: Kontrol elementi bulunamadı: " + controlsId);
+                return;
+            }
+            
+            const prevBtn = controls.querySelector('[data-action="prev"]');
+            const nextBtn = controls.querySelector('[data-action="next"]');
+            const pageInput = controls.querySelector('[data-action="page-input"]');
+            const pageCountSpan = controls.querySelector('[data-action="page-count"]');
+            const canvasContainer = canvas.parentElement;
+            const loadingIndicator = canvasContainer.querySelector('[data-action="loading"]');
+
+            function renderPage(num) {
+                if (!pdfDoc) return; // PDF yüklenmediyse render etme
+                
+                if (renderTask) {
+                    renderTask.cancel();
+                    renderTask = null;
+                }
+                
+                pdfDoc.getPage(num).then(function(page) {
+                    // Sayfayı, pencerenin (container) genişliğine göre ölçekle
+                    // 32px = p-4 (sağ+sol padding)
+                    const containerWidth = canvasContainer.clientWidth - 32; 
+                    if (containerWidth <= 0) return; // Container görünür değilse render etme
+                    
+                    const unscaledViewport = page.getViewport({ scale: 1 });
+                    const scale = containerWidth / unscaledViewport.width;
+                    const viewport = page.getViewport({ scale: scale });
+
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    const renderContext = { canvasContext: ctx, viewport: viewport };
+                    renderTask = page.render(renderContext);
+                    renderTask.promise.then(() => {
+                        renderTask = null;
+                        updateUI();
+                    }).catch(err => {
+                        renderTask = null;
+                        if (err.name === 'RenderingCancelledException') {
+                            // Bu bir hata değil, hızlı sayfa geçişidir
+                        } else {
+                            console.error("Render hatası:", err);
+                        }
+                    });
+                });
+            }
+
+            function updateUI() {
+                pageCountSpan.textContent = pageCount;
+                pageInput.value = pageNum;
+                pageInput.max = pageCount;
+                prevBtn.disabled = (pageNum <= 1);
+                nextBtn.disabled = (pageNum >= pageCount);
+            }
+
+            // Kontrol butonları için event listener'lar
+            prevBtn.addEventListener('click', () => {
+                if (pageNum > 1) {
+                    pageNum--;
+                    renderPage(pageNum);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (pageNum < pageCount) {
+                    pageNum++;
+                    renderPage(pageNum);
+                }
+            });
+            
+            pageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const newPageNum = parseInt(pageInput.value, 10);
+                    if (newPageNum >= 1 && newPageNum <= pageCount) {
+                        pageNum = newPageNum;
+                        renderPage(pageNum);
+                    } else {
+                        pageInput.value = pageNum;
+                    }
+                    pageInput.blur(); // Enter'dan sonra odağı kaldır
+                }
+            });
+            
+            // PDF belgesini yükle
+            // PDF.js worker'ı DOMContentLoaded'de ayarlandığı için burada tekrar ayarlamaya gerek yok.
+            pdfjsLib.getDocument(url).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                pageCount = pdf.numPages;
+                loadingIndicator.style.display = 'none'; // Yükleniyor'u gizle
+                renderPage(pageNum); // İlk sayfayı render et
+            }).catch(function(error) {
+                console.error('PDF yüklenirken hata:', error);
+                loadingIndicator.innerHTML = `<p class="text-red-500 p-4 font-semibold">PDF yüklenirken hata oluştu.</p>`;
+            });
+            
+            // Pencere yeniden boyutlandırıldığında (debounce ile)
+            let resizeTimeout;
+            // ResizeObserver, pencere (element) yeniden boyutlandırıldığında tetiklenir
+            const resizeObserver = new ResizeObserver(() => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    if(pdfDoc) {
+                        renderPage(pageNum); // Mevcut sayfayı yeni boyuta göre render et
+                    }
+                }, 150);
+            });
+            // Gözlemciyi pencerenin content alanına değil, canvas'ın container'ına ata
+            resizeObserver.observe(canvasContainer);
+            
+            // Pencere kapandığında gözlemciyi durdur
+            // (Bu kısım closeWindow fonksiyonuna eklenebilir, ancak şimdilik böyle de çalışır)
+        }
+
+        // --- YENİ: GLB/VRM'i Pencerede Yükleyen Fonksiyon (Three.js ile) ---
+        function loadGlbInWindow(modelUrl, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const loadingPercentage = container.querySelector('.loading-percentage');
+            const progressBar = container.querySelector('.progress-bar');
+            const loadingOverlay = container.querySelector('.loading-overlay');
+
+            function updateLoadingProgress(percent) {
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (loadingPercentage) loadingPercentage.textContent = `${Math.round(percent)}%`;
+            }
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.01, 1000);
+            camera.position.set(0, 1, 4);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.physicallyCorrectLights = true;
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = true;
+            controls.minDistance = 0.01;
+            controls.maxDistance = 8;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.0;
+            controls.target.set(0, 0.5, 0);
+            controls.minPolarAngle = Math.PI / 4;
+            controls.maxPolarAngle = Math.PI / 1.5;
+            controls.enabled = true;
+            controls.update();
+
+            // Temel Aydınlatma
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            // HDRI (Sadece Light 1 kullanıldı)
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+            new THREE.RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', texture => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = envMap;
+                texture.dispose();
+                pmremGenerator.dispose();
+            });
+
+            let mixer = null;
+
+            // GLB Yükleme
+            const gltfLoader = new THREE.GLTFLoader();
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            gltfLoader.setDRACOLoader(dracoLoader);
+            gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+            gltfLoader.load(modelUrl, gltf => {
+                const model = gltf.scene;
+                const bbox = new THREE.Box3().setFromObject(model);
+                const center = bbox.getCenter(new THREE.Vector3());
+                model.position.x = -center.x;
+                model.position.z = -center.z;
+                model.position.y = -0.8;
+                scene.add(model);
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+                // Animasyonlar
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach(clip => {
+                        const action = mixer.clipAction(clip);
+                        action.setLoop(THREE.LoopRepeat);
+                        action.play();
+                    });
+                }
+            }, xhr => {
+                if (xhr.lengthComputable) {
+                    const percent = (xhr.loaded / xhr.total) * 100;
+                    updateLoadingProgress(percent);
+                }
+            }, error => console.error('GLB yükleme hatası:', error));
+
+            // Animasyon Döngüsü
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                if (mixer) mixer.update(clock.getDelta());
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Yeniden Boyutlandırma - Güncellenmiş Hata Düzeltme
+            let lastWidth = container.clientWidth;
+            let lastHeight = container.clientHeight;
+            const resizeObserver = new ResizeObserver(() => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                if (newWidth === lastWidth && newHeight === lastHeight) return;
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+                requestAnimationFrame(() => {
+                    camera.aspect = newWidth / newHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(newWidth, newHeight);
+                });
+            });
+            resizeObserver.observe(container);
+        }
+
+        // --- YENİ: GLB/VRM'i Galeri'de Yükleyen Fonksiyon (Three.js ile) ---
+        function loadGlbInGallery(modelUrl, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const loadingPercentage = container.querySelector('.loading-percentage');
+            const progressBar = container.querySelector('.progress-bar');
+            const loadingOverlay = container.querySelector('.loading-overlay');
+
+            function updateLoadingProgress(percent) {
+                if (progressBar) progressBar.style.width = `${percent}%`;
+                if (loadingPercentage) loadingPercentage.textContent = `${Math.round(percent)}%`;
+            }
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.01, 1000);
+            camera.position.set(0, 1, 4);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.physicallyCorrectLights = true;
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = true;
+            controls.minDistance = 0.01;
+            controls.maxDistance = 8;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.0;
+            controls.target.set(0, 0.5, 0);
+            controls.minPolarAngle = Math.PI / 4;
+            controls.maxPolarAngle = Math.PI / 1.5;
+            controls.enabled = true;
+            controls.update();
+
+            // Temel Aydınlatma
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            // HDRI (Sadece Light 1 kullanıldı)
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+            new THREE.RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', texture => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = envMap;
+                texture.dispose();
+                pmremGenerator.dispose();
+            });
+
+            let mixer = null;
+
+            // GLB Yükleme
+            const gltfLoader = new THREE.GLTFLoader();
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            gltfLoader.setDRACOLoader(dracoLoader);
+            gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+            gltfLoader.load(modelUrl, gltf => {
+                const model = gltf.scene;
+                const bbox = new THREE.Box3().setFromObject(model);
+                const center = bbox.getCenter(new THREE.Vector3());
+                model.position.x = -center.x;
+                model.position.z = -center.z;
+                model.position.y = -0.8;
+                scene.add(model);
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+                // Animasyonlar
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach(clip => {
+                        const action = mixer.clipAction(clip);
+                        action.setLoop(THREE.LoopRepeat);
+                        action.play();
+                    });
+                }
+            }, xhr => {
+                if (xhr.lengthComputable) {
+                    const percent = (xhr.loaded / xhr.total) * 100;
+                    updateLoadingProgress(percent);
+                }
+            }, error => console.error('GLB yükleme hatası:', error));
+
+            // Animasyon Döngüsü
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                if (mixer) mixer.update(clock.getDelta());
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Yeniden Boyutlandırma - Güncellenmiş Hata Düzeltme
+            let lastWidth = container.clientWidth;
+            let lastHeight = container.clientHeight;
+            const resizeObserver = new ResizeObserver(() => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                if (newWidth === lastWidth && newHeight === lastHeight) return;
+                lastWidth = newWidth;
+                lastHeight = newHeight;
+                requestAnimationFrame(() => {
+                    camera.aspect = newWidth / newHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(newWidth, newHeight);
+                });
+            });
+            resizeObserver.observe(container);
+        }
+
+        // --- YENİ: Galeri için Güncellenmiş Fonksiyon (GLB yükleme eklendi) ---
+        function updateGallery(item) {
+            updateGalleryPreview(item);
+        }
+
+        // --- Başlangıç ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // YENİ: PDF.js Worker'ını ayarla
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            // GÜNCELLEME: Başlangıç klasörü "Cdrive" oldu
+            navHistory = ['Cdrive'];
+            navIndex = 0;
+            renderFileSystem('Cdrive');
+            renderDesktopIcons(); // Masaüstü ikonlarını çiz (RealDesktop'tan)
+            
+            // Sol sidebar navigasyonu
+            document.getElementById('nav-airdrop').addEventListener('click', (e) => { e.preventDefault(); navigateTo('AirDrop'); });
+            document.getElementById('nav-recents').addEventListener('click', (e) => { e.preventDefault(); navigateTo('Recents'); });
+            document.getElementById('nav-applications').addEventListener('click', (e) => { e.preventDefault(); navigateTo('Applications'); });
+            // GÜNCELLEME: "nav-cdrive" ID'si "Cdrive" klasörüne gider
+            document.getElementById('nav-cdrive').addEventListener('click', (e) => { e.preventDefault(); navigateTo('Cdrive'); });
+            document.getElementById('nav-documents').addEventListener('click', (e) => { e.preventDefault(); navigateTo('Documents'); });
+
+            // Geri/İleri Tuşları
+            document.getElementById('nav-back').addEventListener('click', () => {
+                if (navIndex > 0) {
+                    navIndex--;
+                    renderFileSystem(navHistory[navIndex]);
+                }
+            });
+            document.getElementById('nav-forward').addEventListener('click', () => {
+                if (navIndex < navHistory.length - 1) {
+                    navIndex++;
+                    renderFileSystem(navHistory[navIndex]);
+                }
+            });
+
+            // Görünüm Modu Tuşları
+            const viewGridBtn = document.getElementById('view-grid');
+            const viewListBtn = document.getElementById('view-list');
+            const viewGalleryBtn = document.getElementById('view-gallery');
+            
+            viewGridBtn.addEventListener('click', () => {
+                if (currentViewMode !== 'grid') {
+                    currentViewMode = 'grid';
+                    viewGridBtn.classList.add('bg-white', 'shadow-sm', 'text-gray-700');
+                    viewListBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-700');
+                    viewGalleryBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-700');
+                    fileBrowserContainer.classList.add('p-6'); // Padding'i geri ekle
+                    renderFileSystem(currentFolder);
+                }
+            });
+            
+            viewListBtn.addEventListener('click', () => {
+                if (currentViewMode !== 'list') {
+                    currentViewMode = 'list';
+                    viewListBtn.classList.add('bg-white', 'shadow-sm', 'text-gray-700');
+                    viewGridBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-700');
+                    viewGalleryBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-700');
+                    fileBrowserContainer.classList.add('p-6'); // Padding'i geri ekle
+                    renderFileSystem(currentFolder);
+                }
+            });
+            
+            viewGalleryBtn.addEventListener('click', () => {
+                if (currentViewMode !== 'gallery') {
+                    currentViewMode = 'gallery';
+                    viewGalleryBtn.classList.add('bg-white', 'shadow-sm', 'text-gray-700');
+                    viewGridBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-700');
+                    viewListBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-700');
+                    fileBrowserContainer.classList.remove('p-6'); // Galeri için padding'i kaldır
+                    renderFileSystem(currentFolder);
+                }
+            });
+
+            // --- YENİ: Ana Pencere Kontrolleri (Çift Tıkla Açma) ---
+            const finderWindow = document.querySelector('.finder-window');
+            const minimizedIcon = document.getElementById('minimized-icon-container');
+
+            document.getElementById('main-close').addEventListener('click', () => {
+                finderWindow.classList.add('hidden');
+                minimizedIcon.classList.remove('hidden');
+                minimizedIcon.classList.add('flex', 'flex-col', 'items-center', 'justify-center');
+            });
+
+            // Geri Getir İkonu (ÇİFT TIKLAMA)
+            minimizedIcon.addEventListener('dblclick', () => {
+                finderWindow.classList.remove('hidden');
+                minimizedIcon.classList.add('hidden');
+                minimizedIcon.classList.remove('flex', 'flex-col', 'items-center', 'justify-center', 'selected');
+            });
+            
+            // Geri Getir İkonu (TEK TIKLAMA - Seçim)
+            minimizedIcon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deselectAll();
+                selectedItemId = 'minimized-icon'; // Özel bir ID ver
+                minimizedIcon.classList.add('selected');
+            });
+
+            document.getElementById('main-maximize').addEventListener('click', () => {
+                if (finderWindow.classList.contains('fullscreen')) {
+                    finderWindow.classList.remove('fullscreen', 'w-screen', 'h-screen', 'p-0', 'rounded-none');
+                    finderWindow.classList.add('w-full', 'max-w-6xl', 'h-[80vh]', 'rounded-xl');
+                    document.body.classList.add('p-8');
+                } else {
+                    finderWindow.classList.add('fullscreen', 'w-screen', 'h-screen', 'p-0', 'rounded-none');
+                    finderWindow.classList.remove('w-full', 'max-w-6xl', 'h-[80vh]', 'rounded-xl');
+                    document.body.classList.remove('p-8');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
