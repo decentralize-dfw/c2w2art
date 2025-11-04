@@ -4336,6 +4336,15 @@ links: [
             const previewEl = document.getElementById('gallery-preview');
             const thumbnailsEl = document.getElementById('gallery-thumbnails');
             
+if (thumbnailsEl) {
+            thumbnailsEl.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                // Fare tekerleği dikey (deltaY) hareketini yatay (scrollLeft) harekete çevir
+                thumbnailsEl.scrollLeft += e.deltaY;
+            });
+        }
+
+
             items.forEach((item, index) => {
                 const thumbEl = document.createElement('div');
                 thumbEl.className = 'gallery-thumb-item w-24 h-24 p-1 flex-shrink-0 flex flex-col items-center justify-center rounded-lg border border-gray-300 cursor-pointer hover:shadow-md bg-white';
@@ -5355,7 +5364,142 @@ links: [
                     finderWindow.classList.remove('w-full', 'max-w-6xl', 'h-[80vh]', 'rounded-xl');
                     document.body.classList.remove('p-8');
                 }
+            }); 
+            // -----------------------------------------------------------------
+// YENİ EKLENECEK KOD BLOKU BAŞLANGICI
+// (Bu blok, ızgara, liste ve galeri modları için ok tuşuyla gezinmeyi sağlar)
+// -----------------------------------------------------------------
+document.addEventListener('keydown', (e) => {
+    const activeEl = document.activeElement;
+    // Eğer bir input alanı içindeysek (örn: PDF sayfa no) navigasyonu devre dışı bırak
+    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+        return; 
+    }
+
+    // Sadece 'Arrow' tuşlarıyla ilgileniyoruz
+    if (!e.key.startsWith('Arrow')) {
+        return;
+    }
+
+    // O anki klasördeki dosyaları al
+    const items = fileSystemDB[currentFolder] || [];
+    if (items.length === 0) return; // Klasör boşsa hiçbir şey yapma
+
+    // Mevcut seçili dosyanın indeksini bul
+    let currentIndex = -1;
+    if (selectedItemId) {
+        currentIndex = items.findIndex(item => item.id === selectedItemId);
+    }
+
+    let nextIndex = currentIndex;
+    let newItem = null;
+
+    // --- 1. HİÇBİR ŞEY SEÇİLİ DEĞİLSE ---
+    // Hiçbir öğe seçili değilse, tuşa göre ilk veya son öğeyi seç
+    if (currentIndex === -1) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            newItem = items[0]; // İlk öğeyi seç
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            newItem = items[items.length - 1]; // Son öğeyi seç
+            e.preventDefault();
+        }
+
+        if (newItem) {
+            handleSingleClick(newItem);
+            if (currentViewMode === 'gallery') {
+                updateGalleryPreview(newItem);
+            }
+        }
+        return; // Navigasyonu başlat ve bu tuş basımını bitir
+    }
+
+    // --- 2. ZATEN BİR ÖĞE SEÇİLİYSE (Moda göre davran) ---
+
+    if (currentViewMode === 'list') {
+        // --- LİSTE GÖRÜNÜMÜ (Sadece Yukarı/Aşağı) ---
+        if (e.key === 'ArrowDown') {
+            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0; // Sona gelince başa dön
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1; // Başa gelince sona dön
+            e.preventDefault();
+        }
+    } else if (currentViewMode === 'gallery') {
+        // --- GALERİ GÖRÜNÜMÜ (Sadece Sol/Sağ) ---
+        if (e.key === 'ArrowRight') {
+            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0; // Sona gelince başa dön
+            e.preventDefault();
+        } else if (e.key === 'ArrowLeft') {
+            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1; // Başa gelince sona dön
+            e.preventDefault();
+        }
+    } else if (currentViewMode === 'grid') {
+        // --- GRID GÖRÜNÜMÜ (4 Yön) ---
+        const gridEl = fileBrowser;
+        // Sütun sayısını dinamik olarak hesapla (genellikle 'auto-fit' ile değişir)
+        let numCols = 1; // Varsayılan
+        if (gridEl && gridEl.firstElementChild) {
+             const gridItemWidth = gridEl.firstElementChild.offsetWidth;
+             const gridWidth = gridEl.clientWidth;
+             numCols = Math.max(1, Math.floor(gridWidth / gridItemWidth));
+        }
+
+        if (e.key === 'ArrowDown') {
+            nextIndex = currentIndex + numCols;
+            if (nextIndex >= items.length) {
+                // Sona ulaştıysak, aynı sütundaki son öğeyi bulmaya çalış
+                nextIndex = currentIndex % numCols + (Math.floor((items.length - 1) / numCols) * numCols);
+                if (nextIndex >= items.length) {
+                     nextIndex = items.length - 1;
+                }
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            nextIndex = currentIndex - numCols;
+            if (nextIndex < 0) {
+                // Başa ulaştıysak, aynı sütundaki ilk öğe (genellikle geçerli sütun indeksi)
+                nextIndex = currentIndex % numCols;
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0; // Sağa, sona gelince başa dön
+            e.preventDefault();
+        } else if (e.key === 'ArrowLeft') {
+            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1; // Sola, başa gelince sona dön
+            e.preventDefault();
+        }
+    }
+
+    // --- 3. GÜNCELLEME ---
+    // Eğer indeks değiştiyse (ve tuşa basıldıysa), yeni öğeyi seç ve güncelle
+    if (nextIndex !== currentIndex && e.defaultPrevented) {
+        newItem = items[nextIndex];
+        handleSingleClick(newItem); // Seçimi ve info panelini güncelle
+
+        if (currentViewMode === 'gallery') {
+            updateGalleryPreview(newItem); // Galeri önizlemesini güncelle
+        }
+
+        // Yeni seçilen öğeyi görünür alana kaydır
+        let newEl;
+        if (currentViewMode === 'gallery') {
+            newEl = document.querySelector(`.gallery-thumb-item[data-id="${newItem.id}"]`);
+        } else {
+            newEl = document.querySelector(`.file-item[data-id="${newItem.id}"]`);
+        }
+        if (newEl) {
+            newEl.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest'
             });
+        }
+    }
+});
+// ---------------------------------------------------------------
+// YENİ EKLENECEK KOD BLOKU SONU
+// ---------------------------------------------------------------
         });
     </script>
 </body>
