@@ -971,7 +971,7 @@
     id: 'c2w2-vrm-1',
     type: 'glb',
     name: 'Neue²Dojo Curator',
-    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-vrm/main/Neue2Dojo-Curator-C2W2-22.vrm',
+    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/curator-900-opt-v67.glb',
     description: 'Fit No: 22; Runway: Evolution of 2D Art (Part 1).',
     created: '-',
     minted: '-',
@@ -1069,7 +1069,7 @@
     id: 'c2w2-glb-8',
     type: 'glb',
     name: 'Joker',
-    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2/main/Joker-web-NOMAT-V3-v4.glb',
+    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2old/main/Joker-web-NOMAT-V3-v4.glb',
     description: 'Fit No: 3; Runway: Virtual Fashion (Part 2).',
     created: '-',
     minted: '-',
@@ -1111,7 +1111,7 @@
     id: 'c2w2-glb-11',
     type: 'glb',
     name: 'Vertical CT Feed Person',
-    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2/main/MemeleganceDress-WEB-NOAVATAR-v8.glb',
+    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2old/main/MemeleganceDress-WEB-NOAVATAR-v8.glb',
     description: 'Fit No: 8; Runway: Virtual Fashion (Part 2).',
     created: '-',
     minted: '-',
@@ -1559,7 +1559,7 @@
     id: 'c2w2-glb-43',
     type: 'glb',
     name: 'Thomas_DT',
-    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/neo-dt-opt-v87.glb',
+    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-vrm/main/NEO%20_dt-pattern-c2w2-19.vrm',
     description: 'Fit No: 19; Runway: Virtual Fashion (Part 2).',
     created: '-',
     minted: '-',
@@ -4438,146 +4438,141 @@ links: [
 
         /** Yeni bir pencere açar */
         function openWindow(item) {
-            zIndexCounter++;
-            const windowId = `window-${item.id}-${Date.now()}`;
+    zIndexCounter++;
+    const windowId = `window-${item.id}-${Date.now()}`;
+    
+    const windowEl = document.createElement('div');
+    windowEl.id = windowId;
+    windowEl.className = 'floating-window absolute w-[600px] h-[400px] bg-white rounded-lg shadow-xl flex flex-col overflow-hidden border border-gray-300 pointer-events-auto';
+    const top = Math.floor(Math.random() * 100) + 50;
+    const left = Math.floor(Math.random() * 200) + 100;
+    windowEl.style.cssText = `top: ${top}px; left: ${left}px; z-index: ${zIndexCounter}; min-width: 300px; min-height: 200px;`;
+    let contentHTML = '';
+    let isAsyncContent = false;
+    switch(item.type) {
+        case 'image':
+            contentHTML = `<img src="${item.url}" class="w-full h-full object-contain" alt="${item.name}">`;
+            break;
+        case 'video':
+            contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
+            break;
+        case 'glb':
+        case 'vrm':
+            contentHTML = `<div id="glb-canvas-container-${windowId}" class="w-full h-full relative">
+                <div class="loading-overlay">
+                    <div class="loading-text">Loading... <span class="loading-percentage">0%</span></div>
+                    <div class="loading-progress">
+                        <div class="progress-bar"></div>
+                    </div>
+                </div>
+            </div>`;
+            isAsyncContent = true;
+            break;
+        case 'text':
+            contentHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap">${item.content}</pre>`;
+            break;
+        case 'html':
+            contentHTML = `<iframe class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"></iframe>`;
+            isAsyncContent = true;
+            break;
+        
+        // Gelişmiş PDF Görüntüleyici (PDF.js)
+        case 'pdf':
+            const canvasId = `pdf-canvas-${windowId}`;
+            const controlsId = `pdf-controls-${windowId}`;
             
-            const windowEl = document.createElement('div');
-            windowEl.id = windowId;
-            windowEl.className = 'floating-window absolute w-[600px] h-[400px] bg-white rounded-lg shadow-xl flex flex-col overflow-hidden border border-gray-300 pointer-events-auto';
-            const top = Math.floor(Math.random() * 100) + 50;
-            const left = Math.floor(Math.random() * 200) + 100;
-            windowEl.style.cssText = `top: ${top}px; left: ${left}px; z-index: ${zIndexCounter}; min-width: 300px; min-height: 200px;`;
-
-            let contentHTML = '';
-            let isAsyncContent = false;
-
-            switch(item.type) {
-                case 'image':
-                    contentHTML = `<img src="${item.url}" class="w-full h-full object-contain" alt="${item.name}">`;
-                    break;
-                case 'video':
-                    contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
-                    break;
-                case 'glb':
-                case 'vrm':
-                    contentHTML = `<div id="glb-canvas-container-${windowId}" class="w-full h-full relative">
-                        <div class="loading-overlay">
-                            <div class="loading-text">Loading... <span class="loading-percentage">0%</span></div>
-                            <div class="loading-progress">
-                                <div class="progress-bar"></div>
-                            </div>
-                        </div>
-                    </div>`;
-                    isAsyncContent = true;
-                    break;
-                case 'text':
-                    contentHTML = `<pre class="w-full h-full p-4 font-mono text-sm overflow-auto whitespace-pre-wrap">${item.content}</pre>`;
-                    break;
-                case 'html':
-                    contentHTML = `<iframe class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"></iframe>`;
-                    isAsyncContent = true;
-                    break;
-                
-                // Gelişmiş PDF Görüntüleyici (PDF.js)
-                case 'pdf':
-                    const canvasId = `pdf-canvas-${windowId}`;
-                    const controlsId = `pdf-controls-${windowId}`;
-                    
-                    // Arayüze entegre edilmiş PDF kontrolcüleri ve canvas alanı
-                    contentHTML = `
-                        <div class="pdf-viewer-wrapper w-full h-full flex flex-col bg-gray-50 overflow-hidden">
-                            <!-- Arayüze Entegre Edilmiş PDF Kontrolleri -->
-                            <div id="${controlsId}" class="flex-shrink-0 h-10 bg-gray-100 border-b border-gray-200 flex items-center justify-center gap-4 px-4">
-                                <button data-action="prev" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Önceki Sayfa">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                </button>
-                                <div class="text-sm font-medium text-gray-700">
-                                    Sayfa 
-                                    <input type="number" data-action="page-input" class="w-12 text-center rounded border border-gray-400 bg-white" min="1" value="1">
-                                    / <span data-action="page-count">...</span>
-                                </div>
-                                <button data-action="next" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Sonraki Sayfa">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-                            </div>
-                            <!-- PDF Sayfasının Render Edileceği Alan -->
-                            <div class="pdf-canvas-container flex-1 overflow-auto p-4 flex justify-center">
-                                <canvas id="${canvasId}"></canvas>
-                                <div data-action="loading" class="text-gray-600 p-4">Loading PDF...</div>
-                            </div>
-                        </div>`;
-                    isAsyncContent = true; // PDF.js'i çalıştırmak için
-                    break;
-                
-                case 'website':
-                    contentHTML = `<iframe src="${item.url}" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
-                    isAsyncContent = false; // iframe 'src' özelliğini kendi yönetir
-                    break;
-                default:
-                    contentHTML = `<p class="p-4">Önizleme desteklenmiyor.</p>`;
-            }
-
-            windowEl.innerHTML = `
-                <header class="window-header h-10 flex-shrink-0 bg-gray-100 flex items-center justify-between px-3 border-b border-gray-200 cursor-grab">
-                    <div class="flex items-center gap-1.5">
-                        <button class="window-control close" data-window-id="${windowId}">
-                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+            // Arayüze entegre edilmiş PDF kontrolcüleri ve canvas alanı
+            contentHTML = `
+                <div class="pdf-viewer-wrapper w-full h-full flex flex-col bg-gray-50 overflow-hidden">
+                    <!-- Arayüze Entegre Edilmiş PDF Kontrolleri -->
+                    <div id="${controlsId}" class="flex-shrink-0 h-10 bg-gray-100 border-b border-gray-200 flex items-center justify-center gap-4 px-4">
+                        <button data-action="prev" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Önceki Sayfa">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                         </button>
-                        <button class="window-control maximize" data-window-id="${windowId}">
-                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 8V4h4m12 0h-4v4m0 8v4h-4m-8 0h4v-4"></path></svg>
+                        <div class="text-sm font-medium text-gray-700">
+                            Sayfa 
+                            <input type="number" data-action="page-input" class="w-12 text-center rounded border border-gray-400 bg-white" min="1" value="1">
+                            / <span data-action="page-count">...</span>
+                        </div>
+                        <button data-action="next" class="p-1 rounded-md text-gray-700 hover:bg-gray-300 disabled:opacity-50" title="Sonraki Sayfa">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </button>
                     </div>
-                    <span class="text-sm font-medium text-gray-700 truncate">${item.name}</span>
-                    <div class="w-16"></div>
-                </header>
-                
-                <div class="window-content flex-1 overflow-auto bg-gray-50">
-                    ${contentHTML}
-                </div>
-                
-                <!-- YENİ: Gelişmiş Yeniden Boyutlandırma Kolları -->
-                <div class="resize-handle" data-direction="n"></div>
-                <div class="resize-handle" data-direction="ne"></div>
-                <div class="resize-handle" data-direction="e"></div>
-                <div class="resize-handle" data-direction="se"></div>
-                <div class="resize-handle" data-direction="s"></div>
-                <div class="resize-handle" data-direction="sw"></div>
-                <div class="resize-handle" data-direction="w"></div>
-                <div class="resize-handle" data-direction="nw"></div>
-            `;
-            
-            windowContainer.appendChild(windowEl);
-            openWindows.push({ id: windowId, element: windowEl, zIndex: zIndexCounter });
-            
-            if (isAsyncContent && item.type === 'html') {
-                const iframe = windowEl.querySelector('iframe');
-                if (item.url) {
-                    fetch(item.url)
-                        .then(response => response.ok ? response.text() : Promise.reject(`HTTP ${response.status}`))
-                        .then(html => { iframe.srcdoc = html; })
-                        .catch(error => { iframe.srcdoc = `<p class="p-4 text-red-500">Hata: ${error}</p>`; });
-                } else if (item.content) {
-                    iframe.srcdoc = item.content;
-                }
-            }
-            // PDF.js GörüNTÜLEYİCİYİ BAŞLAT
-            else if (isAsyncContent && item.type === 'pdf') {
-                const canvasId = `pdf-canvas-${windowId}`;
-                const controlsId = `pdf-controls-${windowId}`;
-                // PDF'i ve kontrolleri bu pencere için başlat
-                initializePdfViewer(item.url, canvasId, controlsId);
-            } else if (isAsyncContent && (item.type === 'glb' || item.type === 'vrm')) {
-                loadGlbInWindow(item.url, `glb-canvas-container-${windowId}`);
-            }
-
-            windowEl.addEventListener('mousedown', () => bringToFront(windowId), true);
-            windowEl.querySelector('.close').addEventListener('click', () => closeWindow(windowId));
-            windowEl.querySelector('.maximize').addEventListener('click', () => maximizeWindow(windowId));
-            
-            makeDraggable(windowEl);
-            makeResizable(windowEl); // Gelişmiş resize fonksiyonunu çağır
+                    <!-- PDF Sayfasının Render Edileceği Alan -->
+                    <div class="pdf-canvas-container flex-1 overflow-auto p-4 flex justify-center">
+                        <canvas id="${canvasId}"></canvas>
+                        <div data-action="loading" class="text-gray-600 p-4">Loading PDF...</div>
+                    </div>
+                </div>`;
+            isAsyncContent = true; // PDF.js'i çalıştırmak için
+            break;
+        
+        case 'website':
+            contentHTML = `<iframe src="${item.url}" class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+            isAsyncContent = false; // iframe 'src' özelliğini kendi yönetir
+            break;
+        default:
+            contentHTML = `<p class="p-4">Önizleme desteklenmiyor.</p>`;
+    }
+    windowEl.innerHTML = `
+        <header class="window-header h-10 flex-shrink-0 bg-gray-100 flex items-center justify-between px-3 border-b border-gray-200 cursor-grab">
+            <div class="flex items-center gap-1.5">
+                <button class="window-control close" data-window-id="${windowId}">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                <button class="window-control maximize" data-window-id="${windowId}">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 8V4h4m12 0h-4v4m0 8v4h-4m-8 0h4v-4"></path></svg>
+                </button>
+            </div>
+            <span class="text-sm font-medium text-gray-700 truncate">${item.name}</span>
+            <div class="w-16"></div>
+        </header>
+        
+        <div class="window-content flex-1 overflow-auto bg-gray-50">
+            ${contentHTML}
+        </div>
+        
+        <!-- YENİ: Gelişmiş Yeniden Boyutlandırma Kolları -->
+        <div class="resize-handle" data-direction="n"></div>
+        <div class="resize-handle" data-direction="ne"></div>
+        <div class="resize-handle" data-direction="e"></div>
+        <div class="resize-handle" data-direction="se"></div>
+        <div class="resize-handle" data-direction="s"></div>
+        <div class="resize-handle" data-direction="sw"></div>
+        <div class="resize-handle" data-direction="w"></div>
+        <div class="resize-handle" data-direction="nw"></div>
+    `;
+    
+    windowContainer.appendChild(windowEl);
+    openWindows.push({ id: windowId, element: windowEl, zIndex: zIndexCounter });
+    
+    if (isAsyncContent && item.type === 'html') {
+        const iframe = windowEl.querySelector('iframe');
+        if (item.url) {
+            fetch(item.url)
+                .then(response => response.ok ? response.text() : Promise.reject(`HTTP ${response.status}`))
+                .then(html => { iframe.srcdoc = html; })
+                .catch(error => { iframe.srcdoc = `<p class="p-4 text-red-500">Hata: ${error}</p>`; });
+        } else if (item.content) {
+            iframe.srcdoc = item.content;
         }
-
+    }
+    // PDF.js GörüNTÜLEYİCİYİ BAŞLAT
+    else if (isAsyncContent && item.type === 'pdf') {
+        const canvasId = `pdf-canvas-${windowId}`;
+        const controlsId = `pdf-controls-${windowId}`;
+        // PDF'i ve kontrolleri bu pencere için başlat
+        initializePdfViewer(item.url, canvasId, controlsId);
+    } else if (isAsyncContent && (item.type === 'glb' || item.type === 'vrm')) {
+        setTimeout(() => loadGlbInWindow(item.url, `glb-canvas-container-${windowId}`), 0);
+    }
+    windowEl.addEventListener('mousedown', () => bringToFront(windowId), true);
+    windowEl.querySelector('.close').addEventListener('click', () => closeWindow(windowId));
+    windowEl.querySelector('.maximize').addEventListener('click', () => maximizeWindow(windowId));
+    
+    makeDraggable(windowEl);
+    makeResizable(windowEl); // Gelişmiş resize fonksiyonunu çağır
+}
         /** Pencereyi kapatır */
         function closeWindow(windowId) {
             const windowEl = document.getElementById(windowId);
