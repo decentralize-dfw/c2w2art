@@ -4523,8 +4523,21 @@ links: [
             contentHTML = `<img src="${item.url}" class="w-full h-full object-contain" alt="${item.name}">`;
             break;
         case 'video':
-            contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
-            break;
+    // Gelen URL'nin bir YouTube veya Vimeo embed linki olup olmadığını kontrol et
+    if (item.url && (item.url.includes('youtube.com/embed') || item.url.includes('vimeo.com/player'))) {
+        // Eğer öyleyse, bir iframe oluştur
+        contentHTML = `<iframe 
+            src="${item.url}" 
+            class="w-full h-full border-0" 
+            frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            allowfullscreen>
+        </iframe>`;
+    } else {
+        // Değilse, standart video oynatıcıyı kullan (örn: .mp4)
+        contentHTML = `<video controls autoplay class="w-full h-full object-contain bg-black"><source src="${item.url}" type="video/mp4">Desteklenmiyor.</video>`;
+    }
+    break;
         case 'glb':
         case 'vrm':
             contentHTML = `<div id="glb-canvas-container-${windowId}" class="w-full h-full relative">
