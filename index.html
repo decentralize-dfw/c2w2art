@@ -170,7 +170,7 @@
     </div>
 
     <!-- Ana Finder Penceresi -->
-    <div class="finder-window w-full max-w-6xl h-[80vh] bg-gray-50/90 backdrop-blur-sm rounded-xl shadow-2xl flex overflow-hidden border border-gray-300 transition-all duration-300 ease-in-out">
+    <div class="finder-window absolute w-full max-w-6xl h-[80vh] bg-gray-50/90 backdrop-blur-sm rounded-xl shadow-2xl flex overflow-hidden border border-gray-300 transition-all duration-300 ease-in-out" style="top: 10%; left: 10%;">
 
         <!-- Sol Sidebar -->
         <aside class="w-56 bg-gray-100/80 backdrop-blur-sm p-3 space-y-4 overflow-y-auto border-r border-gray-200 flex-shrink-0">
@@ -297,6 +297,15 @@
                 </aside>
             </div>
         </main>
+        <!-- Yeniden Boyutlandırma Kolları -->
+        <div class="resize-handle" data-direction="n"></div>
+        <div class="resize-handle" data-direction="s"></div>
+        <div class="resize-handle" data-direction="w"></div>
+        <div class="resize-handle" data-direction="e"></div>
+        <div class="resize-handle" data-direction="nw"></div>
+        <div class="resize-handle" data-direction="ne"></div>
+        <div class="resize-handle" data-direction="sw"></div>
+        <div class="resize-handle" data-direction="se"></div>
     </div>
 
     <!-- Kapatıldığında Gösterilecek İkon ("aynankankaa") -->
@@ -316,9 +325,10 @@
     </div>
 
     <script>
-       
+        
 
          //beyler
+          //beyler
               const fileSystemDB = {  //kankaa
             "RealDesktop": [
                 {
@@ -4076,8 +4086,9 @@ links: [
 ]
 
         };
+
         //bey bey beylerr
- 
+
         // --- DOM ELEMENTLERİ ---
         const fileBrowser = document.getElementById('file-browser');
         const fileBrowserContainer = document.getElementById('file-browser-container');
@@ -4097,10 +4108,7 @@ links: [
         let navHistory = [];
         let navIndex = -1;
 
-        // --- YARDIMCI FONKSİYONLAR ---
-
-        /** Dosya/Klasörler için ikon oluşturan yardımcı fonksiyon */
-        function getIcon(item) {
+function getIcon(item) {
             // Not: Bu fonksiyon küçük ikonlar ve thumbnail'ler için kullanılır.
             // Büyük önizlemeler (Galeri modu) render fonksiyonları içinde ayrıca ele alınır.
             switch(item.type) {
@@ -4125,7 +4133,7 @@ links: [
                     return `<svg class="w-1/2 h-1/2 text-gray-500 get-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
             }
         }
-        
+        // --- YARDIMCI FONKSİYONLAR ---
         /** Tıklama olaylarını yöneten yardımcı fonksiyon */
         function addClickListeners(element, item) {
             let clickTimer = null;
@@ -4224,10 +4232,12 @@ links: [
             // GÜNCELLEME: "RealDesktop" anahtarını kullanır
             const items = fileSystemDB['RealDesktop'] || [];
             
-            items.forEach(item => {
+            items.forEach((item, index) => {
                 const itemEl = document.createElement('div');
                 itemEl.dataset.id = item.id;
-                itemEl.className = 'desktop-item w-24 flex flex-col items-center justify-start text-center cursor-pointer group';
+                itemEl.className = 'desktop-item w-24 flex flex-col items-center justify-start text-center cursor-pointer group absolute';
+                itemEl.style.top = `${index * 120 + 20}px`; // Varsayılan konum, dikey sıralama
+                itemEl.style.left = '20px'; // Sol kenar
                 
                 const iconContainer = document.createElement('div');
                 iconContainer.className = 'w-20 h-20 p-2 flex items-center justify-center';
@@ -4250,6 +4260,9 @@ links: [
                 
                 addClickListeners(itemEl, item); // Tıklama olaylarını ekle
                 
+                // Masaüstü ikonları için sürükleme ekle
+                makeDraggable(itemEl);
+
                 desktopIconsContainer.appendChild(itemEl);
             });
         }
@@ -4807,14 +4820,14 @@ if (thumbnailsEl) {
 
         /** Bir elementi sürüklenebilir yapar */
         function makeDraggable(element) {
-            const header = element.querySelector('.window-header');
+            const header = element.querySelector('header') || element; // Ana pencere için toolbar, ikonlar için kendisi
             if (!header) return;
             let offsetX, offsetY, isDragging = false;
             header.addEventListener('mousedown', (e) => {
                 if (e.target.closest('button')) return;
                 isDragging = true;
                 element.classList.add('dragging');
-                bringToFront(element.id);
+                bringToFront(element.id || 'finder'); // Ana pencere için özel
                 offsetX = e.clientX - element.offsetLeft;
                 offsetY = e.clientY - element.offsetTop;
                 document.addEventListener('mousemove', onMouseMove);
@@ -4846,7 +4859,7 @@ if (thumbnailsEl) {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    bringToFront(element.id);
+                    bringToFront(element.id || 'finder');
                     element.classList.add('resizing');
                     
                     const direction = handle.dataset.direction;
@@ -5379,141 +5392,136 @@ if (thumbnailsEl) {
                     document.body.classList.remove('p-8');
                 }
             }); 
-            // -----------------------------------------------------------------
-// YENİ EKLENECEK KOD BLOKU BAŞLANGICI
-// (Bu blok, ızgara, liste ve galeri modları için ok tuşuyla gezinmeyi sağlar)
-// -----------------------------------------------------------------
-document.addEventListener('keydown', (e) => {
-    const activeEl = document.activeElement;
-    // Eğer bir input alanı içindeysek (örn: PDF sayfa no) navigasyonu devre dışı bırak
-    if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-        return; 
-    }
 
-    // Sadece 'Arrow' tuşlarıyla ilgileniyoruz
-    if (!e.key.startsWith('Arrow')) {
-        return;
-    }
+            // Ana pencereyi draggable ve resizable yap
+            makeDraggable(finderWindow);
+            makeResizable(finderWindow);
 
-    // O anki klasördeki dosyaları al
-    const items = fileSystemDB[currentFolder] || [];
-    if (items.length === 0) return; // Klasör boşsa hiçbir şey yapma
+            // **files** ikonunu draggable yap
+            makeDraggable(minimizedIcon);
 
-    // Mevcut seçili dosyanın indeksini bul
-    let currentIndex = -1;
-    if (selectedItemId) {
-        currentIndex = items.findIndex(item => item.id === selectedItemId);
-    }
-
-    let nextIndex = currentIndex;
-    let newItem = null;
-
-    // --- 1. HİÇBİR ŞEY SEÇİLİ DEĞİLSE ---
-    // Hiçbir öğe seçili değilse, tuşa göre ilk veya son öğeyi seç
-    if (currentIndex === -1) {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-            newItem = items[0]; // İlk öğeyi seç
-            e.preventDefault();
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-            newItem = items[items.length - 1]; // Son öğeyi seç
-            e.preventDefault();
-        }
-
-        if (newItem) {
-            handleSingleClick(newItem);
-            if (currentViewMode === 'gallery') {
-                updateGalleryPreview(newItem);
-            }
-        }
-        return; // Navigasyonu başlat ve bu tuş basımını bitir
-    }
-
-    // --- 2. ZATEN BİR ÖĞE SEÇİLİYSE (Moda göre davran) ---
-
-    if (currentViewMode === 'list') {
-        // --- LİSTE GÖRÜNÜMÜ (Sadece Yukarı/Aşağı) ---
-        if (e.key === 'ArrowDown') {
-            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0; // Sona gelince başa dön
-            e.preventDefault();
-        } else if (e.key === 'ArrowUp') {
-            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1; // Başa gelince sona dön
-            e.preventDefault();
-        }
-    } else if (currentViewMode === 'gallery') {
-        // --- GALERİ GÖRÜNÜMÜ (Sadece Sol/Sağ) ---
-        if (e.key === 'ArrowRight') {
-            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0; // Sona gelince başa dön
-            e.preventDefault();
-        } else if (e.key === 'ArrowLeft') {
-            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1; // Başa gelince sona dön
-            e.preventDefault();
-        }
-    } else if (currentViewMode === 'grid') {
-        // --- GRID GÖRÜNÜMÜ (4 Yön) ---
-        const gridEl = fileBrowser;
-        // Sütun sayısını dinamik olarak hesapla (genellikle 'auto-fit' ile değişir)
-        let numCols = 1; // Varsayılan
-        if (gridEl && gridEl.firstElementChild) {
-             const gridItemWidth = gridEl.firstElementChild.offsetWidth;
-             const gridWidth = gridEl.clientWidth;
-             numCols = Math.max(1, Math.floor(gridWidth / gridItemWidth));
-        }
-
-        if (e.key === 'ArrowDown') {
-            nextIndex = currentIndex + numCols;
-            if (nextIndex >= items.length) {
-                // Sona ulaştıysak, aynı sütundaki son öğeyi bulmaya çalış
-                nextIndex = currentIndex % numCols + (Math.floor((items.length - 1) / numCols) * numCols);
-                if (nextIndex >= items.length) {
-                     nextIndex = items.length - 1;
+            // Ok tuşları ve Enter için keydown event
+            document.addEventListener('keydown', (e) => {
+                const activeEl = document.activeElement;
+                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+                    return; 
                 }
-            }
-            e.preventDefault();
-        } else if (e.key === 'ArrowUp') {
-            nextIndex = currentIndex - numCols;
-            if (nextIndex < 0) {
-                // Başa ulaştıysak, aynı sütundaki ilk öğe (genellikle geçerli sütun indeksi)
-                nextIndex = currentIndex % numCols;
-            }
-            e.preventDefault();
-        } else if (e.key === 'ArrowRight') {
-            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0; // Sağa, sona gelince başa dön
-            e.preventDefault();
-        } else if (e.key === 'ArrowLeft') {
-            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1; // Sola, başa gelince sona dön
-            e.preventDefault();
-        }
-    }
 
-    // --- 3. GÜNCELLEME ---
-    // Eğer indeks değiştiyse (ve tuşa basıldıysa), yeni öğeyi seç ve güncelle
-    if (nextIndex !== currentIndex && e.defaultPrevented) {
-        newItem = items[nextIndex];
-        handleSingleClick(newItem); // Seçimi ve info panelini güncelle
+                if (!e.key.startsWith('Arrow') && e.key !== 'Enter') {
+                    return;
+                }
 
-        if (currentViewMode === 'gallery') {
-            updateGalleryPreview(newItem); // Galeri önizlemesini güncelle
-        }
+                const items = fileSystemDB[currentFolder] || [];
+                if (items.length === 0) return;
 
-        // Yeni seçilen öğeyi görünür alana kaydır
-        let newEl;
-        if (currentViewMode === 'gallery') {
-            newEl = document.querySelector(`.gallery-thumb-item[data-id="${newItem.id}"]`);
-        } else {
-            newEl = document.querySelector(`.file-item[data-id="${newItem.id}"]`);
-        }
-        if (newEl) {
-            newEl.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest',
-                inline: 'nearest'
+                let currentIndex = -1;
+                if (selectedItemId) {
+                    currentIndex = items.findIndex(item => item.id === selectedItemId);
+                }
+
+                let nextIndex = currentIndex;
+                let newItem = null;
+
+                if (currentIndex === -1 && e.key.startsWith('Arrow')) {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                        newItem = items[0];
+                        e.preventDefault();
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        newItem = items[items.length - 1];
+                        e.preventDefault();
+                    }
+
+                    if (newItem) {
+                        handleSingleClick(newItem);
+                        if (currentViewMode === 'gallery') {
+                            updateGalleryPreview(newItem);
+                        }
+                    }
+                    return;
+                }
+
+                if (e.key.startsWith('Arrow')) {
+                    if (currentViewMode === 'list') {
+                        if (e.key === 'ArrowDown') {
+                            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0;
+                            e.preventDefault();
+                        } else if (e.key === 'ArrowUp') {
+                            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1;
+                            e.preventDefault();
+                        }
+                    } else if (currentViewMode === 'gallery') {
+                        if (e.key === 'ArrowRight') {
+                            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0;
+                            e.preventDefault();
+                        } else if (e.key === 'ArrowLeft') {
+                            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1;
+                            e.preventDefault();
+                        }
+                    } else if (currentViewMode === 'grid') {
+                        const gridEl = fileBrowser;
+                        let numCols = 1;
+                        if (gridEl && gridEl.firstElementChild) {
+                             const gridItemWidth = gridEl.firstElementChild.offsetWidth;
+                             const gridWidth = gridEl.clientWidth;
+                             numCols = Math.max(1, Math.floor(gridWidth / gridItemWidth));
+                        }
+
+                        if (e.key === 'ArrowDown') {
+                            nextIndex = currentIndex + numCols;
+                            if (nextIndex >= items.length) {
+                                nextIndex = currentIndex % numCols + (Math.floor((items.length - 1) / numCols) * numCols);
+                                if (nextIndex >= items.length) {
+                                     nextIndex = items.length - 1;
+                                }
+                            }
+                            e.preventDefault();
+                        } else if (e.key === 'ArrowUp') {
+                            nextIndex = currentIndex - numCols;
+                            if (nextIndex < 0) {
+                                nextIndex = currentIndex % numCols;
+                            }
+                            e.preventDefault();
+                        } else if (e.key === 'ArrowRight') {
+                            nextIndex = (currentIndex < items.length - 1) ? currentIndex + 1 : 0;
+                            e.preventDefault();
+                        } else if (e.key === 'ArrowLeft') {
+                            nextIndex = (currentIndex > 0) ? currentIndex - 1 : items.length - 1;
+                            e.preventDefault();
+                        }
+                    }
+                }
+
+                if (nextIndex !== currentIndex && e.defaultPrevented) {
+                    newItem = items[nextIndex];
+                    handleSingleClick(newItem);
+
+                    if (currentViewMode === 'gallery') {
+                        updateGalleryPreview(newItem);
+                    }
+
+                    let newEl;
+                    if (currentViewMode === 'gallery') {
+                        newEl = document.querySelector(`.gallery-thumb-item[data-id="${newItem.id}"]`);
+                    } else {
+                        newEl = document.querySelector(`.file-item[data-id="${newItem.id}"]`);
+                    }
+                    if (newEl) {
+                        newEl.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest',
+                            inline: 'nearest'
+                        });
+                    }
+                }
+
+                if (e.key === 'Enter' && selectedItemId) {
+                    const selectedItem = items.find(item => item.id === selectedItemId);
+                    if (selectedItem) {
+                        handleDoubleClick(selectedItem);
+                        e.preventDefault();
+                    }
+                }
             });
-        }
-    }
-});
-// ---------------------------------------------------------------
-// YENİ EKLENECEK KOD BLOKU SONU
-// ---------------------------------------------------------------
         });
     </script>
 </body>
