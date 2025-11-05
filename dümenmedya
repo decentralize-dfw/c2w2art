@@ -1,0 +1,80 @@
+ //beyler
+              const fileSystemDB = {  //kankaa
+          "RealDesktop": [
+                {
+                    id: 'rd-1',
+                    type: 'video',
+                    name: 'iObs.mp4',
+                    url: 'https://video.wixstatic.com/video/54a996_6da48d6916b24734aba549bb585d4675/720p/mp4/file.mp4',
+                    description: 'Uzay videosu.',
+                    created: 'Monday, September 3, 2024 at 4:38 PM',
+                    minted: 'Monday, September 3, 2024 at 4:40 PM',
+                    medium: 'MP4 Video',
+                    dimensions: '1920x1080',
+                    size: '15 MB',
+                    tags: ['space', 'video', 'wix'],
+                    links: [ 
+                        { url: 'https://www.wix.com', name: 'Wix Kaynağı' }
+                    ]
+                },
+                { 
+                    id: 'rd-2',
+                    type: 'image',
+                    name: 'dfw-logo.png',
+                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/dfwlogo.png',
+                    description: 'pnglogo.',
+                    created: 'Monday, September 3, 2024 at 4:38 PM',
+                    minted: 'Monday, September 3, 2024 at 4:40 PM',
+                    medium: 'graphic',
+                    dimensions: '1200x1200',
+                    size: '4 MB',
+                    tags: [],
+                    links: []
+                }
+                
+            ],
+           "Cdrive": [
+                {
+                    id: 'cd-1', // Düzeltildi
+                    type: 'folder',
+                    name: 'Sample',
+                    folderKey: 'ProjectFiles1', // -> ProjectFiles1'e bağlanır
+                    created: 'Monday, September 3, 2024 at 4:38 PM',
+                    size: '1.2 GB',
+                    links: []
+                },
+                {
+                    id: 'cd-2', // Düzeltildi
+                    type: 'video',
+                    name: 'Skate_Park_Clip.mp4',
+                    url: 'https://videos.pexels.com/video-files/852400/852400-hd_1280_720_25fps.mp4',
+                    description: 'Kaykay parkında bir gösteri.',
+                    created: 'Friday, October 10, 2024 at 11:00 AM',
+                    minted: 'Friday, October 10, 2024 at 11:01 AM',
+                    medium: 'MP4 Video',
+                    dimensions: '1920x1080',
+                    size: '22 MB',
+                    tags: ['skate', 'park', 'video'],
+                    links: []
+                },
+                {
+                    id: 'cd-3', // Düzeltildi
+                    type: 'glb',
+                    name: 'matisse-900.glb',
+                    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/matisse-900-opt-v80.glb',
+                    description: 'WEBP Texturelı Matisse 3D modeli.',
+                    created: 'Wednesday, June 5, 2024 at 09:30 AM',
+                    minted: 'Wednesday, June 5, 2024 at 09:30 AM',
+                    medium: 'GLB 3D Model',
+                    dimensions: 'N/A',
+                    size: '1.5 MB',
+                    tags: ['3d', 'matisse', 'model', 'webp'],
+                    links: [
+                        { url: 'https://github.com/decentralize-dfw/c2w2-glb', name: 'GitHub Kaynağı' }
+                    ]
+                }],
+ "Documents": [],
+ "AirDrop": [], 
+"Recents": [],
+"Applications": []
+        }
