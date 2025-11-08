@@ -5435,29 +5435,52 @@ if (thumbnailsEl) {
 
         /** Bir elementi sürüklenebilir yapar */
         function makeDraggable(element) {
-            const header = element.querySelector('header') || element; // Ana pencere için toolbar, ikonlar için kendisi
+            // Ana pencere için: `.finder-window` öğesinin içindeki header
+            // Diğer pencereler için: `.window-header`
+            // Masaüstü ikonları için: elementin kendisi
+            let header;
+            if (element.classList.contains('finder-window')) {
+                // Ana pencerenin toolbar'ını yakala
+                header = element.querySelector('header.h-14');
+            } else {
+                header = element.querySelector('header') || element;
+            }
+
             if (!header) return;
             let offsetX, offsetY, isDragging = false;
+            
             header.addEventListener('mousedown', (e) => {
-                if (e.target.closest('button')) return;
+                // Eğer buton, iframe veya metin alanı gibi etkileşimli bir öğeye tıklandıysa iptal et
+                if (e.target.closest('button') || e.target.closest('a') || e.target.tagName === 'INPUT') return;
+                // Fullscreen modunda sürüklemeyi engelle (Ana pencere için)
+                if (element.classList.contains('finder-window') && element.classList.contains('fullscreen')) return;
+
                 isDragging = true;
                 element.classList.add('dragging');
                 bringToFront(element.id || 'finder'); // Ana pencere için özel
+                
+                // Koordinatları hesapla
                 offsetX = e.clientX - element.offsetLeft;
                 offsetY = e.clientY - element.offsetTop;
+                
                 document.addEventListener('mousemove', onMouseMove);
                 document.addEventListener('mouseup', onMouseUp, { once: true });
-                e.preventDefault();
+                e.preventDefault(); // Metin seçimini ve diğer varsayılan olayları engelle
             });
+
             function onMouseMove(e) {
                 if (!isDragging) return;
                 let newX = e.clientX - offsetX;
                 let newY = e.clientY - offsetY;
+                
+                // Pencereyi ekran sınırları içinde tut
                 newX = Math.max(0, Math.min(newX, window.innerWidth - element.offsetWidth));
                 newY = Math.max(0, Math.min(newY, window.innerHeight - element.offsetHeight));
+                
                 element.style.left = `${newX}px`;
                 element.style.top = `${newY}px`;
             }
+
             function onMouseUp() {
                 isDragging = false;
                 element.classList.remove('dragging');
@@ -5465,7 +5488,7 @@ if (thumbnailsEl) {
             }
         }
         
-        /** YENİ: Gelişmiş Yeniden Boyutlandırma Fonksiyonu */
+      /** YENİ: Gelişmiş Yeniden Boyutlandırma Fonksiyonu */
         function makeResizable(element) {
             const resizeHandles = element.querySelectorAll('.resize-handle');
             
@@ -5477,14 +5500,22 @@ if (thumbnailsEl) {
                     bringToFront(element.id || 'finder');
                     element.classList.add('resizing');
                     
+                    // Eğer fullscreen moddaysa, yeniden boyutlandırmaya izin verme
+                    if (element.classList.contains('fullscreen')) return; 
+                    
                     const direction = handle.dataset.direction;
                     const startX = e.clientX;
                     const startY = e.clientY;
+                    
+                    // `element.style` yerine `element.getBoundingClientRect()` kullanıyoruz
                     const rect = element.getBoundingClientRect();
                     const startWidth = rect.width;
                     const startHeight = rect.height;
+                    
+                    // Sürükleme başladığında anlık konumları al
                     const startTop = element.offsetTop;
                     const startLeft = element.offsetLeft;
+                    
                     const minWidth = 300;
                     const minHeight = 200;
 
@@ -5506,14 +5537,17 @@ if (thumbnailsEl) {
                             newHeight = startHeight - dy;
                             newTop = startTop + dy;
                         }
-
+                        
+                        // Sınır ve min-boyut kontrolü
                         if (newWidth >= minWidth) {
                             element.style.width = `${newWidth}px`;
-                            element.style.left = `${newLeft}px`;
+                            // Sol kenar için: Pencerenin sol kenarını sıfırın altına inmesini engelle
+                            element.style.left = `${Math.max(0, newLeft)}px`; 
                         }
                         if (newHeight >= minHeight) {
                             element.style.height = `${newHeight}px`;
-                            element.style.top = `${newTop}px`;
+                            // Üst kenar için: Pencerenin üst kenarını sıfırın altına inmesini engelle
+                            element.style.top = `${Math.max(0, newTop)}px`; 
                         }
                     }
                     function onMouseUp() {
@@ -5996,17 +6030,43 @@ if (thumbnailsEl) {
                 minimizedIcon.classList.add('selected');
             });
 
+            // YENİ/GÜNCELLEME: Ana Pencere Maximize Tuşu
             document.getElementById('main-maximize').addEventListener('click', () => {
-                if (finderWindow.classList.contains('fullscreen')) {
-                    finderWindow.classList.remove('fullscreen', 'w-screen', 'h-screen', 'p-0', 'rounded-none');
+                const isFullscreen = finderWindow.classList.contains('fullscreen');
+                
+                if (isFullscreen) {
+                    // Restore Modu: Kaydedilen konuma ve boyuta geri dön
+                    finderWindow.classList.remove('fullscreen');
+                    finderWindow.style.top = finderWindow.dataset.oldTop || '10%';
+                    finderWindow.style.left = finderWindow.dataset.oldLeft || '10%';
+                    finderWindow.style.width = finderWindow.dataset.oldWidth || '80%';
+                    finderWindow.style.height = finderWindow.dataset.oldHeight || '80vh';
+                    
+                    // Tailwind sınıflarını başlangıç durumuna geri yükle
+                    finderWindow.classList.remove('w-screen', 'h-screen', 'p-0', 'rounded-none');
                     finderWindow.classList.add('w-full', 'max-w-6xl', 'h-[80vh]', 'rounded-xl');
                     document.body.classList.add('p-8');
+                    
                 } else {
-                    finderWindow.classList.add('fullscreen', 'w-screen', 'h-screen', 'p-0', 'rounded-none');
+                    // Fullscreen Modu: Mevcut konumu kaydet ve tam ekran yap
+                    // Mevcut konum ve boyutları kaydet (Tailwind sınıfları nedeniyle bu sadece bir yaklaşık değer olabilir)
+                    finderWindow.dataset.oldTop = finderWindow.style.top;
+                    finderWindow.dataset.oldLeft = finderWindow.style.left;
+                    finderWindow.dataset.oldWidth = finderWindow.style.width;
+                    finderWindow.dataset.oldHeight = finderWindow.style.height;
+
+                    finderWindow.classList.add('fullscreen');
+                    finderWindow.style.top = '0px';
+                    finderWindow.style.left = '0px';
+                    finderWindow.style.width = '100vw'; // Ekranın tamamını kapla
+                    finderWindow.style.height = '100vh'; // Ekranın tamamını kapla
+                    
+                    // Tailwind sınıflarını tam ekran için ayarla
+                    finderWindow.classList.add('w-screen', 'h-screen', 'p-0', 'rounded-none');
                     finderWindow.classList.remove('w-full', 'max-w-6xl', 'h-[80vh]', 'rounded-xl');
                     document.body.classList.remove('p-8');
                 }
-            }); 
+            });
 
             // Ana pencereyi draggable ve resizable yap
             makeDraggable(finderWindow);
