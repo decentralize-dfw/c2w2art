@@ -36,8 +36,8 @@
             position: fixed;
             top: 15px;
             right: 15px;
-            width: 130px;
-            height: 130px;
+            width: 60px;
+            height: 60px;
             z-index: 10;
             border-radius: 8px;
         }
@@ -60,8 +60,7 @@
             filter: brightness(1);
         }
 
-        /* --- New Viewer Layout --- */
-
+        /* --- Viewer Layout --- */
         #avatar-list {
             position: fixed;
             left: 10px;
@@ -69,23 +68,20 @@
             width: 15%;
             height: calc(100vh - 20px);
             max-width: 250px;
-            overflow-y: auto;
+            overflow-y: hidden; /* Değiştirildi: auto -> hidden */
             padding: 10px;
             box-sizing: border-box;
             font-size: 12px;
         }
 
         #avatar-list::-webkit-scrollbar {
-            width: 1px;
-            background: transparent;
+            display: none; /* Kaldırıldı (veya gizlendi) */
         }
         #avatar-list::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.5);
-            border-radius: 0.5px;
+            display: none; /* Kaldırıldı (veya gizlendi) */
         }
         #avatar-list::-webkit-scrollbar-track {
-            background: transparent;
-            margin: 5px 0;
+            display: none; /* Kaldırıldı (veya gizlendi) */
         }
 
         .avatar-item {
@@ -134,22 +130,24 @@
             cursor: pointer;
         }
 
-        /* --- Camera Controls (from iframe) --- */
-        #cameraLabel {
+        /* --- Camera Controls --- */
+        #cameraControls {
             position: fixed;
             left: calc(15% + 40px);
-            top: 20px;
+            top: 18px;
+            z-index: 5;
+            height: 120px;
+        }
+        #cameraLabel {
+            position: absolute;
+            left: 0;
+            top: 2px;
             color: white;
             font-size: 12px;
             font-weight: 500;
-            text-align: left;
-            margin: 0;
-            font-family: Helvetica, Arial, sans-serif;
-            z-index: 5;
         }
         #cameraBtn1, #cameraBtn2, #cameraBtn3 {
-            position: fixed;
-            top: 9px;
+            position: absolute;
             backdrop-filter: blur(8px);
             background: rgba(0,0,0,.55);
             border: 1px solid rgba(255,255,255,.08);
@@ -160,30 +158,22 @@
             color: #fff;
             font-size: 11px;
             font-weight: 500;
-            text-align: center;
-            margin: 0;
-            font-family: Helvetica, Arial, sans-serif;
             cursor: pointer;
         }
-        #cameraBtn1 { left: calc(15% + 90px); top: 18px; }
-        #cameraBtn2 { left: calc(15% + 115px); top: 18px; }
-        #cameraBtn3 { left: calc(15% + 140px); top: 18px; }
+        #cameraBtn1 { left: 50px; top: 0; }
+        #cameraBtn2 { left: 75px; top: 0; }
+        #cameraBtn3 { left: 100px; top: 0; }
 
         #lensLabel {
-            position: fixed;
-            left: calc(15% + 40px);
-            top: 50px;
+            position: absolute;
+            left: 0;
+            top: 32px;
             color: white;
             font-size: 12px;
             font-weight: 500;
-            text-align: left;
-            margin: 0;
-            font-family: Helvetica, Arial, sans-serif;
-            z-index: 5;
         }
         #lensBtn1, #lensBtn2, #lensBtn3 {
-            position: fixed;
-            top: 29px;
+            position: absolute;
             backdrop-filter: blur(8px);
             background: rgba(0,0,0,.55);
             border: 1px solid rgba(255,255,255,.08);
@@ -194,19 +184,71 @@
             color: #fff;
             font-size: 11px;
             font-weight: 500;
-            text-align: center;
-            margin: 0;
-            font-family: Helvetica, Arial, sans-serif;
             cursor: pointer;
         }
-        #lensBtn1 { left: calc(15% + 90px); top: 48px; }
-        #lensBtn2 { left: calc(15% + 115px); top: 48px; }
-        #lensBtn3 { left: calc(15% + 140px); top: 48px; }
+        #lensBtn1 { left: 50px; top: 30px; }
+        #lensBtn2 { left: 75px; top: 30px; }
+        #lensBtn3 { left: 100px; top: 30px; }
+        
+        /* --- Loop Controls --- */
+        #loopLabel {
+            position: absolute;
+            left: 0;
+            top: 62px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        #loopBtnYes, #loopBtnNo {
+            position: absolute;
+            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,.55);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            z-index: 10;
+            padding: 2px 8px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        #loopBtnYes { left: 50px; top: 60px; }
+        #loopBtnNo { left: 75px; top: 60px; }
+
+        /* --- Material Controls --- */
+        #materialLabel {
+            position: absolute;
+            left: 0;
+            top: 92px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        #matBtnRender, #matBtnWire, #matBtnNormal {
+            position: absolute;
+            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,.55);
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            z-index: 10;
+            padding: 2px 8px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        #matBtnRender { left: 50px; top: 90px; }
+        #matBtnWire { left: 100px; top: 90px; }
+        #matBtnNormal { left: 145px; top: 90px; }
 
         .selected {
             background: rgba(255,255,255,0.4) !important;
             border-color: rgba(255,255,255,0.5) !important;
         }
+
+        /* --- Camera Mode Toggle (REMOVED) --- */
     </style>
     <script type="importmap">
         {
@@ -233,15 +275,26 @@
     </div>
 
     <!-- Camera and Lens controls -->
-    <p id="cameraLabel">Camera</p>
-    <button id="cameraBtn1">1</button>
-    <button id="cameraBtn2">2</button>
-    <button id="cameraBtn3">3</button>
-    <p id="lensLabel">Lens</p>
-    <button id="lensBtn1">1</button>
-    <button id="lensBtn2">2</button>
-    <button id="lensBtn3">.5</button>
+    <div id="cameraControls">
+        <p id="cameraLabel">Camera</p>
+        <button id="cameraBtn1">1</button>
+        <button id="cameraBtn2">2</button>
+        <button id="cameraBtn3">3</button>
+        <p id="lensLabel">Lens</p>
+        <button id="lensBtn1">1</button>
+        <button id="lensBtn2">2</button>
+        <button id="lensBtn3">.5</button>
+        <p id="loopLabel">Loop</p>
+        <button id="loopBtnYes">Yes</button>
+        <button id="loopBtnNo">No</button>
+        <p id="materialLabel">Material</p>
+        <button id="matBtnRender">Render</button>
+        <button id="matBtnWire">Wire</button>
+        <button id="matBtnNormal">Normal</button>
+    </div>
 
+    <!-- Camera Mode Toggle (REMOVED) -->
+    
     <!-- Reset button -->
     <button id="resetButton">Reset Scene</button>
 
@@ -252,6 +305,7 @@
         import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
         import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        // import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'; // REMOVED
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -280,16 +334,26 @@
         const audioListener = new THREE.AudioListener();
         camera.add(audioListener);
 
+        // --- Control Variables ---
         let orbitControls;
+        // let pointerControls; // REMOVED
+        // let cameraMode = 'fixed'; // REMOVED (Always fixed)
+        let loopAnimations = true; // 'true' or 'false'
+        let materialMode = 'render'; // 'render', 'wire', 'normal'
+        const models = []; // Use as a sparse array with 1-based indexing
+        
+        // --- Store last selected camera/lens state ---
+        let lastFixedCameraBtn = null;
+        let lastFixedLensBtn = null;
+        
+        // --- Walk Mode Variables (REMOVED) ---
 
         // --- Camera (Viewer) Controls Setup ---
-        function setupViewerControls() {
-            scene.add(camera);
-            camera.position.set(20, 1, 0);
-            camera.lookAt(0, 5, 0);
+        function setupFixedControls() {
+            // This function is now ONLY for applying preset restrictions
+            // It assumes orbitControls is already initialized
             
-            orbitControls = new OrbitControls(camera, renderer.domElement);
-            orbitControls.target.set(0, 5, 0);
+            orbitControls.enabled = true;
             
             const dist = camera.position.distanceTo(orbitControls.target);
             orbitControls.minDistance = dist;
@@ -302,58 +366,173 @@
             orbitControls.enableZoom = false;
             orbitControls.enablePan = false;
             orbitControls.update();
+        }
 
-            document.getElementById('cameraBtn1').classList.add('selected');
-            document.getElementById('lensBtn1').classList.add('selected');
+        // --- setupWalkControls (REMOVED) ---
 
-            // --- Camera Button Listeners ---
-            const cameraButtons = [document.getElementById('cameraBtn1'), document.getElementById('cameraBtn2'), document.getElementById('cameraBtn3')];
-            cameraButtons.forEach(btn => {
-                btn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    cameraButtons.forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    if (btn.id === 'cameraBtn1') {
-                        camera.position.set(20, 1, 0);
-                        camera.lookAt(0, 5, 0);
-                        orbitControls.target.set(0, 5, 0);
-                    } else if (btn.id === 'cameraBtn2') {
-                        camera.position.set(25, 7, 0);
-                        camera.lookAt(0, 0, 0);
-                        orbitControls.target.set(0, 5, 0);
-                    } else if (btn.id === 'cameraBtn3') {
-                        camera.position.set(6, 16, 0);
-                        camera.lookAt(0, 0, 0);
-                        orbitControls.target.set(0, 7, 0);
-                    }
-                    const dist = camera.position.distanceTo(orbitControls.target);
-                    orbitControls.minDistance = dist;
-                    orbitControls.maxDistance = dist;
-                    const polarAngle = Math.acos((camera.position.y - orbitControls.target.y) / dist);
-                    orbitControls.minPolarAngle = polarAngle;
-                    orbitControls.maxPolarAngle = polarAngle;
-                    orbitControls.update();
-                });
+        // --- Camera/Lens Button Listeners ---
+        const cameraButtons = [document.getElementById('cameraBtn1'), document.getElementById('cameraBtn2'), document.getElementById('cameraBtn3')];
+        
+        function applyPresetForButton(btn) {
+            if (!orbitControls) {
+                orbitControls = new OrbitControls(camera, renderer.domElement);
+            }
+
+            if (btn.id === 'cameraBtn1') {
+                camera.position.set(25, 3, 0); 
+                camera.lookAt(0, 5, 0);
+                orbitControls.target.set(0, 5, 0);
+            } else if (btn.id === 'cameraBtn2') {
+                camera.position.set(30, 7, 0); 
+                camera.lookAt(0, 0, 0);
+                orbitControls.target.set(0, 5, 0);
+            } else if (btn.id === 'cameraBtn3') {
+                camera.position.set(10, 16, 0); 
+                camera.lookAt(0, 0, 0);
+                orbitControls.target.set(0, 7, 0);
+            }
+            
+            // Apply restrictions
+            setupFixedControls();
+        }
+
+        cameraButtons.forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                                
+                cameraButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                lastFixedCameraBtn = btn; // Store last selected camera
+                
+                // Apply preset and restrictions
+                applyPresetForButton(btn);
             });
+        });
 
-            // --- Lens Button Listeners ---
-            const lensButtons = [document.getElementById('lensBtn1'), document.getElementById('lensBtn2'), document.getElementById('lensBtn3')];
-            lensButtons.forEach(btn => {
-                btn.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    lensButtons.forEach(b => b.classList.remove('selected'));
-                    btn.classList.add('selected');
-                    if (btn.id === 'lensBtn1') {
-                        camera.fov = 80;
-                    } else if (btn.id === 'lensBtn2') {
-                        camera.fov = 50;
-                    } else if (btn.id === 'lensBtn3') {
-                        camera.fov = 100;
-                    }
-                    camera.updateProjectionMatrix();
-                });
+        const lensButtons = [document.getElementById('lensBtn1'), document.getElementById('lensBtn2'), document.getElementById('lensBtn3')];
+        
+        function applyLensForButton(btn) {
+            lensButtons.forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            
+            if (btn.id === 'lensBtn1') {
+                camera.fov = 80;
+            } else if (btn.id === 'lensBtn2') {
+                camera.fov = 50;
+            } else if (btn.id === 'lensBtn3') {
+                camera.fov = 100;
+            }
+            camera.updateProjectionMatrix();
+        }
+        
+        lensButtons.forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                applyLensForButton(btn);
+                lastFixedLensBtn = btn; // Store last selected lens
+            });
+        });
+
+        // --- Loop Button Listeners ---
+        const loopBtnYes = document.getElementById('loopBtnYes');
+        const loopBtnNo = document.getElementById('loopBtnNo');
+
+        function setLoopMode(loop) {
+            loopAnimations = loop;
+            loopBtnYes.classList.toggle('selected', loop);
+            loopBtnNo.classList.toggle('selected', !loop);
+
+            // Update all currently active models
+            models.forEach(entry => {
+                if (entry && entry.mixer) {
+                    entry.mixer._actions.forEach(action => {
+                        action.loop = loopAnimations ? THREE.LoopRepeat : THREE.LoopOnce;
+                        if (!loopAnimations) {
+                            action.clampWhenFinished = true;
+                        } else {
+                            // If we re-enable looping and the action isn't running, play it
+                            if (!action.isRunning()) {
+                                action.reset().play();
+                            }
+                        }
+                    });
+                }
             });
         }
+        loopBtnYes.addEventListener('click', () => setLoopMode(true));
+        loopBtnNo.addEventListener('click', () => setLoopMode(false));
+
+        // --- Material Mode Listeners ---
+        const matBtnRender = document.getElementById('matBtnRender');
+        const matBtnWire = document.getElementById('matBtnWire');
+        const matBtnNormal = document.getElementById('matBtnNormal');
+
+        function applyMaterialMode(mesh) {
+            if (!mesh.isMesh) return;
+            
+            if (!mesh.userData.originalMaterial) {
+                mesh.userData.originalMaterial = mesh.material;
+            }
+
+            if (materialMode === 'render') {
+                mesh.material = mesh.userData.originalMaterial;
+                mesh.material.wireframe = false;
+            } else if (materialMode === 'wire') {
+                mesh.material = mesh.userData.originalMaterial;
+                mesh.material.wireframe = true;
+            } else if (materialMode === 'normal') {
+                if (!mesh.userData.normalMaterial) {
+                    mesh.userData.normalMaterial = new THREE.MeshNormalMaterial();
+                }
+                mesh.material = mesh.userData.normalMaterial;
+            }
+        }
+
+        function setMaterialMode(newMode) {
+            materialMode = newMode;
+            // Update button UI
+            matBtnRender.classList.toggle('selected', newMode === 'render');
+            matBtnWire.classList.toggle('selected', newMode === 'wire');
+            matBtnNormal.classList.toggle('selected', newMode === 'normal');
+
+            // Iterate over all active models and apply the new mode
+            models.forEach(entry => {
+                if (entry && entry.model) {
+                    entry.model.traverse((child) => {
+                        if (child.isMesh) {
+                            applyMaterialMode(child);
+                        }
+                    });
+                }
+            });
+        }
+
+        matBtnRender.addEventListener('click', () => setMaterialMode('render'));
+        matBtnWire.addEventListener('click', () => setMaterialMode('wire'));
+        matBtnNormal.addEventListener('click', () => setMaterialMode('normal'));
+        
+        // --- Camera Mode Toggle Listeners (REMOVED) ---
+        // --- setCameraMode function (REMOVED) ---
+        
+        // --- Helper functions to apply presets without triggering clicks ---
+        function applyLastFixedCameraPreset() {
+            if (!lastFixedCameraBtn) {
+                lastFixedCameraBtn = document.getElementById('cameraBtn1');
+            }
+            cameraButtons.forEach(b => b.classList.remove('selected'));
+            lastFixedCameraBtn.classList.add('selected');
+            
+            applyPresetForButton(lastFixedCameraBtn); 
+        }
+        
+        function applyLastFixedLensPreset() {
+            if (!lastFixedLensBtn) {
+                lastFixedLensBtn = document.getElementById('lensBtn1');
+            }
+            applyLensForButton(lastFixedLensBtn);
+        }
+
+        // --- Walk Mode Keyboard Listeners (REMOVED) ---
 
         // --- Environment and Lighting ---
         const pmremGenerator = new THREE.PMREMGenerator(renderer);
@@ -423,8 +602,12 @@
                 document.getElementById('loading').style.display = 'none';
                 
                 // --- Setup viewer controls and UI AFTER scene loads ---
-                setupViewerControls();
                 createAvatarList();
+                // Apply default camera/lens/loop/material
+                applyLastFixedCameraPreset();
+                applyLastFixedLensPreset();
+                setLoopMode(true);
+                setMaterialMode('render');
             },
             (xhr) => {
                 document.getElementById('loading').textContent = `Loading Scene: ${(xhr.loaded / xhr.total * 100).toFixed(2)}%`;
@@ -435,7 +618,7 @@
             }
         );
 
-        // --- Model Data ---
+        // --- Model Data (Cleaned) ---
         const modelUrls = [
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/bellicapelli-1000-opt-v9.glb', // Model 1
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/matisse-1000-coms-opt-v4.glb', // Model 2
@@ -456,7 +639,7 @@
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/saturnweekend-900-v2-threejs-opt-v5.glb', // Model 17
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/6529memes-1000-opt-v1.glb', // Model 18
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/artdecc0-1000-opt-v3.glb', // Model 19
-            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/xcopy-1000--v2coms-opt-v6.glb', // Model 20
+            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/xcopy-1000--v2coms-opt-v6.glb', // Model 20
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/ailu-v2-1000-opt-v1.glb', // Model 21
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/gordon-1000-comms-opt-v17.glb', // Model 22
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/davicni-1000-opt-v13.glb', // Model 23
@@ -468,7 +651,7 @@
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/teddy-1000-opt-v39.glb', // Model 29
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/asian-1000-opt-v4.glb', // Model 30
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/mafiaclown-1000-opt-v20.glb', // Model 31
-            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/samu-1000-opt-v35.glb', // Model 32
+            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/samu-1000-opt-v35.glb', // Model 32
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/baienciagai-1000-opt-v7.glb', // Model 33
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/rabbit-1000-opt-v32.glb', // Model 34
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/neo-1000-opt-v28.glb', // Model 35
@@ -476,15 +659,15 @@
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/xeu2-900--v2-threejs-opt-v7.glb', // Model 37
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/papaz-1000-threejs-opt-v29.glb', // Model 38
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/sleekrobobitchspikey-1000-opt-v36.glb', // Model 39
-            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/donmac-1000-opt-v15.glb', // Model 40
+            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/donmac-1000-opt-v15.glb', // Model 40
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/redwearsdfw-1000-opt-v33.glb', // Model 41
-            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/cybergesu-1000-opt-v12.glb', // Model 42
+            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/cybergesu-1000-opt-v12.glb', // Model 42
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/steve-1000com-opt-v38.glb', // Model 43
-            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/millefeuille-dobby-1000coms-opt-v26.glb', // Model 44
+            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/millefeuille-dobby-1000coms-opt-v26.glb', // Model 44
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/junya-1000-opt-v42.glb', // Model 45
-            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/electrogod-1000-threejs-opt-v43.glb', // Model 46
-            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/davicni-1000-threejs-opt-v14.glb', // Model 47
-            'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/memelegancesuit-1000-fup-opt-v24.glb', // Model 48
+            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/electrogod-1000-threejs-opt-v43.glb', // Model 46
+            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/davicni-1000-threejs-opt-v14.glb', // Model 47
+            'httpss://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/memelegancesuit-1000-fup-opt-v24.glb', // Model 48
             'https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/finale.glb' // Model 49
         ];
         const modelDescriptions = [
@@ -499,15 +682,14 @@
         ];
 
         // --- Model Management ---
-        const models = []; // Use as a sparse array with 1-based indexing
-
         function loadModel(index) {
             return new Promise((resolve, reject) => {
-                const url = modelUrls[index - 1];
+                let url = modelUrls[index - 1];
                 if (!url) {
                     reject(new Error(`No URL for model index ${index}`));
                     return;
                 }
+                
                 gltfLoader.load(
                     url,
                     (gltf) => {
@@ -517,13 +699,23 @@
                             if (child.isMesh) {
                                 child.castShadow = true;
                                 child.receiveShadow = true;
-                                if (index === 49 && child.name === 'balls' && child.material.name === 'TT') {
-                                    child.material.emissiveIntensity = 100;
+
+                                // Store original material first
+                                if (!child.userData.originalMaterial) {
+                                    child.userData.originalMaterial = child.material;
+                                }
+                                
+                                // Apply special logic to the original material
+                                if (index === 49 && child.name === 'balls' && child.userData.originalMaterial.name === 'TT') {
+                                    child.userData.originalMaterial.emissiveIntensity = 100;
                                 } else {
-                                    if (child.material.emissive) {
-                                        child.material.emissiveIntensity = 1;
+                                    if (child.userData.originalMaterial.emissive) {
+                                        child.userData.originalMaterial.emissiveIntensity = 1;
                                     }
                                 }
+
+                                // NOW, apply the current viewing mode
+                                applyMaterialMode(child);
                             }
                         });
                         scene.add(modelScene);
@@ -533,7 +725,11 @@
                             mixer = new THREE.AnimationMixer(modelScene);
                             gltf.animations.forEach((clip) => {
                                 const action = mixer.clipAction(clip);
-                                action.loop = THREE.LoopRepeat;
+                                // Set loop based on current toggle state
+                                action.loop = loopAnimations ? THREE.LoopRepeat : THREE.LoopOnce;
+                                if (!loopAnimations) {
+                                    action.clampWhenFinished = true;
+                                }
                             });
                         }
                         
@@ -543,7 +739,7 @@
                     },
                     undefined, // onProgress
                     (error) => {
-                        console.error(`Error loading model ${index}:`, error);
+                        console.error(`Error loading model ${index} from URL: ${url}`, error);
                         reject(error);
                     }
                 );
@@ -575,7 +771,16 @@
                 entry.model.traverse((child) => {
                     if (child.isMesh) {
                         child.geometry.dispose();
-                        child.material.dispose();
+                        // Dispose materials
+                        if (child.userData.originalMaterial) {
+                            child.userData.originalMaterial.dispose();
+                        }
+                        if (child.userData.normalMaterial) {
+                            child.userData.normalMaterial.dispose();
+                        }
+                        if(child.material && child.material.dispose) {
+                            child.material.dispose();
+                        }
                     }
                 });
                 models[index] = null; // Clear the entry
@@ -584,7 +789,6 @@
         }
 
         // --- UI and Event Listeners ---
-
         function createAvatarList() {
             const avatarList = document.getElementById('avatar-list');
             modelDescriptions.forEach((desc, index) => {
@@ -645,7 +849,7 @@
             });
             
             // Delete all models
-            for (let i = 1; i < models.length; i++) { // models array is sparse and 1-indexed
+            for (let i = 1; i <= modelUrls.length; i++) { // Iterate up to max model count
                 if (models[i]) {
                     deleteModel(i);
                 }
@@ -659,10 +863,14 @@
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
             renderer.setSize(width, height);
+    
+            // Adjust composer size relative to the scene container, not window
             composer.setSize(width, height);
         }
         window.addEventListener('resize', onResize);
-        onResize(); // Initial call
+        
+        // Initial resize call
+        onResize(); 
 
         // --- Animation Loop ---
         const clock = new THREE.Clock();
@@ -670,10 +878,11 @@
         function animate() {
             const delta = clock.getDelta();
 
+            // Only update orbit controls
             if (orbitControls) {
                 orbitControls.update();
             }
-
+            
             // Update all active model animations
             models.forEach(entry => {
                 if (entry && entry.mixer && entry.animated) {
