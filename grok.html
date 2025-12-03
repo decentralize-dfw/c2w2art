@@ -196,73 +196,73 @@
             }
             .finder-window {
                 width: 100vw !important;
-                height: 100vh !important;
-                top: 0 !important;
+                height: 70vh !important; /* 15% top and bottom empty */
+                top: 15vh !important;
                 left: 0 !important;
                 border-radius: 0 !important;
                 box-shadow: none !important;
                 overflow: hidden;
             }
             .finder-window aside {
-                width: 40vw !important; /* Smaller sidebar on mobile */
+                width: 30vw !important; /* Smaller sidebar on mobile */
             }
             .finder-window header.h-14 {
-                height: 40px !important; /* Smaller header */
+                height: 30px !important; /* Smaller header */
             }
-            .finder-window .window-control {
-                width: 10px !important;
-                height: 10px !important;
+            .window-control {
+                width: 8px !important;
+                height: 8px !important;
             }
             .file-browser-container {
-                padding: 1rem !important; /* Reduced padding */
+                padding: 0.5rem !important; /* Reduced padding */
             }
             .file-item {
-                width: 80px !important; /* Smaller icons */
+                width: 60px !important; /* Smaller icons */
             }
             .file-item > div {
-                width: 60px !important;
-                height: 60px !important;
+                width: 50px !important;
+                height: 50px !important;
             }
             .file-item > p {
-                font-size: 10px !important; /* Smaller text */
+                font-size: 8px !important; /* Smaller text */
             }
             .desktop-item {
-                width: 80px !important;
+                width: 60px !important;
             }
             .desktop-item > div {
-                width: 60px !important;
-                height: 60px !important;
+                width: 50px !important;
+                height: 50px !important;
             }
             .desktop-item > p {
-                font-size: 10px !important;
+                font-size: 8px !important;
             }
             #info-panel {
-                width: 200px !important; /* Smaller info panel */
+                width: 150px !important; /* Smaller info panel */
             }
             #info-panel .text-sm {
-                font-size: 12px !important;
-            }
-            #info-panel .text-xs {
                 font-size: 10px !important;
             }
+            #info-panel .text-xs {
+                font-size: 8px !important;
+            }
             .floating-window {
-                width: 100vw !important;
-                height: 100vh !important;
-                top: 0 !important;
-                left: 0 !important;
-                border-radius: 0 !important;
+                width: 80vw !important;
+                height: 80vh !important;
+                top: 10vh !important;
+                left: 10vw !important;
+                border-radius: 8px !important;
             }
             .floating-window header {
-                height: 40px !important;
+                height: 30px !important;
             }
             .floating-window .text-sm {
-                font-size: 12px !important;
+                font-size: 10px !important;
             }
             .loading-text {
-                font-size: 14px !important;
+                font-size: 12px !important;
             }
             .loading-progress {
-                width: 150px !important;
+                width: 120px !important;
             }
             /* Hide rotate prompt in landscape */
             @media (orientation: landscape) {
@@ -438,7 +438,7 @@
 
     <!-- Kapatıldığında Gösterilecek İkon ("aynankankaa") -->
     <!-- Bu, fileSystemDB'den bağımsız, özel bir UI elementidir -->
-    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 60%; left: 20%; transform: translate(-50%, -50%);">
+    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 15%; left: 50%; transform: translate(-50%, -50%);">
         <div class="w-24 h-24 p-2 flex items-center justify-center transition-shadow duration-150 group-hover:shadow-lg">
             <svg class="w-full h-full text-blue-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
         </div>
@@ -1039,51 +1039,6 @@ description: 'All related links. Once clicked, the link opens in a new tab.',
                     links: [ 
                         ]
                 },
- {
-                   id: 'hypmp4-3',
-                    type: 'video',
-                    name: 'Sample Video 3.mp4',
-                    url: 'https://www.youtube.com/embed/FJeMDH-w7PA',
-                    description: 'Sample video.',
-                    created: '2025',
-                    minted: '2025',
-                    medium: 'Live Recording',
-                    dimensions: '4K  ',
-                    size: '8 GB',
-                    tags: ['space', 'video', 'wix'],
-                    links: [ 
-                        ]
-                },
- {
-                   id: 'hypmp4-4',
-                    type: 'video',
-                    name: 'Sample Video 4.mp4',
-                    url: 'https://www.youtube.com/embed/FJeMDH-w7PA',
-                    description: 'Sample video.',
-                    created: '2025',
-                    minted: '2025',
-                    medium: 'Live Recording',
-                    dimensions: '4K  ',
-                    size: '8 GB',
-                    tags: ['space', 'video', 'wix'],
-                    links: [ 
-                        ]
-                },
- {
-                   id: 'hypmp4-5',
-                    type: 'video',
-                    name: 'Sample Video 5.mp4',
-                    url: 'https://www.youtube.com/embed/FJeMDH-w7PA',
-                    description: 'Sample video.',
-                    created: '2025',
-                    minted: '2025',
-                    medium: 'Live Recording',
-                    dimensions: '4K  ',
-                    size: '8 GB',
-                    tags: ['space', 'video', 'wix'],
-                    links: [ 
-                        ]
-                }
  
 ],
 "new tab": [ 
@@ -1528,7 +1483,7 @@ links: []
                     tags: ['text', 'notes'],
                     links: []
                 },
-{
+   {
                     id: 'cd-8',
                     type: 'text',
                     name: 'Sample Text.txt',
@@ -1603,21 +1558,26 @@ links: []
     tags: ['avatar', 'agent', 'design', 'vrm', 'runway'],
     links: []
   },
+// seize-centerobject-opt-v1.glb    seize-centerobject-opt.glb
 {
     id: 'sample5',
     type: 'glb',
-    name: 'Sample Model.glb',
-    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/lydiaobejct-opt-v1.glb',
-    description: 'Sample 3D model.',
+    name: 'seize_centerobject.glb',
+    url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/seize-centerobject-opt-v1.glb',
+    description: 'Remix of the SZN8 | Card 273 - First Contact by Kostas Giannopoulos ',
     created: '-',
     minted: '-',
     medium: 'VRM',
     dimensions: '-',
     size: '-',
     tags: ['avatar', 'agent', 'design', 'vrm', 'runway'],
-    links: []
-  }
- ],
+    links: [[{ url: 'https://6529.io/the-memes/273?focus=live', name: 'See the Original Artwork here from 6529.io' }]
+ 
+    
+    ]
+  },
+ 
+            ],
  
             "Avatars": [ //documents - avatars GLB WALK
                    {
@@ -2936,7 +2896,10 @@ if (thumbnailsEl) {
             if (!header) return;
             let offsetX, offsetY, isDragging = false;
             
-            header.addEventListener('mousedown', (e) => {
+            header.addEventListener('mousedown', startDrag);
+            header.addEventListener('touchstart', startDrag, { passive: false });
+            
+            function startDrag(e) {
                 // Eğer buton, iframe veya metin alanı gibi etkileşimli bir öğeye tıklandıysa iptal et
                 if (e.target.closest('button') || e.target.closest('a') || e.target.tagName === 'INPUT') return;
                 // Fullscreen modunda sürüklemeyi engelle (Ana pencere için)
@@ -2946,19 +2909,25 @@ if (thumbnailsEl) {
                 element.classList.add('dragging');
                 bringToFront(element.id || 'finder'); // Ana pencere için özel
                 
-                // Koordinatları hesapla
-                offsetX = e.clientX - element.offsetLeft;
-                offsetY = e.clientY - element.offsetTop;
+                // Koordinatları hesapla (mouse veya touch)
+                const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                offsetX = clientX - element.offsetLeft;
+                offsetY = clientY - element.offsetTop;
                 
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp, { once: true });
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('mouseup', onEnd, { once: true });
+                document.addEventListener('touchend', onEnd, { once: true });
                 e.preventDefault(); // Metin seçimini ve diğer varsayılan olayları engelle
-            });
+            }
 
-            function onMouseMove(e) {
+            function onMove(e) {
                 if (!isDragging) return;
-                let newX = e.clientX - offsetX;
-                let newY = e.clientY - offsetY;
+                const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                let newX = clientX - offsetX;
+                let newY = clientY - offsetY;
                 
                 // Pencereyi ekran sınırları içinde tut
                 newX = Math.max(0, Math.min(newX, window.innerWidth - element.offsetWidth));
@@ -2966,12 +2935,14 @@ if (thumbnailsEl) {
                 
                 element.style.left = `${newX}px`;
                 element.style.top = `${newY}px`;
+                e.preventDefault();
             }
 
-            function onMouseUp() {
+            function onEnd() {
                 isDragging = false;
                 element.classList.remove('dragging');
-                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('touchmove', onMove);
             }
         }
         
@@ -2980,72 +2951,82 @@ if (thumbnailsEl) {
             const resizeHandles = element.querySelectorAll('.resize-handle');
             
             resizeHandles.forEach(handle => {
-                handle.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    bringToFront(element.id || 'finder');
-                    element.classList.add('resizing');
-                    
-                    // Eğer fullscreen moddaysa, yeniden boyutlandırmaya izin verme
-                    if (element.classList.contains('fullscreen')) return; 
-                    
-                    const direction = handle.dataset.direction;
-                    const startX = e.clientX;
-                    const startY = e.clientY;
-                    
-                    // `element.style` yerine `element.getBoundingClientRect()` kullanıyoruz
-                    const rect = element.getBoundingClientRect();
-                    const startWidth = rect.width;
-                    const startHeight = rect.height;
-                    
-                    // Sürükleme başladığında anlık konumları al
-                    const startTop = element.offsetTop;
-                    const startLeft = element.offsetLeft;
-                    
-                    const minWidth = 300;
-                    const minHeight = 200;
-
-                    function onMouseMove(e) {
-                        let newWidth = startWidth;
-                        let newHeight = startHeight;
-                        let newTop = startTop;
-                        let newLeft = startLeft;
-                        const dx = e.clientX - startX;
-                        const dy = e.clientY - startY;
-
-                        if (direction.includes('e')) newWidth = startWidth + dx;
-                        if (direction.includes('w')) {
-                            newWidth = startWidth - dx;
-                            newLeft = startLeft + dx;
-                        }
-                        if (direction.includes('s')) newHeight = startHeight + dy;
-                        if (direction.includes('n')) {
-                            newHeight = startHeight - dy;
-                            newTop = startTop + dy;
-                        }
-                        
-                        // Sınır ve min-boyut kontrolü
-                        if (newWidth >= minWidth) {
-                            element.style.width = `${newWidth}px`;
-                            // Sol kenar için: Pencerenin sol kenarını sıfırın altına inmesini engelle
-                            element.style.left = `${Math.max(0, newLeft)}px`; 
-                        }
-                        if (newHeight >= minHeight) {
-                            element.style.height = `${newHeight}px`;
-                            // Üst kenar için: Pencerenin üst kenarını sıfırın altına inmesini engelle
-                            element.style.top = `${Math.max(0, newTop)}px`; 
-                        }
-                    }
-                    function onMouseUp() {
-                        element.classList.remove('resizing');
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.removeEventListener('mouseup', onMouseUp);
-                    }
-                    document.addEventListener('mousemove', onMouseMove);
-                    document.addEventListener('mouseup', onMouseUp);
-                });
+                handle.addEventListener('mousedown', startResize);
+                handle.addEventListener('touchstart', startResize, { passive: false });
             });
+            
+            function startResize(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                bringToFront(element.id || 'finder');
+                element.classList.add('resizing');
+                
+                // Eğer fullscreen moddaysa, yeniden boyutlandırmaya izin verme
+                if (element.classList.contains('fullscreen')) return; 
+                
+                const direction = e.target.dataset.direction;
+                const startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                const startY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+                
+                // `element.style` yerine `element.getBoundingClientRect()` kullanıyoruz
+                const rect = element.getBoundingClientRect();
+                const startWidth = rect.width;
+                const startHeight = rect.height;
+                
+                // Sürükleme başladığında anlık konumları al
+                const startTop = element.offsetTop;
+                const startLeft = element.offsetLeft;
+                
+                const minWidth = 300;
+                const minHeight = 200;
+
+                function onMove(e) {
+                    const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+                    let newWidth = startWidth;
+                    let newHeight = startHeight;
+                    let newTop = startTop;
+                    let newLeft = startLeft;
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+
+                    if (direction.includes('e')) newWidth = startWidth + dx;
+                    if (direction.includes('w')) {
+                        newWidth = startWidth - dx;
+                        newLeft = startLeft + dx;
+                    }
+                    if (direction.includes('s')) newHeight = startHeight + dy;
+                    if (direction.includes('n')) {
+                        newHeight = startHeight - dy;
+                        newTop = startTop + dy;
+                    }
+                    
+                    // Sınır ve min-boyut kontrolü
+                    if (newWidth >= minWidth) {
+                        element.style.width = `${newWidth}px`;
+                        // Sol kenar için: Pencerenin sol kenarını sıfırın altına inmesini engelle
+                        element.style.left = `${Math.max(0, newLeft)}px`; 
+                    }
+                    if (newHeight >= minHeight) {
+                        element.style.height = `${newHeight}px`;
+                        // Üst kenar için: Pencerenin üst kenarını sıfırın altına inmesini engelle
+                        element.style.top = `${Math.max(0, newTop)}px`; 
+                    }
+                    e.preventDefault();
+                }
+                function onEnd() {
+                    element.classList.remove('resizing');
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('touchmove', onMove);
+                    document.removeEventListener('mouseup', onEnd);
+                    document.removeEventListener('touchend', onEnd);
+                }
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchend', onEnd);
+            }
         }
         
         /** YENİ: PDF.js Görüntüleyiciyi Başlatan Fonksiyon */
