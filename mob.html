@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>C2W2 Finder - Mobile Optimized</title>
+    <title>C2W2 Finder - Final</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -124,6 +124,17 @@
             100% { transform: rotate(0deg); width: 40px; height: 70px; } /* Back to Portrait */
         }
 
+        /* Resize Handles for Mobile touch targets */
+        .resize-handle {
+            position: absolute;
+            z-index: 20;
+            touch-action: none;
+        }
+        /* Make corners larger for touch */
+        .resize-handle[data-direction="se"] {
+            bottom: -5px; right: -5px; width: 30px; height: 30px; cursor: se-resize;
+        }
+
         /* Mobile Logic via Media Queries */
         @media only screen and (max-width: 900px) {
             /* Portrait Mode: Show Overlay */
@@ -131,48 +142,70 @@
                 #rotation-overlay.show-on-portrait {
                     display: flex !important;
                 }
-                /* Hide main content while forcing rotation */
-                .finder-window, #desktop-icons, #minimized-icon-container {
-                    /* filter: blur(5px); Optional visual effect */
-                }
             }
 
             /* Landscape Mode: Optimize UI */
             @media (orientation: landscape) {
                 body {
-                    padding: 0 !important; /* Remove body padding */
+                    padding: 0 !important;
                 }
                 
+                /* Main Finder Window Positioning - SAFE AREA LOGIC */
                 .finder-window {
-                    top: 50% !important;
-                    left: 50% !important;
-                    transform: translate(-50%, -50%) !important;
-                    width: 96vw !important;
-                    height: 94vh !important;
+                    position: absolute !important;
+                    top: 15% !important;    /* 15% from top */
+                    left: 5% !important;    /* Centered horizontally mostly */
+                    width: 90% !important;  /* 90% width */
+                    height: 70% !important; /* 70% height (Leaving 15% bottom) */
                     max-width: none !important;
+                    max-height: none !important;
                     border-radius: 8px;
+                    transform: none !important;
+                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
                 }
 
                 /* Compact Sidebar */
                 aside.w-56 {
-                    width: 160px !important;
+                    width: 30% !important; /* Percentage width */
+                    min-width: 120px;
                 }
                 
-                /* Adjust Text Sizes */
-                .text-xs { font-size: 0.65rem; }
-                .text-sm { font-size: 0.75rem; }
+                /* Text Sizes */
+                .text-xs { font-size: 10px !important; line-height: 1.2; }
+                .text-sm { font-size: 11px !important; }
+                h2#current-folder-title { font-size: 12px !important; }
                 
                 /* Toolbar Adjustments */
-                header.h-14 { height: 2.5rem; } /* h-10 */
+                header.h-14 { height: 35px !important; min-height: 35px; } 
                 
-                /* Grid adjustments for mobile landscape */
+                /* Grid adjustments for mobile landscape - Smaller Icons */
                 #file-browser.grid {
-                    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+                    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important; /* Smaller columns */
                     gap: 0.5rem !important;
+                    padding: 0.5rem !important;
                 }
                 
-                .file-item .w-24 { width: 4rem; height: 4rem; } /* w-16 */
-                .file-item p { margin-top: 2px; }
+                /* Icon sizes inside grid */
+                .file-item .w-24 { 
+                    width: 3.5rem !important; /* ~56px */
+                    height: 3.5rem !important; 
+                    padding: 0.25rem !important;
+                } 
+                .file-item p { margin-top: 2px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 9px !important; }
+
+                /* Minimized Icon Position */
+                #minimized-icon-container {
+                    top: 50% !important;
+                    left: 50% !important;
+                }
+                
+                /* Popups Mobile Style - Smaller and centered */
+                .floating-window {
+                    width: 50vw !important;
+                    height: 60vh !important;
+                    top: 20vh !important;
+                    left: 25vw !important;
+                }
             }
         }
     </style>
@@ -201,23 +234,23 @@
                 <nav class="space-y-0.5">
                     <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-airdrop">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        DFW
+                        <span class="truncate">DFW</span>
                     </a>
                     <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-recents">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Season 1
+                        <span class="truncate">Season 1</span>
                     </a>
                     <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-applications">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.358A2.975 2.975 0 0119.022 16H4.978A2.975 2.975 0 013 13.358V11A2 2 0 015 9h14a2 2 0 012 2v2.358z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9a2 2 0 11-4 0m4 0V6a2 2 0 00-2-2h-1.172a2 2 0 00-1.414.586L9 6M5 9a2 2 0 104 0M5 9V6a2 2 0 012-2h1.172a2 2 0 011.414.586L10 6"></path></svg>
-                        Applications
+                        <span class="truncate">Applications</span>
                     </a>
                     <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-900 bg-gray-200" id="nav-cdrive">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                        C:/
+                        <span class="truncate">C:/</span>
                     </a>
                     <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-documents">
                         <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                        Documents 
+                        <span class="truncate">Documents</span>
                     </a>
                 </nav>
             </div>
@@ -409,41 +442,30 @@
 
         // --- MOBILE ROTATION LOGIC ---
         function checkOrientation() {
-            // Check if device is mobile (roughly)
             const isMobile = window.innerWidth <= 900; 
-            
-            // Only apply logic if mobile
             if (isMobile) {
                 if (window.innerHeight > window.innerWidth) {
-                    // Portrait: Add class to show overlay
                     rotationOverlay.classList.add('show-on-portrait');
                 } else {
-                    // Landscape: Remove class
                     rotationOverlay.classList.remove('show-on-portrait');
                 }
             } else {
-                // Desktop: Ensure hidden
                 rotationOverlay.classList.remove('show-on-portrait');
                 rotationOverlay.style.display = 'none';
             }
         }
 
         function initMobileLogic() {
-            // 1. Initial Splash (3 seconds)
-            // Force display initially for mobile check
             if (window.innerWidth <= 900) {
                 rotationOverlay.style.display = 'flex';
                 setTimeout(() => {
-                    // After 3s, switch to style controlled by CSS class & orientation
-                    rotationOverlay.style.display = ''; // Clear inline style to let CSS take over
-                    checkOrientation(); // Trigger immediate check
+                    rotationOverlay.style.display = ''; 
+                    checkOrientation(); 
                 }, 3000);
             }
-
-            // 2. Orientation Listener
             window.addEventListener('resize', checkOrientation);
             window.addEventListener('orientationchange', () => {
-                setTimeout(checkOrientation, 100); // Small delay for browser to update dims
+                setTimeout(checkOrientation, 100); 
             });
         }
 
@@ -457,7 +479,7 @@
             }
             if (item.type === 'video') return `<svg class="w-1/2 h-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 18h10a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
             if (item.type === 'pdf') return `<svg class="w-1/2 h-1/2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
-            // Default generic file
+            if (item.type === 'glb' || item.type === 'vrm') return `<svg class="w-1/2 h-1/2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m0 10l8 4m6 0v-4m0 0L4 11m6 4l8-4m-8 4v4m0 0L4 17m6 4l8-4"></path></svg>`;
             return `<svg class="w-1/2 h-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
         }
 
@@ -468,20 +490,25 @@
                 const itemEl = document.createElement('div');
                 itemEl.dataset.id = item.id;
                 itemEl.className = 'desktop-item w-20 md:w-24 flex flex-col items-center justify-start text-center cursor-pointer group absolute';
-                // Adjust positioning for mobile (less space)
-                const topPos = window.innerWidth <= 768 ? index * 90 + 10 : index * 120 + 20;
-                const leftPos = window.innerWidth <= 768 ? 10 : 20;
+                const isMobile = window.innerWidth <= 900;
+                
+                const topPos = isMobile ? index * 75 + 10 : index * 120 + 20; 
+                const leftPos = isMobile ? 10 : 20;
+                
                 itemEl.style.top = `${topPos}px`;
                 itemEl.style.left = `${leftPos}px`;
 
                 const iconDiv = document.createElement('div');
-                iconDiv.className = 'w-16 h-16 md:w-20 md:h-20 p-2 flex items-center justify-center';
+                iconDiv.className = isMobile ? 'w-12 h-12 p-1 flex items-center justify-center' : 'w-16 h-16 md:w-20 md:h-20 p-2 flex items-center justify-center';
+                
                 if(item.type !== 'image') iconDiv.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))';
                 iconDiv.innerHTML = getIcon(item);
 
                 const nameEl = document.createElement('p');
                 nameEl.className = 'text-xs font-medium text-white mt-1 break-all px-1 py-0.5 rounded bg-black/20';
                 nameEl.textContent = item.name;
+                
+                if (isMobile) nameEl.style.fontSize = '9px';
 
                 itemEl.append(iconDiv, nameEl);
                 addClickListeners(itemEl, item);
@@ -508,11 +535,9 @@
             const items = fileSystemDB[folderName] || [];
             currentFolderTitle.textContent = (folderName === 'Cdrive') ? 'C:/' : folderName;
             
-            // Nav State
             document.getElementById('nav-back').disabled = (navIndex <= 0);
             document.getElementById('nav-forward').disabled = (navIndex >= navHistory.length - 1);
             
-            // Sidebar Highlight
             document.querySelectorAll('aside nav a').forEach(a => a.classList.remove('bg-gray-200', 'text-gray-900'));
             const activeId = (folderName === 'Cdrive') ? 'nav-cdrive' : `nav-${folderName.toLowerCase()}`;
             const activeNav = document.getElementById(activeId);
@@ -544,7 +569,6 @@
                 itemEl.className = 'file-item flex flex-col items-center text-center cursor-pointer group';
                 
                 const iconDiv = document.createElement('div');
-                // Smaller icons on mobile
                 iconDiv.className = 'w-20 h-20 md:w-24 md:h-24 p-2 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 hover:shadow-md';
                 iconDiv.innerHTML = getIcon(item);
 
@@ -574,7 +598,6 @@
             });
         }
 
-        // --- Interaction Logic ---
         function addClickListeners(element, item) {
             let clickTimer = null;
             element.addEventListener('click', (e) => {
@@ -617,7 +640,6 @@
         }
 
         function showInfoPanel(item) {
-            // On mobile landscape, we might want to float this or limit its width
             infoPanel.classList.remove('hidden');
             infoPlaceholder.classList.add('hidden');
             infoContent.classList.remove('hidden');
@@ -644,6 +666,7 @@
             infoPanel.classList.add('hidden');
         }
 
+        // --- OPEN WINDOW FUNCTION (FIXED) ---
         function openWindow(item) {
             zIndexCounter++;
             const winId = `win-${item.id}-${Date.now()}`;
@@ -651,27 +674,54 @@
             win.id = winId;
             win.className = 'floating-window absolute bg-white rounded-lg shadow-xl flex flex-col overflow-hidden border border-gray-300 pointer-events-auto';
             
-            // Smart positioning
-            const isMobile = window.innerWidth <= 768;
-            const w = isMobile ? '90vw' : '600px';
-            const h = isMobile ? '80vh' : '400px';
-            const t = isMobile ? '10%' : (100 + Math.random()*50) + 'px';
-            const l = isMobile ? '5%' : (200 + Math.random()*50) + 'px';
+            // Smart positioning logic
+            const isMobile = window.innerWidth <= 900;
+            let w, h, t, l;
             
-            win.style.cssText = `top: ${t}; left: ${l}; width: ${w}; height: ${h}; z-index: ${zIndexCounter}; min-width: 300px;`;
+            if (isMobile) {
+                // Mobile: Small center popup (~40-50% screen)
+                w = '40vw'; // 40% width
+                h = '50vh'; // 50% height
+                t = '25vh'; // Centered vertically
+                l = '30vw'; // Centered horizontally
+            } else {
+                // Desktop: Standard logic
+                w = '600px';
+                h = '400px';
+                t = (100 + Math.random()*50) + 'px';
+                l = (200 + Math.random()*50) + 'px';
+            }
+            
+            win.style.cssText = `top: ${t}; left: ${l}; width: ${w}; height: ${h}; z-index: ${zIndexCounter}; min-width: 150px; min-height: 100px;`;
             
             let content = '';
-            let asyncLoad = null;
+            let isAsyncContent = false; // Flag to check if we need post-render logic
 
-            if (item.type === 'image') content = `<img src="${item.url}" class="w-full h-full object-contain bg-gray-100">`;
-            else if (item.type === 'video') {
+            if (item.type === 'image') {
+                content = `<img src="${item.url}" class="w-full h-full object-contain bg-gray-100">`;
+            } else if (item.type === 'video') {
                 if (item.url.includes('youtube')) content = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
                 else content = `<video controls autoplay class="w-full h-full bg-black"><source src="${item.url}" type="video/mp4"></video>`;
+            } else if (item.type === 'text') {
+                content = `<pre class="w-full h-full p-4 overflow-auto whitespace-pre-wrap font-mono text-sm">${item.content}</pre>`;
+            } else if (item.type === 'pdf') {
+                content = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
+            } else if (item.type === 'html') {
+                // FIX: Use fetch + srcdoc to avoid "refused to connect" on raw.github links
+                content = `<iframe class="w-full h-full border-0" sandbox="allow-scripts allow-same-origin"></iframe>`;
+                isAsyncContent = true;
+            } else if (item.type === 'glb' || item.type === 'vrm') {
+                // FIX: Re-added GLB/VRM viewer container
+                content = `<div id="glb-canvas-container-${winId}" class="w-full h-full relative bg-gray-900">
+                            <div class="loading-overlay">
+                                <div class="loading-text">Loading Model... <span class="loading-percentage">0%</span></div>
+                                <div class="loading-progress"><div class="progress-bar"></div></div>
+                            </div>
+                           </div>`;
+                isAsyncContent = true;
+            } else {
+                content = `<div class="p-10 text-center text-gray-500">Preview not supported</div>`;
             }
-            else if (item.type === 'text') content = `<pre class="w-full h-full p-4 overflow-auto whitespace-pre-wrap font-mono text-sm">${item.content}</pre>`;
-            else if (item.type === 'pdf') content = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
-            else if (item.type === 'html') content = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
-            else content = `<div class="p-10 text-center text-gray-500">Preview not supported</div>`;
 
             win.innerHTML = `
                 <header class="h-10 bg-gray-100 flex items-center justify-between px-3 border-b border-gray-200 cursor-grab touch-none">
@@ -683,10 +733,30 @@
                     <div class="w-8"></div>
                 </header>
                 <div class="flex-1 overflow-hidden bg-white relative">${content}</div>
-                <div class="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"></div>
+                <div class="resize-handle absolute bottom-0 right-0 w-8 h-8 cursor-se-resize bg-transparent z-50"></div>
             `;
 
             windowContainer.appendChild(win);
+            
+            // Handle Async Content (HTML fetch or 3D Model load)
+            if (isAsyncContent) {
+                if (item.type === 'html') {
+                    const iframe = win.querySelector('iframe');
+                    if (item.url) {
+                        fetch(item.url)
+                            .then(response => {
+                                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                                return response.text();
+                            })
+                            .then(html => { iframe.srcdoc = html; })
+                            .catch(err => { 
+                                iframe.srcdoc = `<div style="padding:20px; color:red;">Failed to load content: ${err.message}<br>Note: Some sites block embedding.</div>`; 
+                            });
+                    }
+                } else if (item.type === 'glb' || item.type === 'vrm') {
+                    setTimeout(() => loadGlbInWindow(item.url, `glb-canvas-container-${winId}`), 0);
+                }
+            }
             
             // Events
             win.querySelector('.close').onclick = () => win.remove();
@@ -699,6 +769,137 @@
             };
             win.onmousedown = () => { win.style.zIndex = ++zIndexCounter; };
             makeDraggable(win);
+            makeResizable(win);
+        }
+
+        // --- 3D MODEL LOADER (From previous working version) ---
+        function loadGlbInWindow(modelUrl, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const loadingPercentage = container.querySelector('.loading-percentage');
+            const progressBar = container.querySelector('.progress-bar');
+            const loadingOverlay = container.querySelector('.loading-overlay');
+
+            function updateLoadingProgress(percent) {
+                if(progressBar) progressBar.style.width = `${percent}%`;
+                if(loadingPercentage) loadingPercentage.textContent = `${Math.round(percent)}%`;
+            }
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.01, 1000);
+            camera.position.set(0, 1, 3);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.target.set(0, 0.5, 0);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(2, 2, 2);
+            scene.add(dirLight);
+
+            // GLB Loader
+            const gltfLoader = new THREE.GLTFLoader();
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            gltfLoader.setDRACOLoader(dracoLoader);
+            
+            let mixer = null;
+
+            gltfLoader.load(modelUrl, (gltf) => {
+                const model = gltf.scene;
+                // Center model
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                model.position.x = -center.x;
+                model.position.z = -center.z;
+                model.position.y = -0.5; // slight adjust
+                scene.add(model);
+                
+                if (loadingOverlay) loadingOverlay.style.display = 'none';
+
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach(clip => mixer.clipAction(clip).play());
+                }
+            }, (xhr) => {
+                if (xhr.lengthComputable) {
+                    const percent = (xhr.loaded / xhr.total) * 100;
+                    updateLoadingProgress(percent);
+                }
+            }, (err) => {
+                console.error(err);
+                if(loadingPercentage) loadingPercentage.textContent = "Error loading model";
+            });
+
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                if (mixer) mixer.update(clock.getDelta());
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Resize handling
+            const resizeObserver = new ResizeObserver(() => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                camera.aspect = newWidth / newHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(newWidth, newHeight);
+            });
+            resizeObserver.observe(container);
+        }
+
+        function makeResizable(element) {
+            const handle = element.querySelector('.resize-handle');
+            if(!handle) return;
+
+            let isResizing = false;
+            let startX, startY, startW, startH;
+
+            const startResize = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                isResizing = true;
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                startX = clientX;
+                startY = clientY;
+                startW = element.offsetWidth;
+                startH = element.offsetHeight;
+                element.style.zIndex = ++zIndexCounter;
+            };
+
+            const doResize = (e) => {
+                if (!isResizing) return;
+                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+                
+                const w = startW + (clientX - startX);
+                const h = startH + (clientY - startY);
+                element.style.width = `${Math.max(150, w)}px`;
+                element.style.height = `${Math.max(100, h)}px`;
+            };
+
+            const stopResize = () => { isResizing = false; };
+
+            handle.addEventListener('mousedown', startResize);
+            handle.addEventListener('touchstart', startResize);
+            document.addEventListener('mousemove', doResize);
+            document.addEventListener('touchmove', doResize);
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchend', stopResize);
         }
 
         function makeDraggable(el) {
@@ -706,10 +907,8 @@
             let isDragging = false;
             let startX, startY, initialLeft, initialTop;
 
-            header.onmousedown = header.ontouchstart = (e) => {
-                // Ignore touches on buttons
+            const startDrag = (e) => {
                 if(e.target.tagName === 'BUTTON') return;
-                
                 isDragging = true;
                 el.style.zIndex = ++zIndexCounter;
                 const clientX = e.clientX || e.touches[0].clientX;
@@ -733,6 +932,8 @@
 
             const stop = () => { isDragging = false; };
 
+            header.addEventListener('mousedown', startDrag);
+            header.addEventListener('touchstart', startDrag);
             document.addEventListener('mousemove', move);
             document.addEventListener('touchmove', move);
             document.addEventListener('mouseup', stop);
