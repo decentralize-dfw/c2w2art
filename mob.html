@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>C2W2 Finder - Mobile Optimized</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- Three.js & Loaders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://unpkg.com/meshoptimizer@0.18.1/meshopt_decoder.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+            background-image: url('https://raw.githubusercontent.com/decentralize-dfw/c2w2art/main/c2w2artcover.jpg');
+            background-size: cover;
+            background-position: center;
+            touch-action: none; /* Prevent browser zooming/panning on mobile */
+        }
+
+        /* --- Selection Styles --- */
+        .file-item.selected > div, .gallery-thumb-item.selected {
+            background-color: #eff6ff;
+            outline: 2px solid #3b82f6;
+        }
+        .file-item.selected > p {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 0.375rem;
+        }
+        .list-view .file-item.selected {
+            background-color: #3b82f6;
+        }
+        .list-view .file-item.selected > p,
+        .list-view .file-item.selected .get-icon-svg {
+            color: white !important;
+        }
+        .desktop-item.selected > p, #minimized-icon-container.selected > p {
+            background-color: #3b82f6;
+            color: white;
+            text-shadow: none;
+        }
+        
+        /* --- Window Styles --- */
+        .dragging {
+            user-select: none;
+            cursor: grabbing !important;
+            opacity: 0.8;
+            transition: none !important;
+        }
+        .window-control {
+            width: 12px;
+            height: 12px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .window-control.close { background-color: #fecaca; }
+        .window-control.close:hover { background-color: #ef4444; }
+        .window-control.maximize { background-color: #bbf7d0; }
+        .window-control.maximize:hover { background-color: #22c55e; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #a1a1aa; border-radius: 10px; }
+
+        /* Loading Indicator */
+        .loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: white; display: flex; align-items: center; justify-content: center;
+            flex-direction: column; z-index: 10;
+        }
+        .loading-progress {
+            width: 200px; height: 6px; background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 3px; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; background-color: #3b82f6; width: 0%; transition: width 0.3s ease;
+        }
+
+        /* --- MOBILE OPTIMIZATIONS --- */
+        
+        /* Rotation Overlay */
+        #rotation-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .phone-rotate-icon {
+            width: 60px;
+            height: 60px;
+            border: 3px solid white;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: rotate-animation 2s infinite ease-in-out;
+        }
+
+        @keyframes rotate-animation {
+            0% { transform: rotate(0deg); width: 40px; height: 70px; } /* Portrait */
+            30% { transform: rotate(90deg); width: 70px; height: 40px; } /* Landscape */
+            70% { transform: rotate(90deg); width: 70px; height: 40px; } /* Stay Landscape */
+            100% { transform: rotate(0deg); width: 40px; height: 70px; } /* Back to Portrait */
+        }
+
+        /* Mobile Logic via Media Queries */
+        @media only screen and (max-width: 900px) {
+            /* Portrait Mode: Show Overlay */
+            @media (orientation: portrait) {
+                #rotation-overlay.show-on-portrait {
+                    display: flex !important;
+                }
+                /* Hide main content while forcing rotation */
+                .finder-window, #desktop-icons, #minimized-icon-container {
+                    /* filter: blur(5px); Optional visual effect */
+                }
+            }
+
+            /* Landscape Mode: Optimize UI */
+            @media (orientation: landscape) {
+                body {
+                    padding: 0 !important; /* Remove body padding */
+                }
+                
+                .finder-window {
+                    top: 50% !important;
+                    left: 50% !important;
+                    transform: translate(-50%, -50%) !important;
+                    width: 96vw !important;
+                    height: 94vh !important;
+                    max-width: none !important;
+                    border-radius: 8px;
+                }
+
+                /* Compact Sidebar */
+                aside.w-56 {
+                    width: 160px !important;
+                }
+                
+                /* Adjust Text Sizes */
+                .text-xs { font-size: 0.65rem; }
+                .text-sm { font-size: 0.75rem; }
+                
+                /* Toolbar Adjustments */
+                header.h-14 { height: 2.5rem; } /* h-10 */
+                
+                /* Grid adjustments for mobile landscape */
+                #file-browser.grid {
+                    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+                    gap: 0.5rem !important;
+                }
+                
+                .file-item .w-24 { width: 4rem; height: 4rem; } /* w-16 */
+                .file-item p { margin-top: 2px; }
+            }
+        }
+    </style>
+</head>
+<body class="p-8 flex items-center justify-center min-h-screen">
+
+    <!-- ROTATION OVERLAY -->
+    <div id="rotation-overlay">
+        <div class="phone-rotate-icon"></div>
+        <h2 class="text-xl font-bold tracking-widest mb-2">ROTATE DEVICE</h2>
+        <p class="text-xs text-gray-400">OPTIMIZED FOR LANDSCAPE EXPERIENCE</p>
+    </div>
+
+    <!-- Desktop Icons Area -->
+    <div id="desktop-icons" class="absolute top-0 left-0 p-4 z-0 space-y-4">
+        <!-- JS renders icons here -->
+    </div>
+
+    <!-- Main Finder Window -->
+    <div class="finder-window absolute w-full max-w-6xl h-[80vh] bg-gray-50/95 backdrop-blur-md rounded-xl shadow-2xl flex overflow-hidden border border-gray-300 transition-all duration-300 ease-in-out" style="top: 10%; left: 10%;">
+
+        <!-- Left Sidebar -->
+        <aside class="w-56 bg-gray-100/80 backdrop-blur-sm p-3 space-y-4 overflow-y-auto border-r border-gray-200 flex-shrink-0 transition-all">
+            <div>
+                <h3 class="text-xs font-semibold text-gray-500 px-2 mt-2 mb-1">Favorites</h3>
+                <nav class="space-y-0.5">
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-airdrop">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        DFW
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-recents">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Season 1
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-applications">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.358A2.975 2.975 0 0119.022 16H4.978A2.975 2.975 0 013 13.358V11A2 2 0 015 9h14a2 2 0 012 2v2.358z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 9a2 2 0 11-4 0m4 0V6a2 2 0 00-2-2h-1.172a2 2 0 00-1.414.586L9 6M5 9a2 2 0 104 0M5 9V6a2 2 0 012-2h1.172a2 2 0 011.414.586L10 6"></path></svg>
+                        Applications
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-900 bg-gray-200" id="nav-cdrive">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        C:/
+                    </a>
+                    <a href="#" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200" id="nav-documents">
+                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        Documents 
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col bg-white overflow-hidden">
+            <!-- Toolbar -->
+            <header class="h-14 flex-shrink-0 flex items-center justify-between px-4 border-b border-gray-200 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5">
+                        <div class="window-control close" id="main-close"></div>
+                        <div class="window-control maximize" id="main-maximize"></div>
+                    </div>
+                    <button id="nav-back" class="p-1 rounded-md text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button id="nav-forward" class="p-1 rounded-md text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+
+                <h2 class="text-sm font-semibold text-gray-800" id="current-folder-title">C:/</h2>
+
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center bg-gray-100 rounded-md p-0.5 border border-gray-300">
+                        <button id="view-grid" class="p-1.5 rounded text-gray-700 bg-white shadow-sm"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg></button>
+                        <button id="view-list" class="p-1.5 rounded text-gray-500 hover:bg-gray-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg></button>
+                        <button id="view-gallery" class="p-1.5 rounded text-gray-500 hover:bg-gray-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 18m6-6l.01.01"></path></svg></button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex-1 flex overflow-hidden">
+                <section class="flex-1 p-6 overflow-auto" id="file-browser-container">
+                    <div id="file-browser">
+                        <!-- JS fills this -->
+                    </div>
+                </section>
+
+                <aside class="w-80 bg-gray-50 border-l border-gray-200 p-4 overflow-y-auto hidden absolute md:relative z-20 h-full right-0 shadow-lg md:shadow-none" id="info-panel">
+                    <div class="flex justify-end md:hidden mb-2">
+                        <button onclick="hideInfoPanel()" class="text-gray-500 p-1">✕</button>
+                    </div>
+                    <div class="flex flex-col items-center text-center" id="info-placeholder">
+                        <svg class="w-24 h-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        <p class="text-lg font-semibold text-gray-700 mt-2">Get Info</p>
+                        <p class="text-sm text-gray-500 mt-1">Select an item to see details.</p>
+                    </div>
+                    
+                    <div id="info-content" class="hidden">
+                        <div class="flex flex-col items-center text-center mb-4">
+                            <div class="w-32 h-32 flex items-center justify-center mb-3" id="info-preview"></div>
+                            <h3 class="font-semibold text-gray-800 break-words w-full" id="info-name"></h3>
+                            <p class="text-sm text-gray-500" id="info-meta"></p>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4">
+                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Description</h4>
+                            <p class="text-sm text-gray-600" id="info-description"></p>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4 mt-4">
+                            <h4 class="text-sm font-semibold text-gray-800 mb-2">Details</h4>
+                            <div class="space-y-1.5 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">Created</span><span class="font-medium text-gray-700" id="info-created"></span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Medium</span><span class="font-medium text-gray-700" id="info-medium"></span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Size</span><span class="font-medium text-gray-700" id="info-size"></span></div>
+                            </div>
+                        </div>
+                        <div id="info-links-section" class="hidden border-t border-gray-200 pt-4 mt-4">
+                             <h4 class="text-sm font-semibold text-gray-800 mb-2">Links</h4>
+                             <div class="flex flex-col space-y-1" id="info-links"></div>
+                        </div>
+                        <div id="info-tags-section" class="hidden border-t border-gray-200 pt-4 mt-4">
+                             <h4 class="text-sm font-semibold text-gray-800 mb-2">Tags</h4>
+                             <div class="flex flex-wrap gap-2" id="info-tags"></div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </main>
+    </div>
+
+    <!-- Minimized Icon -->
+    <div id="minimized-icon-container" class="hidden absolute cursor-pointer group" style="top: 60%; left: 20%; transform: translate(-50%, -50%);">
+        <div class="w-24 h-24 p-2 flex items-center justify-center transition-shadow duration-150 group-hover:shadow-lg">
+            <svg class="w-full h-full text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
+        </div>
+        <p class="text-xs font-medium text-white text-shadow-lg text-center mt-2 break-all px-1 py-0.5 bg-black/20 rounded">**files**</p>
+    </div>
+
+    <!-- Popup Windows Container -->
+    <div id="window-container" class="absolute top-0 left-0 w-full h-full pointer-events-none"></div>
+
+    <script>
+        // --- REDUCED DATABASE FOR MOBILE OPTIMIZATION (5 ITEMS PER CATEGORY) ---
+        const fileSystemDB = {
+            "RealDesktop": [
+                { id: 'rd-1', type: 'video', name: 'iObs.mp4', url: 'https://video.wixstatic.com/video/54a996_6da48d6916b24734aba549bb585d4675/720p/mp4/file.mp4', description: 'Space video concept.', size: '15 MB' },
+                { id: 'rd-2', type: 'image', name: 'dfw-logo.png', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/dfwlogo.png', description: 'Studio Logo', size: '4 MB' },
+                { id: 'rd-3', type: 'html', name: 'AGENTIC GAME.exe', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/game-v3.html', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/agentic.jpg', description: 'Playable Agentic Game', size: '12 KB' },
+            ],
+            "Cdrive": [
+                { id: 'cd-0', type: 'text', name: 'README.txt', content: 'WELCOME TO C2W2.\n\nOpen "Applications" to run the runway.\nUse "Documents" for assets.\n\nOptimized for Mobile Landscape.', description: 'Start here', size: '1 KB' },
+                { id: 'cd-1', type: 'pdf', name: 'C2W2.pdf', url: 'https://54a996c1-da67-48e4-abe3-b352dceb63bf.usrfiles.com/ugd/54a996_1cfe9f38166c44db95e1080948011ada.pdf', description: 'Full Booklet', size: '13 MB' },
+                { id: 'cd-3', type: 'video', name: 'MEDITATION.mp4', url: 'https://www.youtube.com/embed/nyEjJ9KvnQc', description: 'Creators Note Video', size: '22 MB' },
+                { id: 'cd-4', type: 'folder', name: 'Text Notes', folderKey: 'c_text', size: '10 KB' },
+                { id: 'cd-5', type: 'folder', name: '3D Samples', folderKey: 'Sample_3d', size: '500 MB' },
+            ],
+            "Documents": [
+                { id: 'doc-0', type: 'image', name: 'Cover.jpg', url: 'https://arweave.net/hK2CvVgwuA2FGvtYHB7-EYRB1mOcGusxOiWrNYAN9Xk', description: 'Runway Cover Art', size: '14 MB' },
+                { id: 'doc-1', type: 'folder', name: 'Avatars 3D', folderKey: 'Avatars', size: '1.2 GB' },
+                { id: 'doc-2', type: 'folder', name: 'Walk Renders', folderKey: 'renders', size: '800 MB' },
+                { id: 'doc-6', type: 'folder', name: 'Songs', folderKey: 'songs', size: '100 MB' },
+                { id: 'doc-10', type: 'glb', name: 'Space.glb', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/space-rw-grfft-v2-opt-v3.glb', description: 'Environment Model', size: '90 KB' },
+            ],
+            "AirDrop": [
+                { id: 'link-1', type: 'link', name: 'DFW Website', url: 'https://digitalforgerywork.shop/', description: 'Official Website', links: [{ url: 'https://digitalforgerywork.shop/', name: 'Visit' }] },
+                { id: 'dfw-1', type: 'text', name: 'Manifesto.txt', content: 'Digital Forgery Workshop\nForging the future of virtual existence.\nThe Internet is Still Flat.', description: 'Studio Manifesto', size: '1 KB' },
+                { id: 'dfw-3', type: 'video', name: 'NoLimits.mp4', url: 'https://video.wixstatic.com/video/54a996_e6d16d06cf7b490bbc64d936760c2dae/1080p/mp4/file.mp4', description: 'Concept Video', size: '15 MB' },
+            ],
+            "Recents": [
+                { id: 'rec-1', type: 'video', name: 'S1_Ticket.mp4', url: 'https://video.wixstatic.com/video/54a996_008a92463e2c490bae5c5176ccd0fa13/1080p/mp4/file.mp4', description: 'Season 1 Ticket', size: '10 MB' },
+                { id: 'rec-2', type: 'folder', name: 'S1 Avatars', folderKey: 'c2w.vrm', size: '500 MB' },
+                { id: 'rec-5', type: 'html', name: 'Viewer.html', url: 'https://raw.githubusercontent.com/decentralize-dfw/finder/main/c2w-viewer2.html', description: 'Vertical Viewer', size: '12 KB' },
+            ],
+            "Applications": [
+                { id: 'app-1', type: 'html', name: 'Runway.exe', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_08.png', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2/main/runway.html', description: 'Launch C2W2 Runway', size: 'App' },
+                { id: 'app-2', type: 'link', name: 'On-Chain', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_09.png', url: 'https://brzkifj7njg63eihluhkxuwxfncwuczr3kakz2wbabhyv2n232jq.arweave.net/DHKkFT9qTe2RB10Oq9LXK0VqCzHagKzqwQBPium63pM', description: 'Arweave Version' },
+                { id: 'app-6', type: 'html', name: 'AvatarViewer.exe', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/19-Midemoiselle_smooth.png', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2art/main/avatar_exe.html', description: '3D Viewer' },
+                { id: 'app-8', type: 'html', name: 'ModelSim.exe', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/0-MODELVIEWER2.png', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2/main/runwaymodelviewer.html', description: 'Sim Interface' },
+            ],
+            // Sub-folders (Trimmed to ~5 items)
+            "c_text": [
+                { id: 'cd-4', type: 'text', name: 'Concept.txt', content: 'Touch > Click > Be.', description: 'Core Concept' },
+                { id: 'cd-5', type: 'text', name: 'Overview.txt', content: '30min browser runway.', description: 'Tech Specs' },
+                { id: 'cd-7', type: 'text', name: 'Chapters.txt', content: '1. Art\n2. Fashion\n3. NFT\n4. AI\n5. Transhuman\n6. Meaning', description: 'Runway Structure' },
+            ],
+            "Sample_3d": [
+                { id: 's1', type: 'glb', name: 'BoneAir.glb', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/samspratt-1000-comms-opt-v34.glb' },
+                { id: 's2', type: 'glb', name: 'Xokufup.glb', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/xokufupsuitanim-opt-v1.glb' },
+                { id: 's3', type: 'glb', name: 'Davicni.glb', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/davicni-1000-opt-v13.glb' },
+                { id: 's4', type: 'glb', name: 'LydiaObj.glb', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/lydiaobejct-opt-v1.glb' },
+            ],
+            "Avatars": [
+                { id: 'av1', type: 'glb', name: 'Curator', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/curator-900-opt-v67.glb' },
+                { id: 'av2', type: 'glb', name: 'Lydia', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/matisse-900-opt-v80.glb' },
+                { id: 'av3', type: 'glb', name: 'Lucien', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/frued-human-900-opt-v72.glb' },
+                { id: 'av4', type: 'glb', name: 'Wrestler', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/baconscene-900-opt-v59.glb' },
+                { id: 'av5', type: 'glb', name: 'Remnant', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/mutantbacon-900-opt-v86.glb' },
+            ],
+            "renders": [
+                { id: 'r1', type: 'video', name: 'White.mp4', url: 'https://video.wixstatic.com/video/54a996_7b42f20d5ba04821b27cc793a7aab9d9/1080p/mp4/file.mp4' },
+                { id: 'r2', type: 'video', name: 'DonMac.mp4', url: 'https://video.wixstatic.com/video/54a996_cbd366c1273d430aa145c92973e579a0/1080p/mp4/file.mp4' },
+                { id: 'r3', type: 'video', name: 'Red.mp4', url: 'https://video.wixstatic.com/video/54a996_738cf359de9941dda49346800ef4df24/1080p/mp4/file.mp4' },
+                { id: 'r4', type: 'video', name: 'Mare.mp4', url: 'https://video.wixstatic.com/video/54a996_579acf6684f74e8fb55f1fc4bf7af4d0/1080p/mp4/file.mp4' },
+            ],
+            "songs": [
+                { id: 'sg1', type: 'video', name: 'REVOFEV.mp4', url: 'https://video.wixstatic.com/video/54a996_a5d98402ce57459fa2c3448998051112/1080p/mp4/file.mp4' },
+                { id: 'sg2', type: 'video', name: 'Fund Me.mp4', url: 'https://video.wixstatic.com/video/54a996_f6c39e0aa5294454af870e5ee275f942/1080p/mp4/file.mp4' },
+                { id: 'sg3', type: 'video', name: 'ClickToBe.mp4', url: 'https://video.wixstatic.com/video/54a996_2aaaafa5eaaa45db90f654f6266f3520/1080p/mp4/file.mp4' },
+            ],
+            "c2w.vrm": [
+                { id: 'vrm1', type: 'vrm', name: 'x1b4lb4', url: 'https://ipfs.filebase.io/ipfs/QmW6LuNKusV6NmMMvqhVQeRSo32YiuXJJeybubPqaWbcmt.vrm' },
+                { id: 'vrm2', type: 'vrm', name: 'Red Xermes', url: 'https://ipfs.filebase.io/ipfs/QmQh1naRtQVYcobMoeeS9fzftKraRsqXjqgMB5ccKYNBE8.vrm' },
+                { id: 'vrm3', type: 'vrm', name: 'Sinister', url: 'https://ipfs.filebase.io/ipfs/QmYi43GMi9ZD8yPYVGy45zq9QCibLNpsmaN2apwSTCKq1g.vrm' },
+                { id: 'vrm4', type: 'vrm', name: 'Albino', url: 'https://ipfs.filebase.io/ipfs/QmahNTydLma9dGhVdKRNRXvFFjPVT6ms8PFa44eg8XeP9e.vrm' },
+            ]
+        };
+
+        // --- GLOBAL STATE ---
+        let currentFolder = '';
+        let selectedItemId = null;
+        let zIndexCounter = 10;
+        let openWindows = [];
+        let currentViewMode = 'grid';
+        let navHistory = [];
+        let navIndex = -1;
+
+        // --- DOM Elements ---
+        const fileBrowser = document.getElementById('file-browser');
+        const fileBrowserContainer = document.getElementById('file-browser-container');
+        const infoPanel = document.getElementById('info-panel');
+        const infoPlaceholder = document.getElementById('info-placeholder');
+        const infoContent = document.getElementById('info-content');
+        const windowContainer = document.getElementById('window-container');
+        const currentFolderTitle = document.getElementById('current-folder-title');
+        const desktopIconsContainer = document.getElementById('desktop-icons');
+        const rotationOverlay = document.getElementById('rotation-overlay');
+
+        // --- MOBILE ROTATION LOGIC ---
+        function checkOrientation() {
+            // Check if device is mobile (roughly)
+            const isMobile = window.innerWidth <= 900; 
+            
+            // Only apply logic if mobile
+            if (isMobile) {
+                if (window.innerHeight > window.innerWidth) {
+                    // Portrait: Add class to show overlay
+                    rotationOverlay.classList.add('show-on-portrait');
+                } else {
+                    // Landscape: Remove class
+                    rotationOverlay.classList.remove('show-on-portrait');
+                }
+            } else {
+                // Desktop: Ensure hidden
+                rotationOverlay.classList.remove('show-on-portrait');
+                rotationOverlay.style.display = 'none';
+            }
+        }
+
+        function initMobileLogic() {
+            // 1. Initial Splash (3 seconds)
+            // Force display initially for mobile check
+            if (window.innerWidth <= 900) {
+                rotationOverlay.style.display = 'flex';
+                setTimeout(() => {
+                    // After 3s, switch to style controlled by CSS class & orientation
+                    rotationOverlay.style.display = ''; // Clear inline style to let CSS take over
+                    checkOrientation(); // Trigger immediate check
+                }, 3000);
+            }
+
+            // 2. Orientation Listener
+            window.addEventListener('resize', checkOrientation);
+            window.addEventListener('orientationchange', () => {
+                setTimeout(checkOrientation, 100); // Small delay for browser to update dims
+            });
+        }
+
+        // --- CORE FUNCTIONS ---
+
+        function getIcon(item) {
+            if (item.type === 'folder') return `<svg class="w-full h-full text-blue-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>`;
+            if (item.type === 'image' || (item.type === 'html' && item.iconUrl) || (item.type === 'link' && item.iconUrl)) {
+                const src = item.iconUrl || item.url;
+                return `<img src="${src}" class="w-full h-full object-cover rounded-md" onerror="this.src='https://placehold.co/100x100/e0e0e0/909090?text=Icon';">`;
+            }
+            if (item.type === 'video') return `<svg class="w-1/2 h-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 18h10a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+            if (item.type === 'pdf') return `<svg class="w-1/2 h-1/2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+            // Default generic file
+            return `<svg class="w-1/2 h-1/2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
+        }
+
+        function renderDesktopIcons() {
+            desktopIconsContainer.innerHTML = '';
+            const items = fileSystemDB['RealDesktop'] || [];
+            items.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.dataset.id = item.id;
+                itemEl.className = 'desktop-item w-20 md:w-24 flex flex-col items-center justify-start text-center cursor-pointer group absolute';
+                // Adjust positioning for mobile (less space)
+                const topPos = window.innerWidth <= 768 ? index * 90 + 10 : index * 120 + 20;
+                const leftPos = window.innerWidth <= 768 ? 10 : 20;
+                itemEl.style.top = `${topPos}px`;
+                itemEl.style.left = `${leftPos}px`;
+
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'w-16 h-16 md:w-20 md:h-20 p-2 flex items-center justify-center';
+                if(item.type !== 'image') iconDiv.style.filter = 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))';
+                iconDiv.innerHTML = getIcon(item);
+
+                const nameEl = document.createElement('p');
+                nameEl.className = 'text-xs font-medium text-white mt-1 break-all px-1 py-0.5 rounded bg-black/20';
+                nameEl.textContent = item.name;
+
+                itemEl.append(iconDiv, nameEl);
+                addClickListeners(itemEl, item);
+                makeDraggable(itemEl);
+                desktopIconsContainer.appendChild(itemEl);
+            });
+        }
+
+        function navigateTo(folderName) {
+            if (folderName === currentFolder) return;
+            if (!fileSystemDB[folderName]) {
+                folderName = 'Cdrive';
+            }
+            if (navHistory[navIndex] !== folderName) {
+                navHistory = navHistory.slice(0, navIndex + 1);
+                navHistory.push(folderName);
+                navIndex++;
+            }
+            renderFileSystem(folderName);
+        }
+
+        function renderFileSystem(folderName) {
+            currentFolder = folderName;
+            const items = fileSystemDB[folderName] || [];
+            currentFolderTitle.textContent = (folderName === 'Cdrive') ? 'C:/' : folderName;
+            
+            // Nav State
+            document.getElementById('nav-back').disabled = (navIndex <= 0);
+            document.getElementById('nav-forward').disabled = (navIndex >= navHistory.length - 1);
+            
+            // Sidebar Highlight
+            document.querySelectorAll('aside nav a').forEach(a => a.classList.remove('bg-gray-200', 'text-gray-900'));
+            const activeId = (folderName === 'Cdrive') ? 'nav-cdrive' : `nav-${folderName.toLowerCase()}`;
+            const activeNav = document.getElementById(activeId);
+            if(activeNav) activeNav.classList.add('bg-gray-200', 'text-gray-900');
+
+            fileBrowser.innerHTML = '';
+            if (items.length === 0) {
+                fileBrowser.innerHTML = `<p class="text-gray-500 col-span-full text-center mt-10">Empty.</p>`;
+                return;
+            }
+
+            if (currentViewMode === 'grid') renderGridView(items);
+            else if (currentViewMode === 'list') renderListView(items);
+            else renderGalleryView(items);
+
+            if(selectedItemId) {
+                const el = document.querySelector(`[data-id="${selectedItemId}"]`);
+                if(el) el.classList.add('selected');
+            }
+        }
+
+        function renderGridView(items) {
+            fileBrowserContainer.style.overflowX = 'hidden';
+            fileBrowser.className = 'grid grid-cols-[repeat(auto-fit,minmax(90px,1fr))] md:grid-cols-[repeat(auto-fit,minmax(112px,1fr))] gap-x-2 gap-y-4 md:gap-x-4 md:gap-y-6';
+            
+            items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.dataset.id = item.id;
+                itemEl.className = 'file-item flex flex-col items-center text-center cursor-pointer group';
+                
+                const iconDiv = document.createElement('div');
+                // Smaller icons on mobile
+                iconDiv.className = 'w-20 h-20 md:w-24 md:h-24 p-2 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 hover:shadow-md';
+                iconDiv.innerHTML = getIcon(item);
+
+                const nameEl = document.createElement('p');
+                nameEl.className = 'text-xs text-gray-700 mt-2 break-all px-1 line-clamp-2';
+                nameEl.textContent = item.name;
+
+                itemEl.append(iconDiv, nameEl);
+                addClickListeners(itemEl, item);
+                fileBrowser.appendChild(itemEl);
+            });
+        }
+
+        function renderListView(items) {
+            fileBrowser.className = 'flex flex-col min-w-max list-view space-y-1';
+            items.forEach(item => {
+                const el = document.createElement('div');
+                el.dataset.id = item.id;
+                el.className = 'file-item flex items-center gap-3 p-2 rounded-md cursor-pointer hover:bg-gray-100';
+                el.innerHTML = `
+                    <div class="w-6 h-6 flex-shrink-0">${getIcon(item).replace('w-full','w-full').replace('w-1/2','w-4')}</div>
+                    <p class="text-sm text-gray-800 truncate flex-1">${item.name}</p>
+                    <p class="text-xs text-gray-500 w-16 text-right hidden md:block">${item.size || '-'}</p>
+                `;
+                addClickListeners(el, item);
+                fileBrowser.appendChild(el);
+            });
+        }
+
+        // --- Interaction Logic ---
+        function addClickListeners(element, item) {
+            let clickTimer = null;
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                    handleDoubleClick(item);
+                } else {
+                    clickTimer = setTimeout(() => {
+                        handleSingleClick(item);
+                        clickTimer = null;
+                    }, 250);
+                }
+            });
+        }
+
+        function handleSingleClick(item) {
+            deselectAll();
+            selectedItemId = item.id;
+            const el = document.querySelector(`[data-id="${item.id}"]`);
+            if(el) el.classList.add('selected');
+            showInfoPanel(item);
+        }
+
+        function handleDoubleClick(item) {
+            if (item.type === 'folder') {
+                navigateTo(item.folderKey || item.name);
+            } else if (item.type === 'link') {
+                window.open(item.url, '_blank');
+            } else {
+                openWindow(item);
+            }
+        }
+
+        function deselectAll() {
+            selectedItemId = null;
+            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            hideInfoPanel();
+        }
+
+        function showInfoPanel(item) {
+            // On mobile landscape, we might want to float this or limit its width
+            infoPanel.classList.remove('hidden');
+            infoPlaceholder.classList.add('hidden');
+            infoContent.classList.remove('hidden');
+            
+            const prev = document.getElementById('info-preview');
+            prev.innerHTML = getIcon(item).replace('w-1/2','w-full').replace('h-1/2','h-full');
+            document.getElementById('info-name').textContent = item.name;
+            document.getElementById('info-meta').textContent = `${item.type.toUpperCase()} • ${item.size || ''}`;
+            document.getElementById('info-description').textContent = item.description || 'No description.';
+            
+            const linkContainer = document.getElementById('info-links');
+            linkContainer.innerHTML = '';
+            if(item.links) {
+                document.getElementById('info-links-section').classList.remove('hidden');
+                item.links.forEach(l => {
+                    linkContainer.innerHTML += `<a href="${l.url}" target="_blank" class="text-blue-600 hover:underline truncate">${l.name}</a>`;
+                });
+            } else {
+                document.getElementById('info-links-section').classList.add('hidden');
+            }
+        }
+
+        function hideInfoPanel() {
+            infoPanel.classList.add('hidden');
+        }
+
+        function openWindow(item) {
+            zIndexCounter++;
+            const winId = `win-${item.id}-${Date.now()}`;
+            const win = document.createElement('div');
+            win.id = winId;
+            win.className = 'floating-window absolute bg-white rounded-lg shadow-xl flex flex-col overflow-hidden border border-gray-300 pointer-events-auto';
+            
+            // Smart positioning
+            const isMobile = window.innerWidth <= 768;
+            const w = isMobile ? '90vw' : '600px';
+            const h = isMobile ? '80vh' : '400px';
+            const t = isMobile ? '10%' : (100 + Math.random()*50) + 'px';
+            const l = isMobile ? '5%' : (200 + Math.random()*50) + 'px';
+            
+            win.style.cssText = `top: ${t}; left: ${l}; width: ${w}; height: ${h}; z-index: ${zIndexCounter}; min-width: 300px;`;
+            
+            let content = '';
+            let asyncLoad = null;
+
+            if (item.type === 'image') content = `<img src="${item.url}" class="w-full h-full object-contain bg-gray-100">`;
+            else if (item.type === 'video') {
+                if (item.url.includes('youtube')) content = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
+                else content = `<video controls autoplay class="w-full h-full bg-black"><source src="${item.url}" type="video/mp4"></video>`;
+            }
+            else if (item.type === 'text') content = `<pre class="w-full h-full p-4 overflow-auto whitespace-pre-wrap font-mono text-sm">${item.content}</pre>`;
+            else if (item.type === 'pdf') content = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
+            else if (item.type === 'html') content = `<iframe src="${item.url}" class="w-full h-full border-0"></iframe>`;
+            else content = `<div class="p-10 text-center text-gray-500">Preview not supported</div>`;
+
+            win.innerHTML = `
+                <header class="h-10 bg-gray-100 flex items-center justify-between px-3 border-b border-gray-200 cursor-grab touch-none">
+                    <div class="flex gap-1.5">
+                        <button class="window-control close"></button>
+                        <button class="window-control maximize"></button>
+                    </div>
+                    <span class="text-sm font-medium truncate px-2">${item.name}</span>
+                    <div class="w-8"></div>
+                </header>
+                <div class="flex-1 overflow-hidden bg-white relative">${content}</div>
+                <div class="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"></div>
+            `;
+
+            windowContainer.appendChild(win);
+            
+            // Events
+            win.querySelector('.close').onclick = () => win.remove();
+            win.querySelector('.maximize').onclick = () => {
+                if(win.style.width === '100%') {
+                    win.style.width = w; win.style.height = h; win.style.top = t; win.style.left = l;
+                } else {
+                    win.style.width = '100%'; win.style.height = '100%'; win.style.top = '0'; win.style.left = '0';
+                }
+            };
+            win.onmousedown = () => { win.style.zIndex = ++zIndexCounter; };
+            makeDraggable(win);
+        }
+
+        function makeDraggable(el) {
+            const header = el.querySelector('header') || el;
+            let isDragging = false;
+            let startX, startY, initialLeft, initialTop;
+
+            header.onmousedown = header.ontouchstart = (e) => {
+                // Ignore touches on buttons
+                if(e.target.tagName === 'BUTTON') return;
+                
+                isDragging = true;
+                el.style.zIndex = ++zIndexCounter;
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                startX = clientX;
+                startY = clientY;
+                initialLeft = el.offsetLeft;
+                initialTop = el.offsetTop;
+                e.preventDefault();
+            };
+
+            const move = (e) => {
+                if (!isDragging) return;
+                const clientX = e.clientX || (e.touches ? e.touches[0].clientX : 0);
+                const clientY = e.clientY || (e.touches ? e.touches[0].clientY : 0);
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                el.style.left = `${initialLeft + dx}px`;
+                el.style.top = `${initialTop + dy}px`;
+            };
+
+            const stop = () => { isDragging = false; };
+
+            document.addEventListener('mousemove', move);
+            document.addEventListener('touchmove', move);
+            document.addEventListener('mouseup', stop);
+            document.addEventListener('touchend', stop);
+        }
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initMobileLogic();
+            renderDesktopIcons();
+            navigateTo('Cdrive');
+
+            // Nav Listeners
+            document.getElementById('nav-cdrive').onclick = () => navigateTo('Cdrive');
+            document.getElementById('nav-airdrop').onclick = () => navigateTo('AirDrop');
+            document.getElementById('nav-recents').onclick = () => navigateTo('Recents');
+            document.getElementById('nav-applications').onclick = () => navigateTo('Applications');
+            document.getElementById('nav-documents').onclick = () => navigateTo('Documents');
+            
+            document.getElementById('nav-back').onclick = () => { if(navIndex>0) { navIndex--; renderFileSystem(navHistory[navIndex]); }};
+            
+            // View Toggles
+            document.getElementById('view-grid').onclick = () => { currentViewMode = 'grid'; renderFileSystem(currentFolder); };
+            document.getElementById('view-list').onclick = () => { currentViewMode = 'list'; renderFileSystem(currentFolder); };
+
+            // Main Window Controls
+            const finder = document.querySelector('.finder-window');
+            const icon = document.getElementById('minimized-icon-container');
+            document.getElementById('main-close').onclick = () => {
+                finder.classList.add('hidden');
+                icon.classList.remove('hidden');
+            };
+            document.getElementById('main-maximize').onclick = () => {
+                if(finder.style.width === '100vw') {
+                    finder.style = "top: 10%; left: 10%; width: 100%; max-width: 72rem; height: 80vh;"; // Restore
+                } else {
+                    finder.style = "top: 0; left: 0; width: 100vw; height: 100vh; border-radius: 0; max-width: none;"; // Full
+                }
+            };
+            icon.ondblclick = () => {
+                finder.classList.remove('hidden');
+                icon.classList.add('hidden');
+            };
+            makeDraggable(icon);
+            makeDraggable(finder);
+        });
+    </script>
+</body>
+</html>
