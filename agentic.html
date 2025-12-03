@@ -1,9 +1,13 @@
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon 16-Bit</title>
+    <title>AGENCTIC GAME, Click is the new Biology.</title>
     <style>
         @font-face {
             font-family: 'PixelSix';
@@ -124,6 +128,7 @@
         }
        
         .trainerInfo {
+          display: none !important; /* Artık trainerInfo'yu kullanmıyoruz/göstermiyoruz */
             position: absolute;
             top: 5px;
             left: 5px;
@@ -138,14 +143,16 @@
         #battleField {
             flex: 1;
             display: flex;
-            justify-content: space-between;
-            align-items: center; /* Vertical center */
-            padding: 30px 20px; /* Alana sığdırmak için padding artırıldı */
+            justify-content: initial;
+            align-items: initial;
+            padding: 0;      
             background-size: cover;
             background-position: center;
             border-bottom: 2px solid #555;
             gap: 10px; /* Space between */
             position: relative; /* Shake için gerekli */
+
+                 
         }
        
         /* EKRAN TİTREMESİ - Tüm battleField'i salla */
@@ -168,26 +175,37 @@
         }
        
         /* PLAYER (LEFT) */
-        .pokemonSide.player {
-            align-items: flex-start; /* Align left */
-        }
-       
-        .pokemonSide.player .pokemonDisplay {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-direction: row; /* Img left, bar right */
-        }
-        /* ENEMY (RIGHT) */
-        .pokemonSide.enemy {
-            align-items: flex-end; /* Align right */
-        }
-        .pokemonSide.enemy .pokemonDisplay {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-direction: row-reverse; /* Bar left, img right */
-        }
+       .pokemonSide {
+    /* Genel ayarlamaları kaldırın */
+    display: initial;
+    flex-direction: initial;
+    gap: initial;
+    flex: initial;
+    padding: initial;
+    min-width: initial;
+}
+
+.pokemonSide.player { 
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+   }
+
+
+
+.pokemonSide.enemy {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+.pokemonSide.player .pokemonDisplay {
+    display: flex;
+    flex-direction: column; /* Sprite ve HP kutusu alt alta olsun */
+}
+.pokemonSide.enemy .pokemonDisplay {
+    display: flex;
+    flex-direction: column-reverse; /* Sprite üstte, HP kutusu altta olsun (Klasik düzen) */
+}
        
         .trainerSprite {
             width: 100px;
@@ -196,7 +214,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #2a2a2a;
+            background: transparent;
         }
        
         .trainerSprite img {
@@ -206,16 +224,16 @@
             image-rendering: pixelated;
         }
        
-        .pokemonSprite {
-            width: 100px;
-            height: 100px;
-            border: 2px solid #555;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #2a2a2a;
-            transition: all 0.3s;
-        }
+        .pokemonSprite { 
+          width: 160px;
+          height: 160px;
+          border: 0px solid #555; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          background: transparent;
+          /* Sadece görünür kalsın */ 
+          transition: all 0.3s; }
        
         .pokemonSprite img {
             width: 100%;
@@ -225,22 +243,37 @@
         }
        
         .pokemonStats {
-            background: #555;
-            color: #ccc;
-            padding: 6px 10px;
-            border: 1px solid #777;
-            font-size: 11px;
-            text-align: center;
-            min-width: 100px;
-        }
+    background: #555;
+    color: #ccc;
+    padding: 6px 10px;
+    border: 1px solid #777;
+    font-size: 11px;
+    text-align: center;
+    min-width: 120px; /* Boyutunu büyüt */
+    
+    /* YENİ MUTLAK KONUMLANDIRMA */
+    position: absolute; 
+    z-index: 50;
+    
+    /* Diğer stilleri buraya ekleyeceğiz (aşağıya bakınız) */
+}
+
+
+
+/* OYUNCU BİLGİ KUTUSU (Sağ Alt) */
+.pokemonSide.player .pokemonStats {
+    bottom: 5px;
+    right: 5px;
+}
+
        
         .hpBar {
-            width: 100px;
-            height: 8px;
-            background: #000;
-            border: 1px solid #888;
-            margin: 3px 0;
-        }
+    width: 120px;
+    height: 10px; /* Biraz kalınlaştırma */
+    background: #000;
+    border: 1px solid #888;
+    margin: 3px 0;
+}
        
         .hpFill {
             height: 100%;
@@ -325,11 +358,12 @@
             display: flex;
         }
         .switchGrid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 5px;
-            flex: 1;
-        }
+    display: grid;
+    /* BU SATIRI DEĞİŞTİRİN */
+    grid-template-columns: 1fr 1fr 1fr 1fr; 
+    gap: 5px;
+    flex: 1;
+}
         .switchBtn {
             background: #444;
             color: #ccc;
@@ -574,7 +608,7 @@
        
         <div id="worldContainer">
             <canvas id="mapCanvas" width="500" height="470"></canvas>
-            <div id="mapFooter">Developed by Click2Play_Ventures, Kyoto</div>
+            <div id="mapFooter">WASD directions, ENTER to select. Vibecoded Proudly. 2025</div>
            
             <!-- HARİTA ÜSTÜ DİYALOG KUTUSU -->
             <div id="mapDialogueOverlay">
@@ -588,50 +622,38 @@
         </div>
        
         <div id="battleContainer">
-            <div class="trainerInfo">
-                <div id="trainerName">Trainer</div>
-                <div style="margin-top:3px; color:#999;">Pokémon <span id="pokemonIndex">1</span>/3</div>
-            </div>
-           
-            <div id="battleField">
-               
-                <!-- Player (Left Side) -->
-                <div class="pokemonSide player">
-                    <div style="font-size: 10px; color: #ccc; margin-bottom: 5px;">YOUR POKEMON</div>
-                    <div class="pokemonDisplay">
-                        <div>
-                            <div class="pokemonSprite" id="playerSprite"></div>
-                        </div>
-                        <div>
-                            <div class="pokemonStats">
-                                <div id="playerName" style="font-weight: bold; margin-bottom: 3px;">Pokémon</div>
-                                <div class="hpBar">
-                                    <div class="hpFill" id="playerHpBar" style="width: 100%;"></div>
-                                </div>
-                                <div style="font-size: 10px;"><span id="playerHp">100</span>/<span id="playerMaxHp">100</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Enemy (Right Side) -->
-                <div class="pokemonSide enemy">
-                    <div style="font-size: 10px; color: #ccc; margin-bottom: 5px;">ENEMY</div>
-                    <div class="pokemonDisplay">
-                        <div>
-                            <div class="pokemonSprite" id="enemySprite"></div>
-                        </div>
-                        <div>
-                            <div class="pokemonStats">
-                                <div id="enemyName" style="font-weight: bold; margin-bottom: 3px;">Enemy</div>
-                                <div class="hpBar">
-                                    <div class="hpFill" id="enemyHpBar" style="width: 100%;"></div>
-                                </div>
-                                <div style="font-size: 10px;"><span id="enemyHp">100</span>/<span id="enemyMaxHp">100</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
+           <div id="battleField">
+    <div class="pokemonStats" id="enemyStatsBox" style="position: absolute; top: 5px; left: 105px; text-align: left; min-width: 150px;">
+        <div id="enemyName" style="font-weight: bold; margin-bottom: 3px; color: #fff;">Enemy</div>
+        <div class="hpBar" style="width: 150px; height: 12px; margin-left: 20px;">
+            <div class="hpFill" id="enemyHpBar" style="width: 100%;"></div>
+        </div>
+        <div style="font-size: 10px; position: absolute; top: 25px; left: 5px; color: #fff; background: #555; padding: 1px 3px;">
+            <span id="enemyHp">100</span>/<span id="enemyMaxHp">100</span>
+        </div>
+    </div>
+    
+    <div class="pokemonStats" id="playerStatsBox" style="position: absolute; bottom: 5px; right: 105px; text-align: right; min-width: 150px;">
+        <div id="playerName" style="font-weight: bold; margin-bottom: 3px; color: #fff;">Pokémon</div>
+        <div class="hpBar" style="width: 150px; height: 12px; margin-right: 20px;">
+            <div class="hpFill" id="playerHpBar" style="width: 100%;"></div>
+        </div>
+        <div style="font-size: 10px; position: absolute; top: 25px; right: 5px; color: #fff; background: #555; padding: 1px 3px;">
+            <span id="playerHp">100</span>/<span id="playerMaxHp">100</span>
+        </div>
+    </div>
+
+    <div class="pokemonSide enemy">
+        <div class="pokemonSprite" id="enemySprite"></div>
+    </div>
+    
+    <div class="pokemonSide player">
+        <div class="pokemonSprite" id="playerSprite"></div>
+    </div>
+
+</div>
+            
            
             <div id="battleUI">
                 <!-- Main Battle Menu -->
@@ -698,12 +720,14 @@
     const audio = {
         boot: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/intro-jinglee.mp3'),
         world: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/gamein.mp3'),
-        battle: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battle3.mp3'),
+        // battle: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battle3.mp3'),
         victory: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/victory.mp3'), 
-        victoryfinal: new Audio('MÜZIK_5_VICTORY_FINAL'), 
+        victoryfinal: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/VICTORY-sound.mp3'), 
         battleIntro: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/BATTLE-INTRO31.mp3'),
         dialogueSound: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/ui_2.mp3'), 
-        selectSound: new Audio(null) // OK HAREKETİ SESİ
+        selectSound: new Audio(null), // OK HAREKETİ SESİ
+        gameOver: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/GAMEOVER.mp3'),
+        faint: new Audio('https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battle-start.mp3')
     };
     
 // battle2.mp3
@@ -715,24 +739,29 @@
 
 
 
+
     audio.boot.loop = false;
     audio.world.loop = true;
-    audio.battle.loop = true;
+   // audio.battle.loop = true;
     audio.victory.loop = false;
     audio.victoryfinal.loop = false;
     audio.battleIntro.loop = false; 
     audio.dialogueSound.loop = false; 
     audio.selectSound.loop = false; 
     
+//  agenticworld3.jpg
+//  battlearena2BW.jpg
+//  battlearena4.jpg
+
     const acilisResmiURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/agentic-intro.gif';
     const arkaPlanResmiURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/agentic.jpg';
     const haritaArkaPlanURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/GAMEBACKGROUND5-C2.jpg';
-    const savasArkaPlanURL = 'SAVAŞ_ARKAPLAN_PNG.jpg'; 
+    const savasArkaPlanURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/agenticworld3.jpg'; 
     const savasGirisURL = 'https://media.giphy.com/media/l41lO5G7lEoyHw9oA/giphy.gif'; // DÜZELTME: GIF PLACEHOLDER
     
-    const normalKupaURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/agentic.jpg'; // DÜZELTME: Normal Cup GIF
-    const finalKupaURL = 'https://media.giphy.com/media/3oKIPEhHNGyW9Gz7Mc/giphy.gif'; // DÜZELTME: Final Cup GIF
-    const kazandinURL = 'KAZANDIN_PNG';
+    const normalKupaURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/youwon.gif'; // DÜZELTME: Normal Cup GIF
+    const finalKupaURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/VICTORY.gif'; // DÜZELTME: Final Cup GIF
+    const kazandinURL = 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/VICTORY.gif';
     const kaybettinURL = 'KAYBETTİN_PNG';
 
     const playerCharacterSprites = {
@@ -744,100 +773,170 @@
 
 
     const trainerSprites = [
-        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival1.png',
-        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival2.png',
-        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival3.png',
-        'TRAINER_4_ERIKA_PNG',
-        'TRAINER_5_BLUE_PNG'
+        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival_1.png',
+        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival_2.png',
+        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival_3.png',
+        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival_4.png',
+        'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/rival_5.png'
     ];
     document.getElementById('gameWrapper').style.backgroundImage = `url(${arkaPlanResmiURL})`;
-    document.getElementById('battleField').style.backgroundImage = `url(${savasArkaPlanURL})`;
+    // document.getElementById('battleField').style.backgroundImage = `url(${savasArkaPlanURL})`;
     // POKÉMON TRAINERS
+
+
+    
+
+
+
+
+
     const trainersData = [
-        { // 1. Brock (Easy)
-            name: 'Brock',
+       
+
+      
+
+    
+       { // 1. Brock (Easy)
+            name: 'Seize',
             sprite: trainerSprites[0],
+            battleMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battle0.mp3', // YENİ MÜZİK LİNKİ 5
+            battleBackground: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battleback-sect1jpg.jpg',
+            newWorldMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/8bit.mp3', // Misty yenilince çalacak müzik
             preBattleDialogue: [
-                {speaker: 'Brock', text: "Hey! You're going nowhere until you beat me!"},
-                {speaker: 'Player', text: "Bring it on, Brock! I'm ready to prove myself!"}
+                {speaker: 'Seize', text: "Hey! Why dont you go vibe code another useless startup?"},
+                {speaker: 'Player', text: "Hey Sir! Big fan. Didn't imagine you like this."},
+                {speaker: 'Seize', text: "Seize the MEMES!"}
             ],
             postBattleDialogue: [
-                {speaker: 'Brock', text: "Amazing! Your Pokémon fought with great spirit."},
-                {speaker: 'Brock', text: "I look forward to our next battle."}
+                {speaker: 'Seize', text: "I guess you memorized my threads well."},
+                {speaker: 'Player', text: "Can I get a follow back?"},
+                {speaker: 'Seize', text: "Lol"},
+                {speaker: 'Player', text: "Can I?"},
+                {speaker: 'Seize', text: "Ofcourse not."}
             ],
             pokemon: [
-                { name: 'Onix', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/95.png', maxHp: 85, hp: 85, moves: [{name: 'Stone Edge', power: 15}, {name: 'Earthquake', power: 20}, {name: 'Defense', power: 10}, {name: 'Curse', power: 5}] },
-                { name: 'Graveler', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/75.png', maxHp: 80, hp: 80, moves: [{name: 'Rock Slide', power: 15}, {name: 'Earthquake', power: 20}, {name: 'Bulldoze', power: 10}, {name: 'Roll Out', power: 12}] },
-                { name: 'Golem', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/76.png', maxHp: 90, hp: 90, moves: [{name: 'Stone Edge', power: 18}, {name: 'Earthquake', power: 22}, {name: 'Explosion', power: 25}, {name: 'Hammer Arm', power: 18}] }
+                { name: 'Weekend @ Saturn', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T1-1.png', maxHp: 95, hp: 95, moves: [{name: 'His fresh transhumanist agent swag', power: 25}, {name: 'S/O og punks', power: 30}, {name: 'Update Elise repo', power: 50}, {name: 'Smoke a pack of silver terea', power: 5}] },
+                { name: 'Cant See Beep Bop Crap', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T1-2.png', maxHp: 120, hp: 120, moves: [{name: 'Posting naked famous everyday', power: 45}, {name: 'Shill nakamigos', power: 10}, {name: 'Buy 5000s for a bag', power: 20}, {name: 'Kick start a bull for a first time', power: 100}] },
+                { name: 'Ferryman', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T1-3.png', maxHp: 150, hp: 150, moves: [{name: 'Glitch tf out of enemy', power: 28}, {name: 'Post unknown grail at Tumblr', power: 52}, {name: 'Make the enemy cc0', power: 15}, {name: 'bully some mid whale on dm', power: 58}] },
+                { name: 'Bone on Air', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T1-4_1.png', maxHp: 170, hp: 170, moves: [{name: 'create a cult of 100 eth club', power: 58}, {name: 'mix primitive with digital', power: 22}, {name: 'make a spaceship out of bone', power: 25}, {name: 'hal900', power: 31}] }
+
+
+                
             ]
         },
+
         { // 2. Misty
-            name: 'Misty',
+            name: 'Lydia',
             sprite: trainerSprites[1],
+            battleMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battle4.mp3', // YENİ MÜZİK LİNKİ 5
+            battleBackground: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battleback-sect2.jpg',
+            newWorldMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/backg-part3.mp3',
+            
+
             preBattleDialogue: [
-                {speaker: 'Misty', text: "Water Pokémon are the best! Let's see you try to beat me!"}
+                {speaker: 'Lydia', text: "Art derivative Agents are the best! Let's see you try to beat me!"},
+                 {speaker: 'Player', text: "You mean AI gen copypasta shit?"},
+                 {speaker: 'Lydia', text: "Naa. You have no idea what you are trashtalk about. Sportsmenship, but I'll reshape your Play-doh ass."},
+                  {speaker: 'Player', text: "Try me!"}
             ],
             postBattleDialogue: [
-                {speaker: 'Misty', text: "Wow, you're strong! I underestimated you."}
+                {speaker: 'Lydia', text: "Wow, maybe the market is not ready for artistic agents. I'll be waiting here."},
+                {speaker: 'Player', text: "I'll be back Play-doh! Say hi to Henri..."},
+                {speaker: 'Lydia', text: "He does not know that I'm here, fighting agents."},
+                 {speaker: 'Player', text: "Enough. get lost bruh..."},
             ],
             pokemon: [
-                { name: 'Staryu', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/120.png', maxHp: 80, hp: 80, moves: [{name: 'Hydro Pump', power: 22}, {name: 'Power Gem', power: 18}, {name: 'Rapid Spin', power: 10}, {name: 'Recover', power: 15}] },
-                { name: 'Goldeen', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/118.png', maxHp: 85, hp: 85, moves: [{name: 'Waterfall', power: 20}, {name: 'Megahorn', power: 22}, {name: 'Horn Drill', power: 25}, {name: 'Peck', power: 8}] },
-                { name: 'Lapras', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/131.png', maxHp: 110, hp: 110, moves: [{name: 'Hydro Pump', power: 25}, {name: 'Ice Beam', power: 20}, {name: 'Dragon Pulse', power: 22}, {name: 'Thunderbolt', power: 18}] }
+                { name: 'Devoured Remnant', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T2-1.png', maxHp: 180, hp: 180, moves: [{name: 'Paris Exhibition', power: 22}, {name: 'Flesh and Blood', power: 18}, {name: 'Hate & Love & Hate', power: 10}, {name: 'Crucufixion', power: 15}] },
+                { name: 'Squallor', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T2-2.png', maxHp: 125, hp: 125, moves: [{name: 'Milano colonne birra becks', power: 20}, {name: 'Blow stripclub glow powder', power: 22}, {name: 'Dom p at nigthlub', power: 25}, {name: 'Become 3D from a painting', power: 8}] },
+                { name: 'Wrestler of Silence', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T2-3.png', maxHp: 250, hp: 250, moves: [{name: 'Motion with Brush', power: 25}, {name: 'Miraculous Accident', power: 20}, {name: 'Post human wrestling', power: 22}, {name: 'Underground Bar Punch', power: 18}] }
             ]
         },
-        { // 3. Lt. Surge
-            name: 'Lt. Surge',
+        
+
+ { // 3. Lt. Surge
+            name: 'Fashion Mofo with no sense but a good Copycat skills',
             sprite: trainerSprites[2],
+            battleMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battle2.mp3', // YENİ MÜZİK LİNKİ 5
+            battleBackground: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battleback-sect4.jpg',
+            newWorldMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/whyweexist-score4.mp3',
             preBattleDialogue: [
-                {speaker: 'Lt. Surge', text: "Get ready to be shocked by the Lightning Lieutenant!"}
+                {speaker: 'Fashion Mofo with no sense but a good Copycat skills', text: "Oh you smell with those ugly trousers and cheap haircut. But, in good side, I hated your cologne. It made me feel something. And, you look lovely! Give me a hug..."}
             ],
             postBattleDialogue: [
                 {speaker: 'Lt. Surge', text: "You earned this victory. You're fully charged!"}
             ],
             pokemon: [
-                { name: 'Voltorb', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/100.png', maxHp: 75, hp: 75, moves: [{name: 'Thunderbolt', power: 25}, {name: 'Thunder', power: 30}, {name: 'Explosion', power: 35}, {name: 'Charge Beam', power: 15}] },
-                { name: 'Electrode', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/101.png', maxHp: 85, hp: 85, moves: [{name: 'Thunder', power: 30}, {name: 'Wild Charge', power: 22}, {name: 'Signal Beam', power: 18}, {name: 'Discharge', power: 25}] },
-                { name: 'Raichu', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png', maxHp: 95, hp: 95, moves: [{name: 'Thunderbolt', power: 28}, {name: 'Thunder', power: 32}, {name: 'Quick Attack', power: 15}, {name: 'Wild Charge', power: 25}] }
+                { name: 'Stow', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T3-1.png', maxHp: 145, hp: 145, moves: [{name: 'starts podcast', power: 60}, {name: 'render-free looks with wack low poly aesthetics', power: 30}, {name: 'roblox integration', power: 35}, {name: 'full black outfit', power: 15}] },
+                { name: 'Joker', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T3-2.png', maxHp: 155, hp: 155, moves: [{name: 'AR Filter Mirrors are the future argument', power: 100}, {name: 'founder and creative director of my own brand update on linkedin', power: 22}, {name: 'Statement price explanation', power: 18}, {name: 'rick owens furniture', power: 25}] },
+                { name: 'Zhoukouh', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T3-3.png', maxHp: 285, hp: 285, moves: [{name: 'explain why it is so hard to find a flat in Berlin', power: 2}, {name: 'Silent luxury + old money + sprezzatura + interoperability COMBOO', power: 150}, {name: 'Vintage Versace flip flops', power: 1}, {name: 'Shows her Instagram mutual friends', power: 2}] }
             ]
         },
-        { // 4. Erika
-            name: 'Erika',
+
+       { // 4. Erika
+            name: 'Steroive iObs',
             sprite: trainerSprites[3],
+            battleMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battle3.mp3', // YENİ MÜZİK LİNKİ 5
+            battleBackground: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/battleback-sect4_2.jpg',
+            newWorldMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/backg-finalpart.mp3',
             preBattleDialogue: [
-                {speaker: 'Erika', text: "The art of flower arranging and Pokémon battling have one thing in common: discipline. Show me yours."}
+                {speaker: 'Steroive iObs', text: "Do you like memecoins? You can win a lot in a night."}
             ],
             postBattleDialogue: [
-                {speaker: 'Erika', text: "Such powerful spirit. It was a beautiful, yet thorny, battle."}
+                {speaker: 'Steroive iObs', text: "What is the next giga thing? Mask off."}
             ],
             pokemon: [
-                { name: 'Oddish', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/69.png', maxHp: 80, hp: 80, moves: [{name: 'Solar Beam', power: 26}, {name: 'Sludge Bomb', power: 24}, {name: 'Sleep Powder', power: 12}, {name: 'Acid', power: 12}] },
-                { name: 'Gloom', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/70.png', maxHp: 90, hp: 90, moves: [{name: 'Solar Beam', power: 28}, {name: 'Sludge Bomb', power: 26}, {name: 'Toxic Spikes', power: 18}, {name: 'Stun Spore', power: 16}] },
-                { name: 'Vileplume', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/45.png', maxHp: 100, hp: 100, moves: [{name: 'Solar Beam', power: 30}, {name: 'Sludge Bomb', power: 28}, {name: 'Sleep Powder', power: 12}, {name: 'Toxic', power: 24}] }
+                { name: 'Belli Capelli', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/t4_1.png', maxHp: 180, hp: 180, moves: [{name: 'Hack instagram', power: 26}, {name: 'social engineering', power: 38}, {name: 'bingewatch MR.robot', power: 12}, {name: 'Open a Romanese restaurant in Colonne', power: 62}] },
+                { name: 'RR-Tiger', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T4-2.png', maxHp: 230, hp: 230, moves: [{name: 'Religious robotix', power: 68}, {name: 'Use of Chrome', power: 26}, {name: 'No gravity', power: 18}, {name: 'Use of contour', power: 16}] },
+                { name: 'Asiah', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T4-3.png', maxHp: 270, hp: 270, moves: [{name: 'Launch V2 and distrube tokens to the land owners', power: 60}, {name: 'Make internet free', power: 48}, {name: 'Build Hyperfy', power: 50}, {name: 'Opensource the enemy', power: 14}] }
             ]
         },
+
         { // 5. Champion Blue (Hard)
-            name: 'Champion Blue',
+            name: 'decentralize*',
             sprite: trainerSprites[4],
+            battleMusic: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/finalbattle.mp3', // YENİ MÜZİK LİNKİ 5
+            battleBackground: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/finale2.jpg',
             preBattleDialogue: [
-                {speaker: 'Blue', text: "I'm the Champion! You're going down, Rookie!"}
+                {speaker: 'decentralize*', text: "I created this game, so, I know how it works. Going to eat you like a kebab. Ayran too."},
+                {speaker: 'decentralize*', text: "9 negronis, 3 pints of guinny, 2 packs of marl, some good tunes. Small talk. Then, your my meal. Just for fun."}
             ],
             postBattleDialogue: [
-                {speaker: 'Blue', text: "NO! I can't believe it! You actually beat me! Amazing!"}
+                {speaker: 'decentralize*', text: "Happy that you beat me. But I am still the champ."},
+                {speaker: 'decentralize*', text: "Too old for this shit. See you at breakfast."},
+                {speaker: 'decentralize*', text: "www.digitalforgerywork.shop"},
+                {speaker: 'decentralize*', text: "Thank you for playing this game. Hope you enjoyed."},
+                 {speaker: 'decentralize*', text: "Share this experience with friends."},
+                  {speaker: 'decentralize*', text: "It is the moment, your agents are so good!"},
+                  {speaker: 'decentralize*', text: "Time for a champain"},
+                  {speaker: 'decentralize*', text: "Unless I give you those agents. aka pokemons."},
+                   {speaker: 'decentralize*', text: "I loved the possibility that some outsider can beat me in my own game. Thats poetic. Thats passion. C2W2 BABYYYY"}
             ],
             pokemon: [
-                { name: 'Alakazam', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png', maxHp: 100, hp: 100, moves: [{name: 'Psychic', power: 35}, {name: 'Focus Blast', power: 32}, {name: 'Dazzling Gleam', power: 28}, {name: 'Shadow Ball', power: 25}] },
-                { name: 'Gengar', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png', maxHp: 95, hp: 95, moves: [{name: 'Shadow Ball', power: 30}, {name: 'Focus Blast', power: 32}, {name: 'Sludge Bomb', power: 30}, {name: 'Psychic', power: 32}] },
-                { name: 'Arcanine', imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/59.png', maxHp: 110, hp: 110, moves: [{name: 'Flare Blitz', power: 38}, {name: 'Wild Charge', power: 28}, {name: 'Crunch', power: 28}, {name: 'Close Combat', power: 32}] }
+                 
+                { name: 'NE_0hm', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T5-1.png', maxHp: 185, hp: 185, moves: [{name: 'explain the enemy that he is another NPC in a simulation that aliens use them as generator', power: 55}, {name: 'explain Trinity why Monica Belluci is better option', power: 32}, {name: 'Choose red pill and go to casino', power: 20}, {name: 'show leaked OF content of Agent Smith', power: 35}] },
+                { name: 'Ya Bish Opps Mono', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T5-2.png', maxHp: 270, hp: 270, moves: [{name: 'Transhumanist Prayer', power: 45}, {name: 'Unite All AI against enemy', power: 62}, {name: 'Become opening avatar of C2W2 Runway section 5', power: 24}, {name: 'ask for a charity', power: 12}] },
+                { name: 'XEU2', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/T5-3.png', maxHp: 330, hp: 330, moves: [{name: '01101011 01101001 01101100 01101100', power: 100}, {name: '01101110 01101111', power: 28}, {name: '01101001 01100100 01101011', power: 28}, {name: '01100110 01110101 01100011 01101011', power: 42}] },
+                { name: 'C2W2 Gold', imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_14.png', maxHp: 405, hp: 405, moves: [{name: 'all avatars are vrm ready', power: 12}, {name: ' 1st time that metaverse experience can be watched straight from OpenSea', power: 8}, {name: '1st time that ultra-realistic, dynamic textile physics from Clo3D in browser metaverse', power: 10},{name: 'all avatars are vrm ready', power: 12}, {name: 'made this game just for fun', power: 15},{name: ' 1st time that metaverse experience can be watched straight from OpenSea', power: 8}, {name: 'enough. go watch the fucking runway.', power: 1000}] },
+               
             ]
-        }
+        },
     ];
-   
+
+   // face-1.png
+   // face-2.png
+   // face-3.png
+   // face-4.png
+   // mine-1.png
+   // mine-2.png
+   // mine-3.png
+   // mine-4.png
+   // mine-5.png
     // Player Pokémon
     const playerTeam = [
-        { name: 'Charizard', maxHp: 120, hp: 120, moves: [{name: 'Flamethrower', power: 40}, {name: 'Dragon Claw', power: 35}, {name: 'Fly', power: 30}, {name: 'Overheat', power: 45}], imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png' },
-        { name: 'Blastoise', maxHp: 120, hp: 120, moves: [{name: 'Hydro Pump', power: 42}, {name: 'Ice Beam', power: 32}, {name: 'Surf', power: 38}, {name: 'Blizzard', power: 40}], imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png' },
-        { name: 'Venusaur', maxHp: 115, hp: 115, moves: [{name: 'Solar Beam', power: 40}, {name: 'Sludge Bomb', power: 35}, {name: 'Leech Seed', power: 20}, {name: 'Synthesis', power: 25}], imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png' }
+        { name: 'Curator', maxHp: 120, hp: 120, moves: [{name: 'Ask about recent sales', power: 50}, {name: 'curatorial text tsunami', power: 15}, {name: 'opening prosecco  tipsyness', power: 20}, {name: 'usage the word : Speculative', power: 65}], imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/zoom-1.png' },
+        { name: 'Memelegance', maxHp: 100, hp: 100, moves: [{name: 'copypasta', power: 42}, {name: 'thats what she said', power: 12}, {name: 'big if true', power: 28}, {name: 'up only', power: 60}], imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/zoom-2.png' },
+        { name: 'Founder Ape', maxHp: 130, hp: 130, moves: [ {name: 'Pump Fartcoin', power: 25}, {name: 'QT G4rg4', power: 20},{name: 'Build M$ NFT brand', power: 80}, {name: 'Buy Punks IP', power: 55}], imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/zoom-3.png' },
+        { name: 'Chromozom', maxHp: 145, hp: 145, moves: [{name: 'Ignore DMs', power: 40}, {name: 'ArtTank Farm', power: 5}, {name: 'Buy Grail', power: 60}, {name: 'Throw GM', power: 25}], imageUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/zoom-4.png' }
     ];
    
     // MAP PATH (Aynı Kaldı)
@@ -1097,7 +1196,11 @@
    
     // Klavye ile menü seçimi
     function handleBattleMenuInput(e) {
-        if (!gameState.isPlayerTurn || gameState.scene !== 'battle') return;
+        const isForcedSwitchActive = gameState.battleMenuState === 'switch' && document.getElementById('cancelSwitchBtn').disabled;
+
+        if (!gameState.isPlayerTurn && !isForcedSwitchActive) return;
+        
+        if (gameState.scene !== 'battle' && gameState.scene !== 'battleDialogue') return;
         let buttons = [];
         let numCols = 2;
        
@@ -1106,7 +1209,7 @@
         } else if (gameState.battleMenuState === 'move') {
             buttons = Array.from(document.querySelectorAll('#moveGrid .battleBtn')); // Sadece saldırı butonları
         } else if (gameState.battleMenuState === 'switch') {
-            numCols = 3;
+            numCols = 4;
             buttons = Array.from(document.querySelectorAll('#switchGrid .switchBtn:not(:disabled)'));
             if (document.getElementById('cancelSwitchBtn')) {
                 buttons.push(document.getElementById('cancelSwitchBtn'));
@@ -1216,7 +1319,7 @@
         setTimeout(() => {
             bootScreen.classList.remove('active');
             showWorldMap();
-        }, 13000);
+        }, 13000);  // İNTRO intro 13000
     }
    
     function showWorldMap() {
@@ -1248,55 +1351,69 @@
    
     // BATTLE START FLASH & MUSIC
     function startBattle(trainerIdx) {
-        if (gameState.scene === 'battle' || gameState.scene === 'transition') return;
-        gameState.scene = 'transition';
-       
-        audio.world.pause();
-        audio.world.currentTime = 0;
-       
-        const flashOverlay = document.getElementById('flashOverlay');
-        flashOverlay.classList.add('flash-active');
-       
+    if (gameState.scene === 'battle' || gameState.scene === 'transition') return;
+    gameState.scene = 'transition';
+    
+    // 1. DÜŞMAN ARKA PLANINI AYARLA
+    const selectedTrainer = trainersData[trainerIdx];
+    document.getElementById('battleField').style.backgroundImage = `url(${selectedTrainer.battleBackground})`;
+    document.getElementById('battleField').style.backgroundSize = 'cover'; // Kaplama ayarını koru
+    document.getElementById('battleField').style.backgroundPosition = 'center'; // Ortalamayı koru
+    
+    audio.world.pause();
+    audio.world.currentTime = 0;
+    
+    const flashOverlay = document.getElementById('flashOverlay');
+    flashOverlay.classList.add('flash-active');
+    
+    try {
+        audio.battleIntro.play().catch(e => console.log("Could not play battle intro music."));
+    } catch(e) {}
+    
+    // MÜZİK DÜZELTMESİ İÇİN YENİ BİR OBJE OLUŞTURULDU
+    const currentBattleMusic = new Audio(trainersData[trainerIdx].battleMusic);
+    currentBattleMusic.loop = true; // Savaş müziği sürekli çalmalı
+    
+    setTimeout(() => {
+        flashOverlay.classList.remove('flash-active');
+        
         try {
-             audio.battleIntro.play().catch(e => console.log("Could not play battle intro music."));
+            // YENİ MÜZİK ÇAĞRISI
+            currentBattleMusic.play().catch(e => console.log("Waiting for interaction to play custom battle music."));
+            // Mevcut savaş objesine müziği ekle (trainerDefeated'da durdurmak için)
+            gameState.currentBattleMusic = currentBattleMusic; 
         } catch(e) {}
-        setTimeout(() => {
-            flashOverlay.classList.remove('flash-active');
-           
-            try {
-                audio.battle.play().catch(e => console.log("Waiting for interaction to play battle music."));
-            } catch(e) {}
-           
-            gameState.scene = 'battle';
-            gameState.trainerIndex = trainerIdx;
-            gameState.currentPokemonIndex = 0;
-            gameState.isPlayerTurn = true;
-           
-            let firstHealthyPokemon = -1;
-            for(let i=0; i < gameState.playerTeam.length; i++) {
-                if(gameState.playerTeam[i].hp > 0) {
-                    firstHealthyPokemon = i;
-                    break;
-                }
+        
+        gameState.scene = 'battle';
+        gameState.trainerIndex = trainerIdx;
+        gameState.currentPokemonIndex = 0;
+        gameState.isPlayerTurn = true;
+        
+        let firstHealthyPokemon = -1;
+        for(let i=0; i < gameState.playerTeam.length; i++) {
+            if(gameState.playerTeam[i].hp > 0) {
+                firstHealthyPokemon = i;
+                break;
             }
-            if(firstHealthyPokemon === -1) {
-                endGame(false);
-                return;
-            }
-            gameState.currentTeamIndex = firstHealthyPokemon;
-            gameState.currentBattle = JSON.parse(JSON.stringify(trainersData[trainerIdx]));
-           
-            document.getElementById('worldContainer').classList.remove('active');
-            document.getElementById('battleContainer').classList.add('active');
-            document.getElementById('trainerName').textContent = gameState.currentBattle.name;
-           
-            gameState.battleMenuState = 'main';
-           
-            updateBattle();
-            // Battle start mesajını diyalog akışı olarak göster
-            showBattleMessageSequence([{speaker: gameState.currentBattle.name, text: `I, ${gameState.currentBattle.name}, challenge you!`}]);
-        }, 2000);
-    }
+        }
+        if(firstHealthyPokemon === -1) {
+            endGame(false);
+            return;
+        }
+        gameState.currentTeamIndex = firstHealthyPokemon;
+        gameState.currentBattle = JSON.parse(JSON.stringify(trainersData[trainerIdx]));
+        
+        document.getElementById('worldContainer').classList.remove('active');
+        document.getElementById('battleContainer').classList.add('active');
+        // document.getElementById('trainerName').textContent = gameState.currentBattle.name;
+        
+        gameState.battleMenuState = 'main';
+        
+        updateBattle();
+        // Battle start mesajını diyalog akışı olarak göster
+        showBattleMessageSequence([{speaker: gameState.currentBattle.name, text: `I, ${gameState.currentBattle.name}, challenge you! `}]);
+    }, 2000);
+}
     // Update battle screen
     function updateBattle() {
         // DÜZELTME: Güvenlik kontrolü, hata mesajını azaltır.
@@ -1325,7 +1442,7 @@
         enemySpriteEl.innerHTML = `<img src="${enemyPoke.imageUrl}" alt="${enemyPoke.name}">`;
         enemySpriteEl.classList.remove('fainted');
        
-        document.getElementById('pokemonIndex').textContent = `${gameState.currentPokemonIndex + 1}/${gameState.currentBattle.pokemon.length}`;
+        //document.getElementById('pokemonIndex').textContent = `${gameState.currentPokemonIndex + 1}/${gameState.currentBattle.pokemon.length}`;
        
         const moveGrid = moveGridEl;
         moveGrid.innerHTML = '';
@@ -1363,7 +1480,7 @@
             itemSectionEl.style.display = 'none';
            
             // Switch menüsünü göster ve seçimleri güncelle
-            showSwitchPokemonMenu(true);
+            showSwitchPokemonMenu();
         }
         if (gameState.isPlayerTurn) {
              updateMenuSelection();
@@ -1384,8 +1501,8 @@
         const damage = Math.floor(Math.random() * 10 + move.power * 1.5);
         enemyPoke.hp = Math.max(0, enemyPoke.hp - damage);
        
-        document.getElementById('playerSprite').parentElement.classList.add('shake');
-        setTimeout(() => document.getElementById('playerSprite').parentElement.classList.remove('shake'), 150);
+        document.getElementById('playerSprite').classList.add('shake'); // YENİ VE DOĞRU
+setTimeout(() => document.getElementById('playerSprite').classList.remove('shake'), 150);
        
         showBattleMessageSequence([{speaker: playerPoke.name, text: `Used ${move.name}! ${damage} DMG!`}], () => {
             if (enemyPoke.hp <= 0) {
@@ -1406,8 +1523,8 @@
         const damage = Math.floor(Math.random() * 10 + move.power * 1.5);
         playerPoke.hp = Math.max(0, playerPoke.hp - damage);
        
-        document.getElementById('enemySprite').parentElement.classList.add('shake');
-        setTimeout(() => document.getElementById('enemySprite').parentElement.classList.remove('shake'), 150);
+        document.getElementById('enemySprite').classList.add('shake'); // YENİ VE DOĞRU
+setTimeout(() => document.getElementById('enemySprite').classList.remove('shake'), 150);
        
         showBattleMessageSequence([{speaker: enemyPoke.name, text: `Enemy ${enemyPoke.name} used ${move.name}! ${damage} DMG!`}], () => {
             if (playerPoke.hp <= 0) {
@@ -1442,6 +1559,11 @@
         // Hata kontrolü tekrar
         if (!gameState.currentBattle || gameState.currentPokemonIndex >= gameState.currentBattle.pokemon.length) return;
         battleMessageEl.textContent = `Enemy ${gameState.currentBattle.pokemon[gameState.currentPokemonIndex].name} Fainted!`;
+
+        try {
+        audio.faint.currentTime = 0;
+        audio.faint.play().catch(e => {});
+    } catch(e) {}
        
         const enemySprite = document.getElementById('enemySprite');
         enemySprite.classList.add('fainted'); // Ana animasyon
@@ -1465,71 +1587,103 @@
    
     // Player pokemon fainted
     function defeatPlayerPokemon() {
-        battleMessageEl.textContent = `${gameState.playerTeam[gameState.currentTeamIndex].name} Fainted!`;
-       
-        const playerSprite = document.getElementById('playerSprite');
-        playerSprite.classList.add('fainted'); // Ana animasyon
-        // EKRAN TİTREMESİ EKLE (immersive!)
-        const battleField = document.getElementById('battleField');
-        battleField.classList.add('faintScreenShake');
-        let nextHealthyPokemon = -1;
-        for (let i = 0; i < gameState.playerTeam.length; i++) {
-            if (gameState.playerTeam[i].hp > 0) {
-                nextHealthyPokemon = i;
-                break;
-            }
-        }
-       
-        setTimeout(() => {
+    battleMessageEl.textContent = `${gameState.playerTeam[gameState.currentTeamIndex].name} Fainted!`;
+    
+    try {
+        audio.faint.currentTime = 0;
+        audio.faint.play().catch(e => {});
+    } catch(e) {}
+
+    const playerSprite = document.getElementById('playerSprite');
+    playerSprite.classList.add('fainted'); // Ana animasyon
+    const battleField = document.getElementById('battleField');
+    battleField.classList.add('faintScreenShake');
+    
+    let hasHealthyPokemon = gameState.playerTeam.some(p => p.hp > 0); 
+
+    setTimeout(() => {
             battleField.classList.remove('faintScreenShake'); // Temizle
-            if (nextHealthyPokemon !== -1) {
-                showBattleMessageSequence([{speaker: 'Player', text: `Go, ${gameState.playerTeam[nextHealthyPokemon].name}!`}], () => {
-                    executeSwitch(nextHealthyPokemon, true);
-                });
+            
+            if (hasHealthyPokemon) {
+                // CRITICAL FIX: ZORUNLU GEÇİŞTE KLAVYE KONTROLÜ İÇİN TURN'Ü OYUNCUYA VER
+                gameState.isPlayerTurn = true; // <--- HATA DÜZELTME
+                
+                gameState.isForcedSwitch = true; 
+                gameState.battleMenuState = 'switch';
+                updateBattle(); 
+                showBattleMessageSequence([{speaker: 'Player', text: `You must choose a new Pokémon!`}]); 
             } else {
                 endGame(false);
             }
-        }, 4500); // Animasyon süresine göre ayarlandı
-    }
+        }, 4500);
+}
    
     // Trainer defeated
-    function trainerDefeated() {
-        audio.battle.pause();
-        audio.battle.currentTime = 0;
-       
-        gameState.trainersDefeated++;
-       
-        for (let poke of gameState.playerTeam) {
-            poke.hp = poke.maxHp;
-        }
-        const victoryScreen = document.getElementById('victoryScreen');
-       
-        if (gameState.trainersDefeated >= trainersData.length) {
-            try {
-                audio.victoryfinal.play().catch(e => {});
-            } catch(e) {}
-           
-            document.getElementById('battleContainer').classList.remove('active');
-            victoryScreen.classList.add('active');
-           
-            document.getElementById('victoryImageContainer').innerHTML = `<img src="${finalKupaURL}" alt="Champion Cup">`;
-           
-            setTimeout(() => {
-                // Zafer resmi gösterildikten sonra haritaya dönme mantığı olmadığı için ekranı donduruyoruz.
-            }, 5000);
-        } else {
-            try {
-                audio.victory.play().catch(e => {});
-            } catch(e) {}
-            document.getElementById('battleContainer').classList.remove('active');
-            victoryScreen.classList.add('active');
-           
-            document.getElementById('victoryImageContainer').innerHTML = `<img src="${normalKupaURL}" alt="Victory Cup">`;
-            setTimeout(() => {
-                showWorldMap();
-            }, 5000);
-        }
+    // Trainer defeated
+// Trainer defeated
+function trainerDefeated() {
+    // Özel savaş müziğini durdur
+    if (gameState.currentBattleMusic) {
+        gameState.currentBattleMusic.pause();
+        gameState.currentBattleMusic.currentTime = 0;
     }
+    
+    gameState.trainersDefeated++;
+    
+    for (let poke of gameState.playerTeam) {
+        poke.hp = poke.maxHp;
+    }
+    const victoryScreen = document.getElementById('victoryScreen');
+    
+    // Yenen antrenörün verilerini al
+    const defeatedTrainerIndex = gameState.trainersDefeated - 1;
+    const defeatedTrainerData = trainersData[defeatedTrainerIndex];
+
+    if (gameState.trainersDefeated >= trainersData.length) {
+        // --- SON BOSS ZAFERİ ---
+        try {
+            audio.victoryfinal.play().catch(e => {});
+        } catch(e) {}
+        
+        document.getElementById('battleContainer').classList.remove('active');
+        victoryScreen.classList.add('active');
+        
+        document.getElementById('victoryImageContainer').innerHTML = `<img src="${finalKupaURL}" alt="Champion Cup">`;
+        
+        setTimeout(() => {
+            // Finalden sonra dünya haritasına dönüş yok
+        }, 5000);
+    } else {
+        // --- NORMAL ANTRENÖR ZAFERİ ---
+        
+        // SADECE TEK TİP GENEL ZAFER MÜZİĞİNİ ÇAL
+        try {
+            audio.victory.currentTime = 0;
+            audio.victory.play().catch(e => {});
+        } catch(e) {}
+        
+        document.getElementById('battleContainer').classList.remove('active');
+        victoryScreen.classList.add('active');
+        
+        document.getElementById('victoryImageContainer').innerHTML = `<img src="${normalKupaURL}" alt="Victory Cup">`;
+        
+        // 5 saniye sonra haritaya dön ve YENİ DÜNYA MÜZİĞİNİ AYARLA
+        setTimeout(() => {
+            
+            if (defeatedTrainerData && defeatedTrainerData.newWorldMusic) {
+                // Mevcut dünya müziğini durdur
+                audio.world.pause();
+                audio.world.currentTime = 0;
+                
+                // Yeni müziği yükle ve audio.world değişkenini kalıcı olarak güncelle
+                audio.world = new Audio(defeatedTrainerData.newWorldMusic);
+                audio.world.loop = true; // Dünya müziği döngü yapmalı
+            }
+            
+            showWorldMap();
+        }, 5000);
+    }
+}
    
     // Use Potion
     function usePotion() {
@@ -1557,41 +1711,63 @@
     }
    
     // Show switch menu
-    function showSwitchPokemonMenu(isUpdate = false) {
-        if (!isUpdate && !gameState.isPlayerTurn) return;
-       
-        // Bu fonksiyon, updateBattle'dan çağrılırken gameState.battleMenuState zaten 'switch' olmalı.
-        if(!isUpdate) {
-            gameState.battleMenuState = 'switch';
-            gameState.menuSelectionIndex = 0;
-        }
-        moveGridEl.style.display = 'none';
-        itemSectionEl.style.display = 'none';
-        switchScreen.classList.add('active');
-        switchGrid.innerHTML = '';
-        gameState.playerTeam.forEach((poke, index) => {
-            const btn = document.createElement('button');
-            btn.className = 'switchBtn';
-            btn.innerHTML = `
-                <img src="${poke.imageUrl}" alt="${poke.name}">
-                <div>${poke.name}</div>
-                <div>${poke.hp} / ${poke.maxHp} HP</div>
-            `;
-           
-            if (poke.hp <= 0) {
-                btn.disabled = true;
-                btn.innerHTML += "<span>FAINTED</span>";
-            }
-            if (index === gameState.currentTeamIndex) {
-                btn.disabled = true;
-                btn.innerHTML += "<span>ACTIVE</span>";
-            }
-           
-            switchGrid.appendChild(btn);
-        });
-       
-        updateMenuSelection();
+    // YENİ FONKSİYON
+function showSwitchPokemonMenu() {
+    // isForcedSwitch değişkeni, eğer oyuncu Pokémon'u bayıldıysa (defeatPlayerPokemon'da) 'true' olur.
+    // Varsayılan olarak (switch butonuna basıldığında) 'false' kabul edilir.
+    const isForced = gameState.isForcedSwitch || false; 
+
+    // isForcedSwitch'i temizle, böylece bir sonraki çağrı normal olur
+    gameState.isForcedSwitch = false; 
+
+    if (!gameState.isPlayerTurn && !isForced) return;
+
+    gameState.battleMenuState = 'switch';
+    if (!isForced) { // Zorunlu değilse index'i sıfırla
+        gameState.menuSelectionIndex = 0;
     }
+    
+    moveGridEl.style.display = 'none';
+    itemSectionEl.style.display = 'none';
+    switchScreen.classList.add('active');
+    switchGrid.innerHTML = '';
+    
+    // CANCEL BUTONUNU ZORUNLU GEÇİŞ DURUMUNA GÖRE AYARLA
+    const cancelBtn = document.getElementById('cancelSwitchBtn');
+    if (cancelBtn) {
+        // Eğer Zorunlu Geçiş İSE (Pokémon bayıldıysa), CANCEL KAPALI olmalı.
+        cancelBtn.disabled = isForced; 
+        if (isForced) {
+            cancelBtn.style.opacity = '0.4'; // Soluk göstermek için
+        } else {
+            cancelBtn.style.opacity = '1'; // Normal göstermek için
+        }
+    }
+
+    gameState.playerTeam.forEach((poke, index) => {
+        // ... (Pokémon butonlarını oluşturma mantığı aynı kalacak)
+        const btn = document.createElement('button');
+        btn.className = 'switchBtn';
+        btn.innerHTML = `
+            <img src="${poke.imageUrl}" alt="${poke.name}">
+            <div>${poke.name}</div>
+            <div>${poke.hp} / ${poke.maxHp} HP</div>
+        `;
+        
+        if (poke.hp <= 0) {
+            btn.disabled = true;
+            btn.innerHTML += "<span>FAINTED</span>";
+        }
+        if (index === gameState.currentTeamIndex) {
+            btn.disabled = true;
+            btn.innerHTML += "<span>ACTIVE</span>";
+        }
+        
+        switchGrid.appendChild(btn);
+    });
+    
+    updateMenuSelection();
+}
    
     // Hide switch menu
     function cancelSwitch() {
@@ -1603,7 +1779,10 @@
         updateBattle();
     }
     // Perform the actual switch
-    function executeSwitch(newIndex, isForcedSwitch = false) {
+    function executeSwitch(newIndex) {
+        // Kontrol: Bayılan Pokémon'dan geçiş mi yapılıyor? (Diyalog sırasının hemen ardından sırayı tekrar oyuncuya vermek için)
+        const wasForcedSwitch = !gameState.isPlayerTurn && gameState.battleMenuState === 'switch'; 
+
         if (newIndex === gameState.currentTeamIndex) return;
        
         const oldPoke = gameState.playerTeam[gameState.currentTeamIndex].name;
@@ -1622,38 +1801,45 @@
             gameState.battleMenuState = 'main';
             updateBattle();
            
-            if (isForcedSwitch) {
+            // Eğer zorunlu geçişse (yani oyuncunun sırası değildi)
+            if (wasForcedSwitch) {
+                // Sırayı tekrar oyuncuya ver
                 setTimeout(() => {
                     gameState.isPlayerTurn = true;
                     gameState.battleMenuState = 'main';
                     updateBattle();
+                    showBattleMessageSequence([{speaker: 'Player', text: `What will you do?`}]); // Yeni aksiyon mesajı
                 }, 1000);
             } else {
+                // Normal switch ise (oyuncunun sırasıydı) sıra düşmana geçer
                 setTimeout(enemyAttack, 1500);
             }
         });
        
     }
    
-    // End game
     function endGame(won) {
-        for (let key in audio) {
-            audio[key].pause();
-            audio[key].currentTime = 0;
-        }
-        document.getElementById('bootScreen').classList.remove('active');
-        document.getElementById('worldContainer').classList.remove('active');
-        document.getElementById('battleContainer').classList.remove('active');
-        document.getElementById('victoryScreen').classList.remove('active');
-        document.getElementById('transitionScreen').classList.remove('active');
-        const gameOverEl = document.getElementById('gameOverImg');
-        gameOverEl.classList.add('active'); // Bu tüm game container'ı kaplayacak
-        if (won) {
-            gameOverEl.innerHTML = `<img src="${kazandinURL}" alt="Champion!" style="width:100%; height:100%; object-fit:cover;">`;
-        } else {
-            gameOverEl.innerHTML = `<img src="${kaybettinURL}" alt="Game Over" style="width:100%; height:100%; object-fit:cover;">`;
-        }
+    for (let key in audio) {
+        audio[key].pause();
+        audio[key].currentTime = 0;
     }
+    document.getElementById('bootScreen').classList.remove('active');
+    document.getElementById('worldContainer').classList.remove('active');
+    document.getElementById('battleContainer').classList.remove('active');
+    document.getElementById('victoryScreen').classList.remove('active');
+    document.getElementById('transitionScreen').classList.remove('active');
+    const gameOverEl = document.getElementById('gameOverImg');
+    gameOverEl.classList.add('active'); // Bu tüm game container'ı kaplayacak
+    if (won) {
+        gameOverEl.innerHTML = `<img src="${kazandinURL}" alt="Champion!" style="width:100%; height:100%; object-fit:cover;">`;
+    } else {
+        // KAYBETTİNİZ KISMI
+        try {
+            audio.gameOver.play().catch(e => console.log("Game Over music failed to play:", e));
+        } catch(e) {}
+        gameOverEl.innerHTML = `<img src="${kaybettinURL}" alt="Game Over" style="width:100%; height:100%; object-fit:cover;">`;
+    }
+}
     // Movement check (Aynı Kaldı)
     function canMoveTo(x, y) {
         return labyrinthPath.some(pos => pos.x === x && pos.y === y);
@@ -1783,9 +1969,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
