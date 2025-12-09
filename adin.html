@@ -224,7 +224,7 @@
 
         // --- DATA ---
         const fileSystemDB = {
-            "1.Vision + Origin": [
+            "1.Vision": [
    
 { id: 'rd-1', type: 'video', name: 'DFW', url: 'https://video.wixstatic.com/video/54a996_0232a6790a7647ef862d91e3f8e7a223/1080p/mp4/file.mp4', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/dfwlogo.png',description: '2020: DFW\n\n2021: Early builder for Neon DAO (Metaverse Architecture).\n\n2022: Commissioned for Noise DAO (Audio-Visual Hyperfy Museums).\n\n2023: Winner of Red DAO x Draup Residency (1st Place with C2W Collection).\n\n2025: C2W2', created: 'Sep 3, 2024', medium: 'Video', tags: ['space'] },
                 { id: 'rd-2', type: 'glb', name: 'Reasons', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/lydiaobejct-opt-v1.glb',iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/2-Lydia_smooth.png', description: 'Transform: Vertical flat screen jpegs to immersive spatial narratives.\n\nProblem: Friction, downloads, login, platform, wallet, low quality, tokengating\n\nSolution: Instant access, device agnostic, high quality, one code, one link for all, no download or login.', created: 'Sep 3, 2024', medium: 'VRM'},
@@ -245,7 +245,7 @@
                
                
             ],
-            "3.Artifact + Identity": [
+            "3.Artifact": [
                 { id: 'artifact-1', type: 'link', name: 'Artifact', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_08.png', url: 'https://c2w2.world', description: 'This is the visual interface for the New Breed.\n\nA 30-minute immersive virtual runway live at C2W2.world\n\n48 avatars designed for physical/virtual skins (IP) for AI Agents. Defining their “swag” as they enter our “code-based” society.\n\nAll files are ready.\n\nEasy use for anyone: Moving the mouse.', created: '2025', medium: 'Link' },
 
                { id: 'artifact-2', type: 'video', name: 'The Experiment', url: 'https://video.wixstatic.com/video/54a996_a5d98402ce57459fa2c3448998051112/1080p/mp4/file.mp4',iconUrl: 'https://adin.online/_next/image?url=%2Flanding%2Fabout%2Fadin-logo-56x56.png&w=64&q=75',
@@ -393,9 +393,9 @@ iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archiv
         };
 
         const parentMap = {
-            "1.Vision + Origin": "1.Vision + Origin",
-            "2.Tech + Exec.": "2.Tech + Exec.",
-            "3.Artifact + Identity": "3.Artifact + Identity",
+            "1.Vision": "1.Vision",
+            "2.Tech": "2.Tech",
+            "3.Artifact": "3.Artifact",
             "0.Files": "0.Files",
             
             
@@ -411,7 +411,7 @@ iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archiv
 
         // Process Data & Fix HTML Links
         Object.keys(fileSystemDB).forEach(key => {
-            const parent = parentMap[key] || "2.Tech + Exec.";
+            const parent = parentMap[key] || "2.Tech";
             const subtype = key;
             
             fileSystemDB[key].forEach(file => {
@@ -455,7 +455,7 @@ iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archiv
 
             // Populate Mobile Bar
             const subBar = document.getElementById('mobile-type-bar');
-            const types = ["1.Vision + Origin", "2.Tech + Exec.", "3.Artifact + Identity", "0.Files"];
+            const types = ["1.Vision", "2.Tech", "3.Artifact", "0.Files"];
             types.forEach(t => {
                 const b = document.createElement('button');
                 b.className = 'nav-btn';
