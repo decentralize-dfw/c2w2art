@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>ADIN_3DEC25</title>
+    <title>ADIN_12DEC25</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -170,7 +170,7 @@
             </div>
             <!-- Filter Group - SIMPLIFIED -->
             <div class="menu-group" id="group-filter">
-                <button class="nav-btn" style="cursor: default; pointer-events: none;">C2W2 runway & collection for agents presentation 03 december 2025, ADIN</button>
+                <button class="nav-btn" style="cursor: default; pointer-events: none;">C2W2 runway & collection for agents presentation 12 december 2025, ADIN</button>
             </div>
         </div>
         
@@ -593,6 +593,65 @@ iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archiv
             
             setTimeout(performFitView, 1100);
         }
+// --- ZOOM & PAN FONKSİYONU ---
+        function enableImageZoom(imgElement) {
+            let scale = 1;
+            let panning = false;
+            let pointX = 0;
+            let pointY = 0;
+            let startX = 0;
+            let startY = 0;
+
+            imgElement.style.transformOrigin = "center center";
+            imgElement.style.cursor = "grab";
+            imgElement.style.transition = "transform 0.1s ease-out"; // Yumuşak geçiş
+
+            // Zoom (Tekerlek)
+            imgElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const xs = (e.clientX - pointX) / scale;
+                const ys = (e.clientY - pointY) / scale;
+                const delta = -e.deltaY;
+
+                (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
+                
+                // Sınırlar (En az 1x, En fazla 10x)
+                if (scale < 1) { scale = 1; pointX = 0; pointY = 0; }
+                if (scale > 10) scale = 10;
+
+                imgElement.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+            });
+
+            // Pan Başlat (Tıklama)
+            imgElement.addEventListener('pointerdown', (e) => {
+                if (scale > 1) { // Sadece zoom yapılmışsa sürükle
+                    e.preventDefault();
+                    startX = e.clientX - pointX;
+                    startY = e.clientY - pointY;
+                    panning = true;
+                    imgElement.style.cursor = "grabbing";
+                }
+            });
+
+            // Pan Bırak
+            imgElement.addEventListener('pointerup', () => {
+                panning = false;
+                imgElement.style.cursor = "grab";
+            });
+            imgElement.addEventListener('pointerleave', () => {
+                panning = false;
+                imgElement.style.cursor = "grab";
+            });
+
+            // Pan Hareket (Sürükleme)
+            imgElement.addEventListener('pointermove', (e) => {
+                if (!panning) return;
+                e.preventDefault();
+                pointX = e.clientX - startX;
+                pointY = e.clientY - startY;
+                imgElement.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+            });
+        }
 
         function openModal(item) {
             controls.autoRotate = false;
@@ -613,7 +672,18 @@ iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archiv
             if (type.includes('text')) {
                 mContent.innerHTML = `<div style="width:100%; height:100%; padding:30px; overflow:auto; color:#0f0; font-family:monospace; white-space:pre-wrap; font-size:0.9rem;">${item.content}</div>`;
             } else if (type.includes('image') || type.includes('graphic')) {
-                mContent.innerHTML = `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+                // HTML string yerine Element oluşturuyoruz ki Event Listener ekleyebilelim
+                mContent.innerHTML = ''; // Önce temizle
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.objectFit = 'contain';
+                
+                // Zoom fonksiyonunu çağır
+                enableImageZoom(img);
+                
+                mContent.appendChild(img);
             } else if (type.includes('video') || type.includes('youtube')) {
                 if(url.includes('youtube') || url.includes('embed')) mContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
                 else mContent.innerHTML = `<video controls autoplay style="max-width:100%; max-height:100%;"><source src="${url}"></video>`;
