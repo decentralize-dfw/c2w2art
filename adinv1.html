@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>ADIN_3DEC25</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+    
+    <!-- Meshopt Decoder -->
+    <script src="https://unpkg.com/meshoptimizer@0.19.0/meshopt_decoder.js"></script>
+
+    <style>
+        /* FONTS */
+        @font-face { font-family: 'Telegrama Raw'; src: url('https://raw.githubusercontent.com/decentralize-dfw/font/main/telegrama_raw.otf') format('opentype'); }
+        @font-face { font-family: 'Telegrama Render'; src: url('https://raw.githubusercontent.com/decentralize-dfw/font/main/telegrama_render_osn.otf') format('opentype'); }
+        @font-face { font-family: 'GAU Private'; src: url('https://raw.githubusercontent.com/decentralize-dfw/font/main/GAU_private_R.TTF') format('truetype'); }
+
+        :root {
+            --ui-color: #FF006A; 
+            --bg-color: white;
+            --modal-bg: #0f0508;
+            --font-headers: 'Telegrama Raw', sans-serif;
+            --font-body: 'Telegrama Render', sans-serif;
+            --font-3d: 'GAU Private', cursive;
+        }
+
+        body {
+            font-family: var(--font-body); background-color: var(--bg-color);
+            background-image: url('https://raw.githubusercontent.com/decentralize-dfw/c2w2art/main/cover4.jpg');
+            background-size: cover; background-position: center; background-blend-mode: multiply;
+            color: var(--ui-color); margin: 0; overflow: hidden; touch-action: none;
+        }
+
+        /* UI CONTAINER */
+        #ui-container {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100; padding: 20px;
+            pointer-events: none; display: flex; flex-direction: column; gap: 15px;
+        }
+
+        /* MENU ROW */
+        .menu-row {
+            display: flex; gap: 15px; pointer-events: auto; flex-wrap: wrap; width: fit-content;
+        }
+        
+        .menu-group {
+            background: rgba(0,0,0,0.8); padding: 6px; border-radius: 50px;
+            border: 1px solid var(--ui-color); display: flex; gap: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .nav-btn {
+            background: transparent; border: 1px solid transparent; color: var(--ui-color);
+            padding: 6px 16px; font-family: var(--font-headers); font-size: 0.75rem;
+            cursor: pointer; border-radius: 20px; transition: 0.2s; text-transform: uppercase;
+            font-weight: bold; letter-spacing: 1px;
+        }
+        .nav-btn:hover { background: rgba(255, 0, 106, 0.2); }
+        .nav-btn.active { 
+            background: var(--ui-color); color: black; 
+            box-shadow: 0 0 15px var(--ui-color); border-color: white;
+        }
+
+        /* MOBILE TYPE BAR */
+        #mobile-type-bar {
+            display: flex; gap: 8px; overflow-x: auto; pointer-events: auto;
+            background: rgba(0,0,0,0.8); padding: 8px; border-radius: 12px; max-width: 100%;
+            border: 1px solid rgba(255, 0, 106, 0.3);
+        }
+        #mobile-type-bar::-webkit-scrollbar { display: none; }
+        
+        /* 3D CARDS */
+        .element-card {
+            width: 160px; height: 210px; 
+            background: rgba(5, 5, 5, 0.9);
+            border: 1px solid rgba(255, 0, 106, 0.4);
+            display: flex; flex-direction: column; align-items: center; padding: 6px;
+            cursor: pointer; user-select: none; pointer-events: auto;
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+            backface-visibility: visible;
+        }
+        .element-card:hover { 
+            transform: scale(1.15); border-color: var(--ui-color); z-index: 9999; 
+            box-shadow: 0 0 40px rgba(255, 0, 106, 0.5); background: black;
+        }
+        .card-img { width: 100%; height: 130px; object-fit: cover; background: #1a1a1a; pointer-events: none; margin-bottom: 8px;}
+        .card-icon { width: 100%; height: 130px; display: flex; align-items: center; justify-content: center; background: #1a1a1a; color: #666; pointer-events: none; margin-bottom: 8px;}
+        .card-info { text-align: center; width: 100%; pointer-events: none; display: flex; flex-direction: column; gap: 2px;}
+        .card-title { font-size: 0.75rem; color: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-headers);}
+        .card-sub { font-size: 0.6rem; color: var(--ui-color); text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+
+        /* 3D LABELS */
+        .group-label {
+            font-family: var(--font-3d); font-size: 120px; color: var(--ui-color);
+            text-shadow: 0 0 40px black; pointer-events: none; text-align: center;
+            white-space: nowrap; opacity: 0.8;
+        }
+
+        /* MODAL */
+        #modal {
+            position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.95);
+            display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        #modal.open { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            width: 95%; height: 90%; background: var(--modal-bg); border: 1px solid var(--ui-color);
+            display: flex; flex-direction: column; box-shadow: 0 0 100px rgba(255, 0, 106, 0.3); border-radius: 8px; overflow: hidden;
+        }
+        .modal-head { 
+            padding: 15px 25px; border-bottom: 1px solid var(--ui-color); display: flex; justify-content: space-between; align-items: center;
+            font-family: var(--font-headers); background: rgba(255, 0, 106, 0.15);
+        }
+        .modal-body { flex: 1; display: flex; overflow: hidden; }
+        .modal-view { flex: 3; background: #000; position: relative; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+        .modal-info { flex: 1; padding: 25px; border-left: 1px solid #333; overflow-y: auto; font-size: 0.95rem; min-width: 320px; background: rgba(20,0,10,0.5); }
+        
+        @media (max-width: 768px) {
+            .modal-body { flex-direction: column; }
+            .modal-view { flex: 1; border-bottom: 1px solid #333; min-height: 50%; }
+            .modal-info { flex: 1; border-left: none; min-width: auto; }
+            .menu-row { justify-content: center; width: 100%; gap: 8px; }
+            .group-label { font-size: 60px; }
+        }
+
+        /* Controls */
+        #slider-c { 
+            position: fixed; bottom: 30px; left: 30px; background: rgba(0,0,0,0.7); 
+            padding: 10px 15px; border-radius: 12px; border: 1px solid var(--ui-color); 
+            z-index: 100; pointer-events: auto; backdrop-filter: blur(4px);
+            display: flex; flex-direction: column; gap: 8px; align-items: center;
+        }
+        input[type=range] { accent-color: var(--ui-color); width: 120px; cursor: pointer;}
+        
+        #fit-btn {
+            background: rgba(255, 0, 106, 0.1); border: 1px solid var(--ui-color); color: var(--ui-color);
+            padding: 4px 12px; font-family: var(--font-headers); font-size: 0.65rem;
+            cursor: pointer; border-radius: 8px; transition: 0.2s; width: 100%;
+        }
+        #fit-btn:hover { background: var(--ui-color); color: black; }
+
+        /* Loader inside Viewer */
+        .viewer-loader {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-family: var(--font-headers); color: var(--ui-color); font-size: 1.5rem;
+            text-align: center;
+        }
+    </style>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="ui-container">
+        <div class="menu-row">
+            <!-- View Group (Hidden but kept for logic) -->
+            <div class="menu-group" id="group-view" style="display:none;"> 
+                <button class="nav-btn active" onclick="setMode('view', 'grid', this)">GRID</button>
+            </div>
+            <!-- Filter Group - SIMPLIFIED -->
+            <div class="menu-group" id="group-filter">
+                <button class="nav-btn" style="cursor: default; pointer-events: none;">C2W2 runway & collection for agents presentation 03 december 2025, ADIN</button>
+            </div>
+        </div>
+        
+        <!-- Mobile Only Type Bar -->
+        <div id="mobile-type-bar" class="md:hidden"></div>
+    </div>
+
+    <div id="slider-c">
+        <div style="font-size:0.7rem; color:var(--ui-color); font-weight:bold; letter-spacing:1px;">AUTO ROTATE</div>
+        <input type="range" id="speed" min="0" max="1" step="0.1" value="0"> <!-- Default 0 -->
+        <button id="fit-btn" onclick="performFitView()">FIT VIEW</button>
+    </div>
+
+    <div id="container"></div>
+
+    <!-- MODAL -->
+    <div id="modal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <span id="m-title" style="color:white; font-size:1.2rem; letter-spacing:1px;">TITLE</span>
+                <button class="nav-btn" onclick="closeModal()" style="border-color:white; color:white; opacity:1;">CLOSE X</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-view" id="m-content"></div>
+                <div class="modal-info">
+                    <div style="color:var(--ui-color); font-family:var(--font-headers); margin-bottom:10px; font-size:1.1rem;">DETAILS</div>
+                    <!-- Added white-space: pre-wrap for line breaks -->
+                    <p id="m-desc" style="margin-bottom: 25px; color:#ddd; line-height:1.6; white-space: pre-wrap;"></p>
+                    
+                    <!-- Metadata Removed as requested -->
+                    <div id="m-links" style="margin-top:30px; display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+        import TWEEN from 'three/addons/libs/tween.module.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+        import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+        // --- GLOBAL FUNCTION EXPOSURE FOR HTML EVENT HANDLERS ---
+        window.performFitView = performFitView;
+        window.closeModal = closeModal;
+        window.setMode = setMode;
+        window.openModal = openModal;
+
+        // --- DATA ---
+        const fileSystemDB = {
+            "1.Vision + Origin": [
+   
+{ id: 'rd-1', type: 'video', name: 'DFW', url: 'https://video.wixstatic.com/video/54a996_0232a6790a7647ef862d91e3f8e7a223/1080p/mp4/file.mp4', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/dfwlogo.png',description: '2021: Early builder for Neon DAO (Metaverse Architecture).\n\n2022: Commissioned for Noise DAO (Audio-Visual Hyperfy Museums).\n\n2023: Winner of Red DAO x Draup Residency (1st Place with C2W Collection).\n\n2025: C2W2', created: 'Sep 3, 2024', medium: 'Video', tags: ['space'] },
+                { id: 'rd-2', type: 'glb', name: 'Reasons', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/lydiaobejct-opt-v1.glb',iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/2-Lydia_smooth.png', description: 'Narrative: \nThe internet is evolving from "Flat Pages" to "Spatial Experiences." \n\nProblem: \nThe Metaverse failed because of friction, downloads, login, platforms. \n\nMindset: \n"Humanity evolves from touch to clicks." Access must be instant, platform / device agnostic, with high quality. \n\nWhat:\nReimagining the TikTok/Reels vertical scroll habit as a spatial 3D experience.', created: 'Sep 3, 2024', medium: 'VRM'},
+                
+                 { id: 'rd-4', type: 'video', name: 'Goal', url: 'https://video.wixstatic.com/video/54a996_52c9f6c3a7b9407b966c8f37a0bc96f0/1080p/mp4/file.mp4',iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/41-Call_2_Sim_smooth.png', description: 'To prove that a web-link carries more cultural weight than a video file. \n\nTo merge high-fidelity Clo3D physics with immutable code. \n\nKept in stealth to be revealed as a genesis artifact.', created: 'Sep 3, 2024', medium: 'Video', tags: ['space'] }                
+            ],
+            "2.Tech + Exec.": [
+                 
+
+
+{ id: 'app-8', type: 'link', name: 'Engine', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/0-MODELVIEWER2.png', url: 'https://c2w2.world/runwaymodelviewer', description: 'Tech Stack: \nCustom single WebXR code for all (Desktop/VR/Mobile).\n\nLive Action: \nHappens instantly. Quick exchange of models from on-chain.\n\nResult: \nNo downloads. No logins. No platform. No pixel streaming. Just a click.', created: '2025', medium: 'Link' },
+
+                 { id: 'app-6', type: 'link', name: 'Assets', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/19-Midemoiselle_smooth.png', url: 'https://c2w2.art/avatar_exe', description: 'Breakthrough: \nIntegrated real-time Clo3D cloth simulation directly into the browser.\n\nReality: \nliving physics simulation running at great speed. Like a life. .\n\nBeings: \nThese are agents on virtual flesh. Each are different character. All files are ready.', created: '2025', medium: 'Link' },
+                
+
+                 { id: 'tech-3', type: 'link', name: 'Permanence', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_09.png', url: 'https://c2w2.world/runway.txt', description: 'Execution: \nA single HTML file minted directly on Ethereum.\n\nStorage: \n100% of assets (models, audio) archived permanently on The PFADI (Post Flesh Architecture Dream Index).\n\nInteroperability: \nWorks seamlessly inside OpenSea via iframe. \n\nhttps://opensea.io/item/ethereum/0xf688f59da001827bc8658622557ba33ffd6262a7/1', created: '2025', medium: 'Link' }
+                
+               
+               
+            ],
+            "3.Artifact + Identity": [
+                { id: 'artifact-1', type: 'link', name: 'Artifact', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_08.png', url: 'https://c2w2.world', description: 'Experience: \nA 30-minute immersive virtual runway live at c2w2.world.\nThe fixed cam version for embed content. Walk inside freely by opening in a new tab or vr.\n\nConcept: \nThis is the visual interface for the "New Breed".\n \n\nDesign: \n48 avatars designed for physical/virtual skins (IP) for AI Agents. Defining their "swag" as they enter our "code-based" society.Millimetrically synchronized audio-visual flow to give narrative a new dimension', created: '2025', medium: 'Link' },
+
+               { id: 'artifact-2', type: 'video', name: 'The Experiment', url: 'https://video.wixstatic.com/video/54a996_a5d98402ce57459fa2c3448998051112/1080p/mp4/file.mp4',iconUrl: 'https://adin.online/_next/image?url=%2Flanding%2Fabout%2Fadin-logo-56x56.png&w=64&q=75',
+               description: 'My Scout Test: \nstress-test the discovery engine with an asymmetric artifact.\n\nThe AI Challenge: \nWhat can Adin agents identify? Testing its ability to spot a potential trend.\n\nThe Thesis Test:\nCan the system evaluate a genesis artwork as a viable asset class? \n\nTesting if it recognizes the asymmetric upside of a cultural artifact—similar to early CryptoPunks or the Beeple moment—before the market consensus forms.',
+                created: '2025', medium: 'YouTube' },
+               
+                
+{ 
+ id: 'artifact-4', 
+  type: 'glb', 
+  name: 'Convergence', 
+  url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runwayglbmodels1000/main/samspratt-1000-comms-opt-v34.glb', 
+  iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_14.png', 
+  description: 'Culture: \nThis artifact melts Tribute’s entire DNA into a single code file: art of Flamingo, fashion of Red, and metaverse of Neon , all 3 forged into an Agent Lookbook (Visual Identity for AI).\n\nScalability (Business): \nA white-label "Spatial Engine" for luxury brands. Utilizing their existing Clo3D files to create instant, immersive browser launches. \nEasy use for anyone: Moving the mouse.\n\nAction: \nfeeding the runway & collection to the Agents. Hope they like looking fresh',
+  created: 'Sep 3, 2024', 
+  medium: 'GLB' 
+}
+
+            ],
+            
+           
+            "0.Files": [
+                
+ { id: 'file-1', type: 'image', name: 'Sum', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-pdf2/main/C2W2_Page_42.jpg',iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_01.png', description: 'Quick resume', created: 'Sep 3, 2024', medium: 'Image', tags: ['logo'] },
+{ id: 'file-2', type: 'link', name: 'C2W2.pdf', url: 'https://c2w2.world/pdf',iconUrl: ' https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/pdf.png', description: '43 page presentation of C2W2', created: 'Today', medium: 'Link' },
+
+
+
+                { id: 'file-3', type: 'video', name: 'C2W2-PDF.mp4', url: 'https://www.youtube.com/embed/acVopmUyAD8', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/pdfvideo.png',description: '10 min Video of PDF Info.', created: '2024', medium: 'YouTube' },
+                {
+                    id: 'doc-12',
+                    type: 'video',
+                    name: 'pitchtalk.mp4',
+                    url: 'https://www.youtube.com/embed/nEvDjGkuvnk',
+                    iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/15-Uncle_Red_smooth.png',
+                    description: 'Why it matters? 3 minutes.',
+                    created: '-',
+                    minted: '-',
+                    medium: 'MP4 Video',
+                    dimensions: '1920x1080',
+                    size: '15 MB',
+                    tags: ['space', 'video', 'metaverse'],
+                    links: []
+                },
+{ id: 'file-4', type: 'link', name: 'C2W2 Runway', url: 'https://c2w2.world', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/logo_evo_06.png',description: 'Official Site \n beta on-chain link: \n https://o5sdk4wmdlea6ezcay2iht5jkfuau3wh4aesprzkqqu5g7gqyn5a.arweave.net/d2Q1cswayA8TIgY0g8-pUWgKbsfgCSfHKoQp03zQw3o', medium: 'Link' },
+{ id: 'file-5', type: 'link', name: 'C2W2 Files', url: 'https://c2w2.art',iconUrl:'https://cdn-icons-png.flaticon.com/128/15465/15465643.png', description: 'Site for documentation', medium: 'Link' },
+
+{ id: 'ad-2', type: 'link', name: 'Opensea', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/0-opensea.png', url: 'https://opensea.io/item/ethereum/0xf688f59da001827bc8658622557ba33ffd6262a7/1', medium: 'Link' },
+{
+    id: 'tab-3',
+    type: 'link', // YENİ TİP: 'link'
+    name: 'Manifold',
+    iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/manifold.png',
+    url: 'https://manifold.xyz/@dfw/contract/166699248/1', // Yeni sekmede açılacak link
+    description: 'Manifold Interface',
+    created: '2025',
+    minted: 'N/A',
+    medium: 'External Link',
+    dimensions: 'N/A',
+    size: '0 KB',
+    tags: ['web', 'site', 'dfw'],
+    links: [ // Bu alandaki linkler bilgi panelinde gösterilir
+        { url: 'https://manifold.xyz/@dfw/contract/166699248/1', name: 'https://manifold.xyz/@dfw/contract/166699248/1' }
+    ]
+},
+{
+    id: 'tab-4',
+    type: 'link', // YENİ TİP: 'link'
+    name: 'PFADI',
+    iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-thumb/main/0-pfadi-512.png',
+    url: 'https://opensea.io/collection/pfadi', // Yeni sekmede açılacak link
+    description: 'PFADI powers the runways on-chain files from another contract. Post Flesh Architecture Dream Index powers all the files of the runway on Arwaeve backed ETH NFTs',
+    created: '2025',
+    minted: 'N/A',
+    medium: 'External Link',
+    dimensions: 'N/A',
+    size: '0 KB',
+    tags: ['web', 'site', 'dfw'],
+    links: [ // Bu alandaki linkler bilgi panelinde gösterilir
+        { url: 'https://opensea.io/collection/pfadi', name: 'https://opensea.io/collection/pfadi' }
+    ]
+},
+ { id: 'ad-1', type: 'link', name: 'DFW Website', url: 'https://digitalforgerywork.shop/', 
+ iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2runway/main/dfwlogo.png', 
+ description: 'Official Site', medium: 'Link' },
+                
+      { id: 'ad-1', type: 'link', name: 'decentralize* web', url: 'https://de-centralize.com', 
+ iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives/main/logia2w.png', 
+ description: 'artist website', medium: 'Link' },
+                
+
+
+                {
+                    id: 'doc-5', // Düzeltildi
+                    type: 'website',
+                    name: 'reviews.txt',
+                    url: 'https://c2w2.art/reviews.txt',
+iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/review.png          ',
+                    description: 'experience in lines',
+                    created: 'Today, 1:05 PM',
+                    minted: 'Today, 1:05 PM',
+                    medium: 'Website Link',
+                    dimensions: 'N/A',
+                    size: 'N/A',
+                    tags: ['web', 'comment', 'expert'],
+                    links: []
+                },
+                
+                
+                { id: 'rd-3', type: 'html', name: 'AGENTIC GAME.exe', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/game-v3.html', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-game/main/agentic.jpg', description: 'Pokemon inspired game made for fun!!', created: '06/2024', medium: 'HTML', tags: ['web'] },
+                
+
+
+
+
+
+
+                { id: 'cd-3', type: 'video', name: 'MEDITATION.mp4', url: 'https://www.youtube.com/embed/nyEjJ9KvnQc', iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/meditation.png',
+                description: '10 minute long freeflow mind storm.', created: '2025', medium: 'YouTube' },
+
+                { id: 'file-11', type: 'image', name: 'Avatars', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-pdf/main/C2W2%20Runway%20by%20DFW%2C%202025_Page_07.jpg',iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-pdf/main/C2W2%20Runway%20by%20DFW%2C%202025_Page_07.jpg', description: 'QMerged image of Avatar looks', created: 'Sep 3, 2024', medium: 'Image', tags: ['logo'] },
+
+               { id: 'file-12', type: 'image', name: 'Avatars on Runway', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-pdf/main/C2W2%20Runway%20by%20DFW%2C%202025_Page_08.jpg',iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-pdf/main/C2W2%20Runway%20by%20DFW%2C%202025_Page_08.jpg', description: 'Merged image of Avatar screenshots during runway', created: 'Sep 3, 2024', medium: 'Image', tags: ['logo'] },
+
+                 { id: 'av-1', type: 'glb', name: 'AVATARSAMPLE_1', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/curator-900-opt-v67.glb', 
+                 iconUrl:'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/sample.png',
+                 description: 'curator', medium: 'VRM' },
+               
+                { id: 'av-8', type: 'glb', name: 'AVATARSAMPLE_2', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2old/main/Joker-web-NOMAT-V3-v4.glb', iconUrl:'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/sample.png',description: 'Joker', medium: 'GLB' },
+                { id: 'av-9', type: 'glb', name: 'AVATARSAMPLE_3', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/6529memes-walk-opt-v1.glb', iconUrl:'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/sample.png',description: 'seize', medium: 'GLB' },
+                { id: 'av-10', type: 'glb', name: 'AVATARSAMPLE_4', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/invertmemelegancesuit-900-opt-v74.glb',iconUrl:'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/sample.png', description: 'invertmemelegancesuit', medium: 'GLB' },
+
+                 { id: 'av-11', type: 'glb', name: 'AVATARSAMPLE_5', url: 'https://raw.githubusercontent.com/decentralize-dfw/c2w2-glb/main/bulkgelin-900-opt-v65.glb', iconUrl:'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/sample.png',description: 'bulkbride', medium: 'GLB' },
+                
+               
+
+                
+                { id: 'rec-1', type: 'video', name: 'C2W Ticket 2023', url: 'https://video.wixstatic.com/video/54a996_008a92463e2c490bae5c5176ccd0fa13/1080p/mp4/file.mp4',iconUrl: 'https://raw.githubusercontent.com/decentralize-dfw/decentralize-archives-thumbnail/main/sample.png', description: 'Ticket Artwork of first season from 2023.', medium: 'Video' }
+                
+            ],
+           
+          
+        };
+
+        const parentMap = {
+            "1.Vision + Origin": "1.Vision + Origin",
+            "2.Tech + Exec.": "2.Tech + Exec.",
+            "3.Artifact + Identity": "3.Artifact + Identity",
+            "0.Files": "0.Files",
+            
+            
+            
+            
+        };
+
+        let items = [];
+        let scene, camera, renderer, controls;
+        let objects = [];
+        let labels = [];
+        let currentState = { view: 'grid', filter: 'all' };
+
+        // Process Data & Fix HTML Links
+        Object.keys(fileSystemDB).forEach(key => {
+            const parent = parentMap[key] || "2.Tech + Exec.";
+            const subtype = key;
+            
+            fileSystemDB[key].forEach(file => {
+                // FIX: Proxy github links for iframes
+                let cleanUrl = file.url;
+                if (file.medium === 'HTML' && cleanUrl && cleanUrl.includes('raw.githubusercontent.com')) {
+                    cleanUrl = cleanUrl.replace('raw.githubusercontent.com', 'raw.githack.com');
+                }
+
+                items.push({
+                    ...file,
+                    url: cleanUrl,
+                    rootType: parent,
+                    subType: subtype,
+                    medium: file.medium || 'Unknown'
+                });
+            });
+        });
+
+        // 1. Define all functions first
+        function init() {
+            const container = document.getElementById('container');
+            
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 1, 10000);
+            camera.position.set(0, 0, 3500);
+
+            scene = new THREE.Scene();
+
+            renderer = new CSS3DRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0; // Default 0
+            controls.enableDamping = true;
+
+            document.getElementById('speed').addEventListener('input', (e) => {
+                controls.autoRotateSpeed = parseFloat(e.target.value);
+            });
+
+            // Populate Mobile Bar
+            const subBar = document.getElementById('mobile-type-bar');
+            const types = ["1.Vision + Origin", "2.Tech + Exec.", "3.Artifact + Identity", "0.Files"];
+            types.forEach(t => {
+                const b = document.createElement('button');
+                b.className = 'nav-btn';
+                b.textContent = t;
+                b.onclick = (e) => {
+                    Array.from(subBar.children).forEach(child => child.classList.remove('active'));
+                    b.classList.add('active');
+                    document.querySelectorAll('#group-filter .nav-btn').forEach(btn => btn.classList.remove('active'));
+                    currentState.filter = t; 
+                    updateLayout();
+                };
+                subBar.appendChild(b);
+            });
+
+            createObjects();
+            updateLayout();
+            performFitView(); // Initial Fit
+        }
+
+        function setMode(type, val, btn) {
+            const group = btn.parentElement;
+            group.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            if (type === 'filter') {
+                document.querySelectorAll('#mobile-type-bar .nav-btn').forEach(b => b.classList.remove('active'));
+            }
+
+            currentState[type] = val;
+            updateLayout();
+        }
+
+        function performFitView() {
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, minZ = Infinity, maxZ = -Infinity;
+            let count = 0;
+            objects.forEach(obj => {
+                if(obj.element.style.opacity > 0.5) {
+                    count++;
+                    minX = Math.min(minX, obj.position.x); maxX = Math.max(maxX, obj.position.x);
+                    minY = Math.min(minY, obj.position.y); maxY = Math.max(maxY, obj.position.y);
+                    minZ = Math.min(minZ, obj.position.z); maxZ = Math.max(maxZ, obj.position.z);
+                }
+            });
+
+            if(count === 0) return;
+
+            const cx = (minX + maxX)/2; const cy = (minY + maxY)/2; const cz = (minZ + maxZ)/2;
+            const size = Math.max(maxX-minX, maxY-minY);
+            const dist = size * 1.2 + 1500;
+
+            new TWEEN.Tween(controls.target).to({ x: cx, y: cy, z: cz }, 1000).easing(TWEEN.Easing.Cubic.Out).start();
+            new TWEEN.Tween(camera.position).to({ x: cx, y: cy, z: cz + dist }, 1000).easing(TWEEN.Easing.Cubic.Out).start();
+        }
+
+        function getIconSVG(type) {
+            type = (type || '').toLowerCase();
+            if(type.includes('folder')) return `<svg fill="currentColor" viewBox="0 0 20 20" class="w-12 h-12"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>`;
+            if(type.includes('video') || type.includes('youtube')) return `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="w-12 h-12"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 18h10a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>`;
+            if(type.includes('text')) return `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="w-12 h-12"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+            if(type.includes('glb') || type.includes('vrm')) return `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="w-12 h-12"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m0 10l8 4m6 0v-4m0 0L4 11m6 4l8-4m-8 4v4m0 0L4 17m6 4l8-4"></path></svg>`;
+            if(type.includes('pdf')) return `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="w-12 h-12 text-red-500"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
+            if(type.includes('html') || type.includes('web') || type.includes('link')) return `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="w-12 h-12 text-blue-400"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>`;
+            return `<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="w-12 h-12"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 18"></path></svg>`;
+        }
+
+        function createObjects() {
+            items.forEach((item, i) => {
+                const el = document.createElement('div');
+                el.className = 'element-card';
+                let viz = `<div class="card-icon">${getIconSVG(item.medium)}</div>`;
+                if(item.type === 'image' || item.iconUrl) {
+                    viz = `<img src="${item.iconUrl || item.url}" class="card-img" onerror="this.style.display='none'">`;
+                }
+                el.innerHTML = `${viz}<div class="card-info"><div class="card-title">${item.name}</div><div class="card-sub">${item.subType}</div></div>`;
+                el.addEventListener('pointerdown', (e) => e.stopPropagation()); 
+                el.addEventListener('click', (e) => { e.stopPropagation(); window.openModal(item); });
+                const obj = new CSS3DObject(el);
+                obj.userData = { ...item, id: i };
+                scene.add(obj);
+                objects.push(obj);
+            });
+        }
+
+        function createLabel(text, yPos) {
+            const div = document.createElement('div');
+            div.className = 'group-label'; div.textContent = text;
+            const obj = new CSS3DObject(div);
+            obj.position.set(0, yPos, 0); scene.add(obj); labels.push(obj);
+        }
+
+        function updateLayout() {
+            labels.forEach(l => scene.remove(l)); labels = []; TWEEN.removeAll();
+            const filter = currentState.filter;
+            const visibleObjs = [];
+            
+            objects.forEach(obj => {
+                const d = obj.userData;
+                let isVis = true;
+                if (filter !== 'all' && filter !== 'type' && filter !== 'subtype' && filter !== 'medium') {
+                    if (d.rootType !== filter && d.subType !== filter && d.medium !== filter) isVis = false;
+                }
+                if (isVis) {
+                    visibleObjs.push(obj); obj.element.style.opacity = 1; obj.element.style.pointerEvents = 'auto';
+                } else {
+                    obj.element.style.opacity = 0; obj.element.style.pointerEvents = 'none';
+                }
+            });
+
+            // GRID LAYOUT ONLY
+            if (filter === 'type' || filter === 'subtype' || filter === 'medium') {
+                let groupBy = 'rootType'; 
+                if (filter === 'subtype') groupBy = 'subType';
+                if (filter === 'medium') groupBy = 'medium';
+                const groups = {};
+                visibleObjs.forEach(o => { const key = o.userData[groupBy]; if(!groups[key]) groups[key] = []; groups[key].push(o); });
+                let yOffset = 1000;
+                Object.keys(groups).sort().forEach(key => {
+                    createLabel(key, yOffset + 300);
+                    const groupItems = groups[key]; const cols = 6;
+                    groupItems.forEach((obj, i) => {
+                        const col = i % cols; const row = Math.floor(i / cols);
+                        const x = (col - cols/2) * 250; const y = yOffset - (row * 280);
+                        new TWEEN.Tween(obj.position).to({ x: x, y: y, z: 0 }, 1000).easing(TWEEN.Easing.Exponential.InOut).start();
+                    });
+                    yOffset -= (Math.ceil(groupItems.length/cols) * 280) + 800; 
+                });
+            } else {
+                const count = visibleObjs.length; const cols = Math.ceil(Math.sqrt(count)) + 2; 
+                visibleObjs.forEach((obj, i) => {
+                    const col = i % cols; const row = Math.floor(i / cols);
+                    const x = (col - cols/2) * 250; const y = (cols/2 - row) * 280;
+                    new TWEEN.Tween(obj.position).to({ x: x, y: y, z: 0 }, 1000).easing(TWEEN.Easing.Exponential.InOut).start();
+                });
+            }
+            
+            setTimeout(performFitView, 1100);
+        }
+
+        function openModal(item) {
+            controls.autoRotate = false;
+            document.getElementById('modal').classList.add('open');
+            document.getElementById('m-title').textContent = item.name;
+            document.getElementById('m-desc').textContent = item.description || 'No description.';
+            // Metadata removal: we only need title and description
+            
+            const mContent = document.getElementById('m-content'); mContent.innerHTML = '';
+            const mLinks = document.getElementById('m-links'); mLinks.innerHTML = '';
+            
+            if (item.type === 'link') {
+               const btn = document.createElement('a'); btn.href = item.url; btn.target = "_blank"; btn.className = 'nav-btn';
+               btn.style.textAlign = 'center'; btn.textContent = 'OPEN EXTERNAL LINK'; mLinks.appendChild(btn);
+            }
+
+            const type = (item.medium || '').toLowerCase(); const url = item.url;
+            if (type.includes('text')) {
+                mContent.innerHTML = `<div style="width:100%; height:100%; padding:30px; overflow:auto; color:#0f0; font-family:monospace; white-space:pre-wrap; font-size:0.9rem;">${item.content}</div>`;
+            } else if (type.includes('image') || type.includes('graphic')) {
+                mContent.innerHTML = `<img src="${url}" style="max-width:100%; max-height:100%; object-fit:contain;">`;
+            } else if (type.includes('video') || type.includes('youtube')) {
+                if(url.includes('youtube') || url.includes('embed')) mContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none;" allowfullscreen></iframe>`;
+                else mContent.innerHTML = `<video controls autoplay style="max-width:100%; max-height:100%;"><source src="${url}"></video>`;
+            } else if (type.includes('glb') || type.includes('vrm')) {
+                mContent.innerHTML = `<div id="3d-viewer" style="width:100%; height:100%; position:relative;"><div class="viewer-loader">LOADING 0%</div></div>`;
+                setTimeout(() => load3D(url, '3d-viewer'), 50);
+            } else if (type.includes('html') || type.includes('web') || type.includes('link')) {
+                mContent.innerHTML = `<iframe src="${url}" style="width:100%; height:100%; border:none; background:white;"></iframe>`;
+            } else if (type.includes('pdf')) {
+                mContent.innerHTML = `<div style="width:100%; height:100%; display:flex; justify-content:center; overflow:auto; padding:20px;"><canvas id="pdf-render"></canvas></div>`;
+                loadPDF(url);
+            }
+        };
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('open');
+            document.getElementById('m-content').innerHTML = '';
+            controls.autoRotate = true;
+        };
+
+        function load3D(url, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const loaderDiv = container.querySelector('.viewer-loader');
+            const w = container.clientWidth, h = container.clientHeight;
+            const renderer3D = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer3D.setSize(w, h); renderer3D.outputColorSpace = THREE.SRGBColorSpace; 
+            renderer3D.toneMapping = THREE.ACESFilmicToneMapping;
+            container.appendChild(renderer3D.domElement);
+            const scene3D = new THREE.Scene();
+            const amb = new THREE.AmbientLight(0xffffff, 1); scene3D.add(amb);
+            const dir = new THREE.DirectionalLight(0xffffff, 2); dir.position.set(5,10,7); scene3D.add(dir);
+            new RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', function(texture) {
+                texture.mapping = THREE.EquirectangularReflectionMapping; scene3D.environment = texture;
+            });
+            const cam3D = new THREE.PerspectiveCamera(45, w/h, 0.01, 1000);
+            cam3D.position.set(0, 1, 4); 
+            const ctrl3D = new OrbitControls(cam3D, renderer3D.domElement);
+            ctrl3D.enableDamping = true; ctrl3D.autoRotate = false;
+            const loader = new GLTFLoader();
+            const draco = new DRACOLoader(); draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            loader.setDRACOLoader(draco); loader.setMeshoptDecoder(MeshoptDecoder);
+            loader.load(url, (gltf) => {
+                if(loaderDiv) loaderDiv.style.display = 'none';
+                const model = gltf.scene;
+                const box = new THREE.Box3().setFromObject(model);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 2 / maxDim; 
+                model.scale.setScalar(scale);
+                model.position.sub(center.multiplyScalar(scale)); 
+                model.position.y -= 0.5;
+                scene3D.add(model);
+                let mixer;
+                if(gltf.animations.length) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach(c => mixer.clipAction(c).play());
+                }
+                const clock = new THREE.Clock();
+                function renderLoop() {
+                    if(!document.getElementById(containerId)) return;
+                    requestAnimationFrame(renderLoop);
+                    if(mixer) mixer.update(clock.getDelta());
+                    ctrl3D.update();
+                    renderer3D.render(scene3D, cam3D);
+                }
+                renderLoop();
+            }, (xhr) => {
+                if(loaderDiv) loaderDiv.textContent = `LOADING ${Math.round(xhr.loaded/xhr.total*100)}%`;
+            });
+        }
+
+        function loadPDF(url) {
+            const cvs = document.getElementById('pdf-render');
+            const ctx = cvs.getContext('2d');
+            pdfjsLib.getDocument(url).promise.then(pdf => {
+                pdf.getPage(1).then(page => {
+                    const vp = page.getViewport({scale:1.5});
+                    cvs.height = vp.height; cvs.width = vp.width;
+                    page.render({canvasContext: ctx, viewport: vp});
+                });
+            });
+        }
+
+        window.addEventListener('resize', onWindowResize);
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Call init and animate to start the app
+        init();
+        animate();
+
+    </script>
+</body>
+</html>
