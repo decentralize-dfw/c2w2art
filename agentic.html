@@ -591,15 +591,32 @@
             object-fit: contain;
             image-rendering: pixelated;
         }
+#clickToStartOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black; /* Sadece siyah fon ve yazı */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'PixelSix', monospace;
+    font-size: 24px;
+    z-index: 9999;
+    cursor: default;
+}
     </style>
 </head>
 <body>
 <div id="gameWrapper">
     <div id="gameContainer">
+      <div id="clickToStartOverlay">HIT ENTER TO START</div>
        
-        <div id="bootScreen" class="active">
+        <div id="bootScreen"> 
             <img src="" alt="Boot Screen" id="bootImg" style="width:100%; height:100%;">
-        </div>
+       </div>
        
         <div id="transitionScreen">
             <!-- SADECE GEÇİŞ GIF'i -->
@@ -1957,14 +1974,43 @@ function showSwitchPokemonMenu() {
             handleBattleMenuInput(e);
         }
     });
-    // ===== INIT BLOKU (En sonda) =====
-    // Small delay for preloading images
+   
+  // ===== INIT BLOKU (En Alt Kısım) =====
     window.onload = function() {
-        // Add images to DOM (to prevent errors)
-        document.getElementById('bootImg').src = acilisResmiURL;
+        // GIF kaynağını boş bırakıyoruz, böylece ekranda donuk/boş duruyor.
         document.getElementById('transitionImg').src = savasGirisURL;
-        // Start the game
-        showBootScreen();
+
+        const startOverlay = document.getElementById('clickToStartOverlay');
+        const bootScreen = document.getElementById('bootScreen');
+        let gameStarted = false;
+
+        // ENTER TUŞUNU DİNLE
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !gameStarted) {
+                gameStarted = true;
+
+                // 1. Yazıyı kaldır
+                startOverlay.style.display = 'none';
+
+                // 2. Boot ekranını şimdi görünür yap
+                bootScreen.classList.add('active');
+
+                // 3. GIF'i ŞİMDİ YÜKLE (Animasyon 0'dan başlar)
+                document.getElementById('bootImg').src = acilisResmiURL;
+
+                // 4. Sesi başlat
+                if(audio.boot) {
+                    audio.boot.currentTime = 0;
+                    audio.boot.play().catch(err => console.log("Ses hatası:", err));
+                }
+
+                // 5. Oyunu 13 saniye sonra haritaya geçir
+                setTimeout(() => {
+                    bootScreen.classList.remove('active');
+                    showWorldMap();
+                }, 13000);
+            }
+        });
     }
 </script>
 </body>
