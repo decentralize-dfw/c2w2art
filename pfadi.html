@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>C2W2 Desktop Experience</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js ve Loaderlar (GLB Modelleri İçin) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/RGBELoader.js"></script>
+    <script src="https://unpkg.com/meshoptimizer@0.18.1/meshopt_decoder.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-image: url('https://raw.githubusercontent.com/decentralize-dfw/c2w2art/main/PFADI2.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            margin: 0;
+            overflow-x: hidden; /* Yatay scroll engelle */
+            overflow-y: auto;   /* Dikey scroll serbest */
+        }
+
+        /* --- Sabit Başlık --- */
+        #fixed-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 3% 11%; /* Desktop hizalaması container ile uyumlu olsun diye %10 */
+            z-index: 50; /* İkonların üstünde, modalın altında */
+            pointer-events: none; /* Tıklamalar arkaya geçsin */
+            
+            /* Flexbox ile Başlık ve Logo Ayrımı */
+            display: flex;
+            justify-content: space-between;
+            align-items: center; /* Dikeyde ortala */
+        }
+
+        .header-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #fixed-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            letter-spacing: -0.05em;
+        }
+
+        #fixed-header p {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-top: 0.25rem;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Logo Stili */
+        .header-logo {
+            height: 3.5rem; /* Yazı bloğu kadar yükseklik (yaklaşık) */
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        /* --- Masaüstü Grid Yapısı --- */
+        #desktop-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 2rem;
+            /* İSTEK: YANLARDAN, ÜSTTEN VE ALTTAN %10 BOŞLUK */
+            padding: 10%; 
+            padding-top: 12%; /* Başlık için üstten biraz daha fazla pay */
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .desktop-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .desktop-item:hover {
+            transform: scale(1.05);
+        }
+
+        .desktop-item:active {
+            transform: scale(0.95);
+        }
+
+        /* İkon Kutusu */
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .icon-label {
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 500;
+            line-height: 1.2;
+            padding: 2px 6px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+
+        /* --- Mobil Düzen --- */
+        @media (max-width: 768px) {
+            #fixed-header {
+                /* Mobilde başlık ortada, logo gizli veya altta olabilirdi ama hizalama istendiği için düzenleme: */
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 1.5rem 1rem;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 100%);
+            }
+            
+            /* Mobilde logoyu başlığın üstüne/altına alalım veya gizleyelim mi?
+               Kullanıcı "ikisinde de kaymasın" dediği için mobilde de gösteriyorum.
+               Ancak mobilde text ortada istendiği için logoyu textin altına koyuyorum.
+            */
+            .header-text {
+                align-items: center;
+                margin-bottom: 0.5rem;
+            }
+
+            .header-logo {
+                height: 2.5rem; /* Mobilde biraz daha küçük */
+            }
+
+            #fixed-header h1 { font-size: 1.8rem; }
+            #fixed-header p { font-size: 0.65rem; }
+
+            #desktop-container {
+                /* Grid yapısını zorla: 5 eşit sütun */
+                grid-template-columns: repeat(5, 1fr) !important;
+                /* İSTEK: Mobilde aralarındaki boşluğu ARTTIR (Gap: 20px) */
+                gap: 20px !important; 
+                
+                /* İSTEK: MOBİLDE SADECE ÜSTTEN BIRAK (%10 civarı + başlık payı) */
+                padding-top: 35% !important; /* Logo eklendiği için payı artırdım */
+                /* Yanlardan da boşluk bırakarak ikonları sıkıştırmadan küçült */
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+                padding-bottom: 4rem !important;
+            }
+
+            .desktop-item {
+                width: auto !important; /* Genişlik serbest */
+                min-width: 0 !important; /* Taşmayı engelle */
+            }
+
+            .icon-box {
+                /* Genişlik %100 olsun ama kare oranını korusun */
+                width: 100% !important;
+                height: auto !important;
+                aspect-ratio: 1 / 1;
+                border-radius: 10px !important;
+                margin-bottom: 4px !important;
+            }
+
+            /* Mobilde ikon içindeki SVG'leri küçült */
+            .icon-box svg {
+                width: 50% !important;
+                height: 50% !important;
+            }
+
+            .icon-label {
+                font-size: 8px !important; /* Çok küçük font (9px -> 8px) */
+                line-height: 1.1 !important;
+                padding: 0 !important;
+                background: transparent !important;
+                text-shadow: 0 1px 2px rgba(0,0,0,1) !important;
+                
+                /* Uzun metinleri kes */
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                display: -webkit-box;
+                -webkit-line-clamp: 2; /* Maksimum 2 satır */
+                -webkit-box-orient: vertical;
+            }
+        }
+
+        /* --- Pop-up Modal Stilleri --- */
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* DIŞINDAKİ ALAN 0.1 OPASİTE 5PXL BLUR */
+            background: rgba(0, 0, 0, 0.1); 
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: none; /* Başlangıçta gizli */
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #modal-content {
+            /* İÇİNDE KALAN ALAN BLUR OLSUN */
+            background: transparent; 
+            width: 100%;
+            max-width: 900px;
+            height: 85vh; /* Sabit bir yükseklik verip alanı bölelim */
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
+            position: relative;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Medya Alanı (Üst) */
+        #modal-media {
+            flex: 1; /* Mevcut alanın tamamını kapla */
+            /* ÜST MEDİA ARKA PLANI .4 OPASİTE 8PXL BLUR. BEYAZ RENK. */
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            min-height: 0; /* Flexbox taşmasını önler */
+        }
+
+        #modal-media img, #modal-media video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        #modal-media iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Bilgi Alanı (Alt) */
+        #modal-info {
+            padding: 12px 16px; /* Padding azaltıldı */
+            /* DESCRİPTİON ALANI .7 OPASİTE 8PXL BLUR. */
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            overflow-y: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            height: auto;
+            max-height: 140px; /* Maksimum yükseklik sınırlandı */
+            flex-shrink: 0; /* Küçülmesine izin verme */
+        }
+
+        #info-title {
+            font-size: 1.1rem; /* Başlık küçültüldü */
+            margin-bottom: 0.25rem;
+        }
+
+        #info-description {
+            font-size: 0.8rem; /* Açıklama küçültüldü */
+            line-height: 1.3;
+            margin-bottom: 0.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 2 satırla sınırla */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        #modal-info:hover #info-description {
+            -webkit-line-clamp: unset; /* Hover olunca tamamını göster */
+            overflow: visible;
+        }
+
+        #info-tags span {
+            font-size: 0.65rem;
+            padding: 1px 4px;
+        }
+
+        #info-links a {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+        }
+
+        #modal-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            color: white;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: background 0.2s;
+        }
+        
+        #modal-close-btn:hover {
+            background: rgba(255, 60, 60, 0.8);
+        }
+
+        /* Yükleniyor Göstergesi */
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sabit Başlık ve Logo -->
+    <div id="fixed-header">
+        <div class="header-text">
+            <h1>PFADI</h1>
+            <p>Post-Flesh Architecture Dream Index for C2W2</p>
+        </div>
+        <img src="https://raw.githubusercontent.com/decentralize-dfw/c2w2art/main/logo-pfadi.png" alt="Logo" class="header-logo">
+    </div>
+
+    <!-- Masaüstü İkonları -->
+    <div id="desktop-container">
+        <!-- JS ile doldurulacak -->
+    </div>
+
+    <!-- Modal (Pop-up) -->
+    <div id="modal-overlay">
+        <div id="modal-content">
+            <div id="modal-close-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </div>
+            
+            <!-- Medya Kısmı -->
+            <div id="modal-media">
+                <!-- İçerik dinamik gelecek -->
+            </div>
+
+            <!-- Bilgi Kısmı -->
+            <div id="modal-info">
+                <div class="flex justify-between items-start">
+                    <h2 id="info-title" class="font-bold text-gray-800"></h2>
+                    <div id="info-tags" class="flex flex-wrap gap-1"></div>
+                </div>
+                
+                <p id="info-description" class="text-gray-600"></p>
+
+                <div class="flex justify-between items-center mt-2 border-t border-gray-100 pt-2">
+                    <div id="info-meta" class="text-[10px] text-gray-400">
+                        <span id="meta-created"></span> • <span id="meta-medium"></span>
+                    </div>
+                    <div id="info-links" class="flex gap-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Veritabanı
+         const fileSystemDB = {
+    "RealDesktop": [
+
+// --- AUDIO PARTS (HTML) (50-55) ---
+        {
+            id: 'rw-50',
+            type: 'html',
+            name: 'audio_part1.html',
+            url: 'https://arweave.net/RQNUMGVhM8wcjNkLjEd6BQFanS5uB_t0Y3ZeuAIg0ew',
+            iconUrl: 'https://arweave.net/0BndVTde-D72lVCJh9-yH48NT5PCKdntkLcmpkkxgJ0',
+            description: 'The click is the new biology. Part 1.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['audio', 'web', 'art'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/50', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/1', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-51',
+            type: 'html',
+            name: 'audio_part2.html',
+            url: 'https://arweave.net/TDBkb0oFpfSlffXbNqRYmmOZw6TME84Rcf9qzh2QkG8',
+            iconUrl: 'https://arweave.net/TCVL8tIxt2P-5Gwukm8tzC7JXps1xlt0Ml3uBGI-dnI',
+            description: 'The click is the new biology. Part 2.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['audio', 'web', 'art'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/51', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/2', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-52',
+            type: 'html',
+            name: 'audio_part3.html',
+            url: 'https://arweave.net/Y0722novhkkb0ZDA8EaZ3RKQTk76_JT52q5pc_Ijy1c',
+            iconUrl: 'https://arweave.net/LO4yhvAxPAMRYyOGaj0egqPAve4AMrfHB0v-ESfmJ64',
+            description: 'The click is the new biology. Part 3.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['audio', 'web', 'art'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/52', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/3', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-53',
+            type: 'html',
+            name: 'audio_part4.html',
+            url: 'https://arweave.net/09XemuPQNP8641acUMuDhisppxdP_YIb6FUL8k7vMqo',
+            iconUrl: 'https://arweave.net/Gh0fVZjnHtHYlGhsjxVnf-lG-VsmNldtDz_I6sxR58Q',
+            description: 'The click is the new biology. Part 4.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['audio', 'web', 'art'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/53', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/4', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-54',
+            type: 'html',
+            name: 'audio_part5.html',
+            url: 'https://arweave.net/W6oEXyeEiPs3YW4GSePsA1LzoAq5ha2rf0cT0j0VdUU',
+            iconUrl: 'https://arweave.net/4Ay1WCJFu-Rn_OQc0N7-9EW3rV2uUupwL0Gggga3vSI',
+            description: 'The click is the new biology. Part 5.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['audio', 'web', 'art'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/54', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/5', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-55',
+            type: 'html',
+            name: 'audio_part6.html',
+            url: 'https://arweave.net/jfe12LN5xSTUCp0uYTSue9mrKB4kP-25mej-9S6FxVQ',
+            iconUrl: 'https://arweave.net/QT6aV4aXdDttSPcBi-TZ6Ovz7TJfHns8MftYvmHxTvE',
+            description: 'The click is the new biology. Part 6.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['audio', 'web', 'art'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/55', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/6', name: 'Blockchain' }
+            ]
+        },
+
+        // --- MISC & UI ELEMENTS (56-65) ---
+        {
+            id: 'rw-56',
+            type: 'glb',
+            name: 'World.glb',
+            url: 'https://arweave.net/q3XttMeWXlzp-vOjsNRLbqqTgylEJoDfEQPgwuRHQeA',
+            iconUrl: 'https://arweave.net/V__YMBAJanH8QWgCdPWt-p11ekVEaORvoYVrThBrkdg',
+            description: 'The click is the new biology. World Environment.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['world', 'environment', '3d'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/56', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/7', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-57',
+            type: 'image',
+            name: 'vr mode header.jpg',
+            url: 'https://arweave.net/I2fhARy6wX2JN1h6MbCjh5ciI5uIYw9Seei2zpSv5AU',
+            description: 'The click is the new biology. VR Header.',
+            created: '2025',
+            medium: 'Image',
+            tags: ['ui', 'header', 'image'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/57', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/8', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-58',
+            type: 'image',
+            name: 'desktop mode header.jpg',
+            url: 'https://arweave.net/6mlLJopDhUjuA3a47_7coCxMhpwO5kOSh1pLvpCznbQ',
+            description: 'The click is the new biology. Desktop Header.',
+            created: '2025',
+            medium: 'Image',
+            tags: ['ui', 'header', 'image'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/58', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/9', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-59',
+            type: 'html',
+            name: 'console-poem.html',
+            url: 'https://arweave.net/QTP3eyziJJHmYz9UDLmGQSJia0zlTF0vyebhBrZvZ9g',
+            iconUrl: 'https://arweave.net/vEdIbjYEvRACUnNNMOaIs9d4-LjeGYGyIF10oT2kOkM',
+            description: 'The click is the new biology. Console Poem.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['poetry', 'console', 'web'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/59', name: 'OpenSea' },
+                { url: 'https://hd2r4hihdq5i3hu6dz7m6x6xnyw2c4d2voashgcacfieuhy6irba.arweave.net/OPUeHQccOo2enh5-z1_Xbi2hcHqrgSOYQBFQSh8eREI/10', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-60',
+            type: 'image',
+            name: 'desktop mode header 2.jpg',
+            url: 'https://arweave.net/HjOdRuOrcXN3FpuoYSERHzLo4GhbonvtnVYg49FAZvU',
+            description: 'Header with directions.',
+            created: '2025',
+            medium: 'Image',
+            tags: ['ui', 'header', 'guide'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/60', name: 'OpenSea' },
+                { url: 'https://yalzy223rl3ghokqrqnre36zppvwypr3kxamxzv4gwxeqilqe2xq.arweave.net/wBeca1uK9mO5UIwbEm_Ze-tsPjtVwMvmvDWuSCFwJq8/1', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-61',
+            type: 'html',
+            name: 'c2w2.pdf',
+            url: 'https://arweave.net/r-NJGUg4h8mc7g6t_DHu9fvcFbUVKKuOH-qnAkNaJWM',
+            iconUrl: 'https://arweave.net/3mNeLYO21oSLvfQXfHgWdpPRVw1xLr5MXZdSTXvmYcw',
+            description: '43 pages explanation. C2W2 documentation.',
+            created: '2025',
+            medium: 'Interactive HTML', // Labeled HTML in source but name is PDF, treated as HTML viewer
+            tags: ['pdf', 'document', 'info'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/61', name: 'OpenSea' },
+                { url: 'https://yalzy223rl3ghokqrqnre36zppvwypr3kxamxzv4gwxeqilqe2xq.arweave.net/wBeca1uK9mO5UIwbEm_Ze-tsPjtVwMvmvDWuSCFwJq8/2', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-62',
+            type: 'html',
+            name: 'Runway Model Viewer.html',
+            url: 'https://arweave.net/cEGuAGpmoaTcmmIaQzy8gIf6-HR7H1qXrh_TslX7kh8',
+            iconUrl: 'https://arweave.net/EtNzgMB40mW2mnsptvgM5wFx_Zpu-1YO4Ca9IxvRUVQ',
+            description: 'All models included. Runway viewer.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['viewer', 'web', 'runway'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/62', name: 'OpenSea' },
+                { url: 'https://yalzy223rl3ghokqrqnre36zppvwypr3kxamxzv4gwxeqilqe2xq.arweave.net/wBeca1uK9mO5UIwbEm_Ze-tsPjtVwMvmvDWuSCFwJq8/3', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-63',
+            type: 'html',
+            name: 'Agentic Game.html',
+            url: 'https://arweave.net/PAtY2aewEnyEyXkUyWf24422GBvNN7kouJ23IJbc40k',
+            iconUrl: 'https://arweave.net/Ra73qUXr7rP3n_T6Ai8fai2ywaquWgqDeqohptP63L4',
+            description: 'Gameboy color inspired game.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['game', 'web', 'interactive'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/63', name: 'OpenSea' },
+                { url: 'https://yalzy223rl3ghokqrqnre36zppvwypr3kxamxzv4gwxeqilqe2xq.arweave.net/wBeca1uK9mO5UIwbEm_Ze-tsPjtVwMvmvDWuSCFwJq8/4', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-64',
+            type: 'html',
+            name: 'c2w2.art website files ui.html',
+            url: 'https://arweave.net/UC9G7mfCNdmJPEVZAnMJFFBI9Ukt5Dq8ezt9rQMkYJY',
+            iconUrl: 'https://arweave.net/OfsdrLOsM-3-kwJMrLeRRnFHa8wBTjZDJ0_6o0Za2do',
+            description: 'Website UI Files.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['web', 'ui', 'design'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/64', name: 'OpenSea' },
+                { url: 'https://yalzy223rl3ghokqrqnre36zppvwypr3kxamxzv4gwxeqilqe2xq.arweave.net/wBeca1uK9mO5UIwbEm_Ze-tsPjtVwMvmvDWuSCFwJq8/5', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-65',
+            type: 'html',
+            name: 'avatar viewer ui C2W2.html',
+            url: 'https://arweave.net/r4OcxYB-QsYMKaxYE7KgFdKwM6ybCn79RytfA7WexSs',
+            iconUrl: 'https://arweave.net/mkzOUSe-wShCkz1QEZOkg7SFj9LtgfhLopWfI1VEOaA',
+            description: 'Categorization and Avatar Viewer.',
+            created: '2025',
+            medium: 'Interactive HTML',
+            tags: ['viewer', 'ui', 'web'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/65', name: 'OpenSea' },
+                { url: 'https://yalzy223rl3ghokqrqnre36zppvwypr3kxamxzv4gwxeqilqe2xq.arweave.net/wBeca1uK9mO5UIwbEm_Ze-tsPjtVwMvmvDWuSCFwJq8/6', name: 'Blockchain' }
+            ]
+        },
+
+
+        // --- EVOLUTION OF MEDIUM OF TRADITIONAL ART (1-7) ---
+        {
+            id: 'rw-01',
+            type: 'glb',
+            name: '1-Belli_Capelli_RW1000.glb',
+            url: 'https://arweave.net/oZJozznfD7P060kx9_EY5JQWizdjn2ik3r7Rl1upNDQ',
+            iconUrl: 'https://arweave.net/IPiS1o9Dfw2wqUWFEjDmYzk58utb6kQkA9uUuotHWtc',
+            description: '1- Evolution Of Medium Of Traditional Art. Fit No: 1.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'history', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/1', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/1', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-02',
+            type: 'glb',
+            name: '02-Lydia_RW1000.glb',
+            url: 'https://arweave.net/d7I2xSpbKnb2X8ontNGf7isHZkg9AT_gEIn8ZS_cQRI',
+            iconUrl: 'https://arweave.net/fHGtsFPjkT1llqCmJmTmXY0uMRN6mei1N9ipLjNCobk',
+            description: '1- Evolution Of Medium Of Traditional Art. Fit No: 2.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'history', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/2', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/2', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-03',
+            type: 'glb',
+            name: '03-Lucien_RW1000.glb',
+            url: 'https://arweave.net/YjYJpCgjlBLp6ls3vEN_0WSMVeXAI-rH9GHuWYi8YyM',
+            iconUrl: 'https://arweave.net/Iwf-nf03DCT4D3_OFL_Cd-LMxbffZxmB6ZuoqdUydeI',
+            description: '1- Evolution Of Medium Of Traditional Art. Fit No: 3.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'history', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/3', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/3', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-04',
+            type: 'glb',
+            name: '4-The_Wrestler_of_Silence_RW1000.glb',
+            url: 'https://arweave.net/w_XtMv4WfNoUmAyaLRVbUF8B2dtO2TVbWD2wH1ZVREk',
+            iconUrl: 'https://arweave.net/A-7J36XBkqGwjEmRSHrqrYYKHxDbSl9YFnyjj89sTaU',
+            description: '1- Evolution Of Medium Of Traditional Art. Fit No: 4.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'history', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/4', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/4', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-05',
+            type: 'glb',
+            name: '05-The_Devoured_Remnant_RW1000.glb',
+            url: 'https://arweave.net/mKjOC69jSN7Xw7E0h5gM3kT3PIVinfMPm55AnWij39w',
+            iconUrl: 'https://arweave.net/9l9_zKRwCQcKUPsuNkBSLdAVDNX3zjP2Cn9SPcD26Y4',
+            description: '1- Evolution Of Medium Of Traditional Art. Fit No: 5.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'history', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/5', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/5', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-06',
+            type: 'glb',
+            name: '06-Squallor_Shark_RW1000.glb',
+            url: 'https://arweave.net/gHC6hYhIro3Erp5r4mi6CRkhRvyEOUr7Tf8VdLJOL6A',
+            iconUrl: 'https://arweave.net/6l36izs3qsP1OYyVibdXKbezKeEmMS8wExE04xztudE',
+            description: '1- Evolution Of Medium Of Traditional Art. Fit No: 6.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'history', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/6', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/6', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-07',
+            type: 'glb',
+            name: '07-Neue2Dojo_Curator_RW1000.glb',
+            url: 'https://arweave.net/TkDBE_tZqHMZS1KdCM7YCOb-RkH0pKmHbWfMZeZps3k',
+            iconUrl: 'https://arweave.net/erh5IhtLFrEBnn90YnrirWgcwt6JFnm4-HAUT5BMXMI',
+            description: '1- Evolution Of Medium Of Traditional Art. Fit No: 7.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'history', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/7', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/7', name: 'Blockchain' }
+            ]
+        },
+
+        // --- VIRTUAL FASHION (8-17) ---
+        {
+            id: 'rw-08',
+            type: 'glb',
+            name: '08-Joker_RW1000.glb',
+            url: 'https://arweave.net/SlPTDvvLtQgeTs_i-kVkObviah8rZ5J-Z7bjAJv_a3k',
+            iconUrl: 'https://arweave.net/UVj0Eo7IWU59kBJBNckdO8U2Td7sjE5BD9kXBGqUaOE',
+            description: '2- Virtual Fashion. Fit No: 8.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/8', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/8', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-09',
+            type: 'glb',
+            name: '09-Bulky_Bride_RW1000.glb',
+            url: 'https://arweave.net/AC4qmQB0KohbgLWCOypppP5aRW2cEWiaFmQzfV4Ul5c',
+            iconUrl: 'https://arweave.net/NSHR-8W7PHuxF2xIRMdmtTrem4vQ--T0SJmh8iutpqE',
+            description: '2- Virtual Fashion. Fit No: 9.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/9', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/9', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-10',
+            type: 'glb',
+            name: '10-Mare_RW1000.glb',
+            url: 'https://arweave.net/sH1s44a5gkxIM-fpfwiWUNVxuN3Fyq7_hRGfPWzJwE4',
+            iconUrl: 'https://arweave.net/YJ1LV9J8L6TGR6nSuwbTrdBAgJEA5pZ9JqvOzx-iBko',
+            description: '2- Virtual Fashion. Fit No: 10.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/10', name: 'OpenSea' },
+                { url: 'https://nxjlhqfewotvttz2s4rk44gyfe5kqak3p5w6hsayi5ykzhjyblya.arweave.net/bdKzwKSzp1nPOpcirnDYKTqoAVt_bePIGEdwrJ04CvA/10', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-11',
+            type: 'glb',
+            name: '11-Vertical_CT_Feed_Person_RW1000.glb',
+            url: 'https://arweave.net/-rNhHgpq-mAiNzz4CNslWWYP_yNZh0f8bMTT0DDVtks',
+            iconUrl: 'https://arweave.net/73ev-wLT90_lsjueUCyQVh2Q8YKcClQTtpGlqCVOHiY',
+            description: '2- Virtual Fashion. Fit No: 11.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/11', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/1', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-12',
+            type: 'glb',
+            name: '12-Astral_Kindergarten_Teacher_RW1000.glb',
+            url: 'https://arweave.net/OMZX-yZJHeA66kUgG6XZWfSO6Efz62fiPs4Izj0YsbQ',
+            iconUrl: 'https://arweave.net/RM0sNEvcyCxxDmfllffDmcx-agQu1aiqQS1gk_UXNv4',
+            description: '2- Virtual Fashion. Fit No: 12.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/12', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/2', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-13',
+            type: 'glb',
+            name: '13-Invert_Smiley_RW1000.glb',
+            url: 'https://arweave.net/aDvxuRCVrHDtsAvsAgGaB6EOxO_BYI1ZyTjM-aAv_yw',
+            iconUrl: 'https://arweave.net/YpsdPtRs6aDUSISDkajvIbkShhZ2tCKseGvzwUAf3Ns',
+            description: '2- Virtual Fashion. Fit No: 13.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/13', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/3', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-14',
+            type: 'glb',
+            name: '14-Private_Pile_RW1000.glb',
+            url: 'https://arweave.net/k24jVLJArbqSlvq6VZHxl9dMv1ZCsm9CviKpJdfgsP0',
+            iconUrl: 'https://arweave.net/TUdTaSDblZpWzKL_cBkl3HVIppchCCbf0e6AVCGc0ts',
+            description: '2- Virtual Fashion. Fit No: 14.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/14', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/4', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-15',
+            type: 'glb',
+            name: '15-Uncle_Red_RW1000.glb',
+            url: 'https://arweave.net/sSgXb3klYVVEGVbiuDy3KglywghIGcWu7o8JjJeZPxPxc',
+            iconUrl: 'https://arweave.net/4jH0dwQewy9WIL1Eos87GKSAXuKMLAqHBFCaLXxii3g',
+            description: '2- Virtual Fashion. Fit No: 15.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/15', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/5', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-16',
+            type: 'glb',
+            name: '16-Xoku_v2-RW1000.glb',
+            url: 'https://arweave.net/mLTR9eEo1dAR9z9QhOu1DG5pkWvYqPIizQOKvbfl8Gg',
+            iconUrl: 'https://arweave.net/FXq5M6YqwFQSnQxa9Rf2THGKBqMq_tAi0KyHSgGEy8w',
+            description: '2- Virtual Fashion. Fit No: 16.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/16', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/6', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-17',
+            type: 'glb',
+            name: '17-Weekend_AT_Saturn_RW1000.glb',
+            url: 'https://arweave.net/mCw9QqyxAUiGKrSj1cmRj8-xdTLanhFHMCRrvNGjpuQ',
+            iconUrl: 'https://arweave.net/ik-TRp7iCgRruzB0QN-6l-wYkH4QIb4ih6vvavpkQBs',
+            description: '2- Virtual Fashion. Fit No: 17.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['fashion', 'virtual', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/17', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/7', name: 'Blockchain' }
+            ]
+        },
+
+        // --- EVOLUTION OF MEDIUM OF ART AS NFT (18-27) ---
+        {
+            id: 'rw-18',
+            type: 'glb',
+            name: '18-Seize_v2-RW1000.glb',
+            url: 'https://arweave.net/vX7NJkgzjzJb7I_Ptu5RoAipFF-WQrt7gpEI6Tw3D9s',
+            iconUrl: 'https://arweave.net/5rt5sAzP0CuY_uNLgVwU15QT4Xdu85DLy4bfJaN1Lug',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 18.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/18', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/8', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-19',
+            type: 'glb',
+            name: '19-Midemoiselle_RW1000.glb',
+            url: 'https://arweave.net/LzsLhrZiOSB0j_Y6gnA2vWTJn64im-EcHxG184I3zV0',
+            iconUrl: 'https://arweave.net/HMoBTBkDdvGtpfrasKduK8Qn_9RagWhVNRnw9dVCUvs',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 19.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/19', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/9', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-20',
+            type: 'glb',
+            name: '20-Ferryman_RW1000.glb',
+            url: 'https://arweave.net/1I5WpZBftab2ZCepzItZ9D3zqnrmZHMmGnwppF1o8iQ',
+            iconUrl: 'https://arweave.net/4xZJlMtUuSzLbX4mjr4fRKbcOdCwypKjkoe1brwyMec',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 20.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/20', name: 'OpenSea' },
+                { url: 'https://rnbtj5qw33pxx2g2w7hs6d5x5dbwxlhcfcu3hnomj5lfnrndit2a.arweave.net/i0M09hbe33vo2rfPLw-36MNrrOIoqbO1zE9WVsWjRPQ/10', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-21',
+            type: 'glb',
+            name: '21-Panda_Boss_RW1000.glb',
+            url: 'https://arweave.net/ZkWQ1OUgtptx8HfTL0s1a37WEQXSlEKqpth_rtKswII',
+            iconUrl: 'https://arweave.net/QAlL_j8KDpIk_GH4I8Z4JVyYSoqVp38z-oVSLAW6GU0',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 21.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/21', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/1', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-22',
+            type: 'glb',
+            name: '22-Founder_Ape_RW1000.glb',
+            url: 'https://arweave.net/T4ZPK38vtozNBYUSq5YF2V48p2twgOt6i-_Np9yHTTI',
+            iconUrl: 'https://arweave.net/YaOabc77AdzBmsvx3IU7G-275pUL2u8VrcpMkxz5anw',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 22.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/22', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/2', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-23',
+            type: 'glb',
+            name: '23-Davicni_RW1000.glb',
+            url: 'https://arweave.net/2dmumjhdGq2BWTrXHu0Dq3-FzMjSLqoNbzn3tqhgUdo',
+            iconUrl: 'https://arweave.net/URcXmUYHFJggdWOuVgwYLI1lwSP7-eVB2vD3d6aPhS0',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 23.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/23', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/3', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-24',
+            type: 'glb',
+            name: '24-Chromozom_RW1000.glb',
+            url: 'https://arweave.net/9kwCQ6sNRFZg4UpEePp2MegsxkC0Mj3GGzXKNgdCAWw',
+            iconUrl: 'https://arweave.net/eDb4cF-o5kbPtl3bHgmiFtGypoFYZCGSIUzqbjo7JYc',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 24.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/24', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/4', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-25',
+            type: 'glb',
+            name: "25-Can't_See_Beep_Bop_Crap_RW1000.glb",
+            url: 'https://arweave.net/lM1QmjHPZN_OY1EcrY23Ltt5VY0QqDywME-2loN4x-M',
+            iconUrl: 'https://arweave.net/GWKEamjdP2xkChmME15amufRww_7JcXQDOZ5xLVQ5yM',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 25.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/25', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/5', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-26',
+            type: 'glb',
+            name: '26-Bone_on_Air_RW1000.glb',
+            url: 'https://arweave.net/N2IFXk81ENxTpAP0ZmvkXqp1D06Hdw1BZ-a2i9Du6uA',
+            iconUrl: 'https://arweave.net/9zmkO2_0UUFxqv2_qDMAZWycEpaoFG-Sm2tsxmSXuAc',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 26.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/26', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/6', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-27',
+            type: 'glb',
+            name: '27-Ashium_RW1000.glb',
+            url: 'https://arweave.net/EPMIQtWEQbPGzqY076Qa6RkWIPwxxMdxx1AGhuno7NQ',
+            iconUrl: 'https://arweave.net/fqzAdPYnJzEs5Uha8sEMLNmicYLKMels689RFJkvP30',
+            description: '3- Evolution Of Medium Of Art As NFT. Fit No: 27.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['nft', 'art', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/27', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/7', name: 'Blockchain' }
+            ]
+        },
+
+        // --- AI POWERED DESIGN (28-38) ---
+        {
+            id: 'rw-28',
+            type: 'glb',
+            name: '28-RR-Tiger_RW1000.glb',
+            url: 'https://arweave.net/c6lZjbQqrQm3Kd78xKjf66zK2zGIU2SUK3Edc4tO_8E',
+            iconUrl: 'https://arweave.net/-KY5QGx5pHkEDEpZjk4IPrVd4nyrpUk2yDofzZ2EcAg',
+            description: '4- AI Powered Design. Fit No: 28.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/28', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/8', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-29',
+            type: 'glb',
+            name: '29-Teddyminator_RW1000.glb',
+            url: 'https://arweave.net/oZNeIKlRPmsfMp3A-dOKilpC0Ks90BNKaZ92cuuZ-QA',
+            iconUrl: 'https://arweave.net/k41iwKADKo48KxxRhvdwK-SF2urfJ5CFQB5gpp72SBM',
+            description: '4- AI Powered Design. Fit No: 29.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/29', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/9', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-30',
+            type: 'glb',
+            name: '30-Bad_Luck_RW1000.glb',
+            url: 'https://arweave.net/di5t0JtbePXTe6x6sU6J-UMXMMu8Kr9DBPpA2-NubHI',
+            iconUrl: 'https://arweave.net/SUJXgo0MH_UtTNHiPksf8JpydPO4CXW-p3ZnZnMiVSc',
+            description: '4- AI Powered Design. Fit No: 30.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/30', name: 'OpenSea' },
+                { url: 'https://c4t76ezqfl2mklxwwj4wlu7yh2nysldframxz2hbo245xxw3nrcq.arweave.net/Fyf_EzAq9MUu9rJ5ZdP4PpuJLGWIGXzo4Xa5297bbEU/10', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-31',
+            type: 'glb',
+            name: '31-Mayhem_Clown_RW1000.glb',
+            url: 'https://arweave.net/FjdP1g51-2QZCxB8eZ4qG0N6mg1AhZjT_ZobOl0-8w8',
+            iconUrl: 'https://arweave.net/Z7hfaewuKW7FjvX3ABVb6vRj__zLOrOqtDOGaO3tsCI',
+            description: '4- AI Powered Design. Fit No: 31.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/31', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/1', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-32',
+            type: 'glb',
+            name: '32-Samu_RW1000.glb',
+            url: 'https://arweave.net/UMeDIMFhRaqDmCwaCZG18qMjlpohR4roXZnM4Z052sM',
+            iconUrl: 'https://arweave.net/FEDWEO0cgqUQhASEr9npPQdjiBsam4i6nHut8HLsLjM',
+            description: '4- AI Powered Design. Fit No: 32.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/32', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/2', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-33',
+            type: 'glb',
+            name: '33-Baincaigai_RW1000.glb',
+            url: 'https://arweave.net/IgtLoHYZsE18VEzhQpJD0kBnQkCN1x0QIKoDKC3FGVk',
+            iconUrl: 'https://arweave.net/r0ym_neioGKk9NR3TcCvlLSodPCBFmccK_lTivFqkTw',
+            description: '4- AI Powered Design. Fit No: 33.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/33', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/3', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-34',
+            type: 'glb',
+            name: '34-exBunny_RW1000.glb',
+            url: 'https://arweave.net/LcZoFWh-LqDDKTtNlqimnBaDKP6lim870KEncql21gc',
+            iconUrl: 'https://arweave.net/TWWJm7RzKkXdtBJOVkw-RDq3JSKlcJmQe94saSvFLeI',
+            description: '4- AI Powered Design. Fit No: 34.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/34', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/4', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-35',
+            type: 'glb',
+            name: '35-Thomas_DT_RW1000.glb',
+            url: 'https://arweave.net/xsGNlsZW0KvtO0G9V_pNQoYO2dGLaHIz6_fBir05OmU',
+            iconUrl: 'https://arweave.net/drX8aYdacXE2v-E7hmErM66vpICKJmLhZP8FqlR2WpQ',
+            description: '4- AI Powered Design. Fit No: 35.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/35', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/5', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-36',
+            type: 'glb',
+            name: '36-Bobo_Delirium_RW1000.glb',
+            url: 'https://arweave.net/qITvBRWUhvyOUaWJcG47-ha4WNzmMw-wPLjSoeiEusY',
+            iconUrl: 'https://arweave.net/84ikM9uRuNEbcm6hY86-sa9Y_x0yCdRCYGB6eCUcFME',
+            description: '4- AI Powered Design. Fit No: 36.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/36', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/6', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-37',
+            type: 'glb',
+            name: '37-Xeu2_RW1000.glb',
+            url: 'https://arweave.net/rl9y6gd1hHrvq9VCddbhUbvzE72CT1zSAsNWPzOqhM0',
+            iconUrl: 'https://arweave.net/h-VqY8jjyrr05-_DDVYh0b42PbVtv40stvS2zankndE',
+            description: '4- AI Powered Design. Fit No: 37.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/37', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/7', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-38',
+            type: 'glb',
+            name: '38-Ya_Bish_Opps_v3-RW1000.glb',
+            url: 'https://arweave.net/hlvSYpYodvZz9Q5DeXTnMxAkX_bNMHfIA5UDqwxT6ck',
+            iconUrl: 'https://arweave.net/yLymZKHRSTlUMhgDK5qZ25JZlxkHDfCaNcfogY7hR4I',
+            description: '4- AI Powered Design. Fit No: 38.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['ai', 'design', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/38', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/8', name: 'Blockchain' }
+            ]
+        },
+
+        // --- TRANSHUMANISM (39-46) ---
+        {
+            id: 'rw-39',
+            type: 'glb',
+            name: '39-glb31-40.glb', // Name preserved from input list (likely 39)
+            url: 'https://arweave.net/jgUrTwqv8x1_zJ8masbA5Cuj9F0zEh9TMoqd-YCTPhM',
+            iconUrl: 'https://arweave.net/1oSia_NtY82qe7pLqk6zEHXUn5LoezpD-QlgKkCJiT4',
+            description: '5- Transhumanism. Fit No: 39.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/39', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/9', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-40',
+            type: 'glb',
+            name: '40-Don_Mac_Don_v2-RW1000.glb',
+            url: 'https://arweave.net/OnkZUP3w024Ogp_qROcFZJdaqRYFuci8Wo8AfZ35_9s',
+            iconUrl: 'https://arweave.net/nmFwyVAWOK9AGLgcaC0IJPOns-yv-IQEiNOqNA02Ew4',
+            description: '5- Transhumanism. Fit No: 40.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/40', name: 'OpenSea' },
+                { url: 'https://tnae7bh2vjx55soocx7beoj6ke4v2ndoayxsehrbysfhuili6nxq.arweave.net/m0BPhPqqb97JzhX-Ejk-UTldNG4GLyIeIcSKeiFo828/10', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-41',
+            type: 'glb',
+            name: '41-Call_2_Sim_RW1000.glb',
+            url: 'https://arweave.net/ZVTCwuvzOy9UjC-1aKg7oFilV47yVIFnAQvOVNmgiB8',
+            iconUrl: 'https://arweave.net/TdKWNN9N1_i_8m6U4SxFYGTQswZuelBOrIwwQJfSs48',
+            description: '5- Transhumanism. Fit No: 41.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/41', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/1', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-42',
+            type: 'glb',
+            name: '42-CYB0RG-E-xyz_RW1000.glb',
+            url: 'https://arweave.net/ZkZULoPkmgHJGKF36rcFKP-79zK5CT8-VmLFsQaEiNw',
+            iconUrl: 'https://arweave.net/-xG-KUmD49Qt7g4TsAkvKkYP1GnWmdZ_EZ3g_GUBUos',
+            description: '5- Transhumanism. Fit No: 42.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/42', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/2', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-43',
+            type: 'glb',
+            name: '43-Steroive_iObs_RW1000.glb',
+            url: 'https://arweave.net/RCUKhCQJNCLNNBIwesH3sRpRdSmMRmA72klXeKoLIww',
+            iconUrl: 'https://arweave.net/IzdHEy2r-gXcDjJgwgKpt-Y709-kcFMuDTk80-ZjWNQ',
+            description: '5- Transhumanism. Fit No: 43.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/43', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/3', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-44',
+            type: 'glb',
+            name: '44-Tobby_Millefuille_RW1000.glb',
+            url: 'https://arweave.net/hp6ynx5FmyPezbvrx49PNq6-xXdH9nr5lTTPhc2SGDI',
+            iconUrl: 'https://arweave.net/zmRo8L4xfmcsSMgmRoNgZujK1l08jRpD_BMNCvzRZ5c',
+            description: '5- Transhumanism. Fit No: 44.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/44', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/4', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-45',
+            type: 'glb',
+            name: '45-Junya_RW1000.glb',
+            url: 'https://arweave.net/vaCbId-g-bb-69z7PAerVws_EQlZQOqR9ojn-pVh_Ik',
+            iconUrl: 'https://arweave.net/BOUp_QQI8jflpCeALOhSLFB0Ei-MX7WzUKr7eF29R3k',
+            description: '5- Transhumanism. Fit No: 45.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/45', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/5', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-46',
+            type: 'glb',
+            name: '46-Elextrogxd_RW1000.glb',
+            url: 'https://arweave.net/w2SaRsliNmMEGqQYE8QcP7EXijZFyPbDNPZX8AxItKY',
+            iconUrl: 'https://arweave.net/yvcGkZJ4Wl9UM_2xdgDzgsYzTxhqszO8xDlg_esFemw',
+            description: '5- Transhumanism. Fit No: 46.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['transhumanism', 'cyborg', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/46', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/6', name: 'Blockchain' }
+            ]
+        },
+
+        // --- EVOLUTION OF ART AS MUTANT MEANING (47-49) ---
+        {
+            id: 'rw-47',
+            type: 'glb',
+            name: '47-Davicni_2_RW1000.glb',
+            url: 'https://arweave.net/U4P2t4KH1LOC-Tn4_5R91IQJV3RHilMnZKzfaxeolBA',
+            iconUrl: 'https://arweave.net/URcXmUYHFJggdWOuVgwYLI1lwSP7-eVB2vD3d6aPhS0',
+            description: '6- Evolution Of Art As Mutant Meaning. Fit No: 47.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'mutation', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/47', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/7', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-48',
+            type: 'glb',
+            name: '48-Xoqou-v2-_RW1000.glb',
+            url: 'https://arweave.net/lwxdZ6tJ1GnUio75aVP-mgXutLWrX-jeUu_74TwJ1Hs',
+            iconUrl: 'https://arweave.net/YfD6amTsaVPGJ0pwUmMlbuLqEjFhENuUSZ-CqKzJ7q0',
+            description: '6- Evolution Of Art As Mutant Meaning. Fit No: 48.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'mutation', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/48', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/8', name: 'Blockchain' }
+            ]
+        },
+        {
+            id: 'rw-49',
+            type: 'glb',
+            name: '49-Finale_unOpt_RW1000.glb',
+            url: 'https://arweave.net/axaE1XdSghN3qXGhptoi39TuzzC3Lw4X3YjTDcK3pTg',
+            iconUrl: 'https://arweave.net/ETxuECvDz1lI1V5SZ-5ItCiba5SiC-jMYrc78jC9tGk',
+            description: '6- Evolution Of Art As Mutant Meaning. Fit No: 49.',
+            created: '2025',
+            medium: '3D Model (GLB)',
+            tags: ['art', 'mutation', '3d', 'avatar'],
+            links: [
+                { url: 'https://opensea.io/item/ethereum/0xafa45a6ae1ee4a8296fab2c7fd636384a16f7439/49', name: 'OpenSea' },
+                { url: 'https://ahze5qag7oyndiqugjjjufrgdhsjfgwe7ssqzfsxay6m54u3ev2a.arweave.net/AfJOwAb7sNGiFDJSmhYmGeSSmsT8pQyWVwY8zvKbJXQ/9', name: 'Blockchain' }
+            ]
+        },
+
+        
+    ]
+};
+
+        // --- Ana Uygulama Mantığı ---
+
+        const container = document.getElementById('desktop-container');
+        const modal = document.getElementById('modal-overlay');
+        const modalMedia = document.getElementById('modal-media');
+        const closeBtn = document.getElementById('modal-close-btn');
+
+        // İkon HTML Oluşturucu
+        function getIconHTML(item) {
+            let iconSrc = '';
+            
+            if (item.iconUrl) {
+                iconSrc = item.iconUrl;
+            } else if (item.type === 'image') {
+                iconSrc = item.url;
+            } else if (item.type === 'video') {
+                return `<svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else if (item.type === 'text') {
+                return `<svg class="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`;
+            } else if (item.type === 'glb') {
+                return `<svg class="w-10 h-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m0 10l8 4m6 0v-4m0 0L4 11m6 4l8-4m-8 4v4m0 0L4 17m6 4l8-4"></path></svg>`;
+            } else {
+                return `<svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>`;
+            }
+
+            return `<img src="${iconSrc}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100?text=File'">`;
+        }
+
+        // Masaüstünü Render Et
+        function renderDesktop() {
+            container.innerHTML = '';
+            const items = fileSystemDB['RealDesktop'];
+
+            items.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'desktop-item';
+                el.innerHTML = `
+                    <div class="icon-box">
+                        ${getIconHTML(item)}
+                    </div>
+                    <div class="icon-label">${item.name}</div>
+                `;
+                el.addEventListener('click', () => openModal(item));
+                container.appendChild(el);
+            });
+        }
+
+        // Modal Açma Fonksiyonu
+        function openModal(item) {
+            document.getElementById('info-title').textContent = item.name;
+            document.getElementById('info-description').textContent = item.description || '';
+            document.getElementById('meta-created').textContent = item.created || '-';
+            document.getElementById('meta-medium').textContent = item.medium || '-';
+
+            // Tagler
+            const tagsContainer = document.getElementById('info-tags');
+            tagsContainer.innerHTML = '';
+            if (item.tags) {
+                item.tags.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.className = 'bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded';
+                    span.textContent = '#' + tag;
+                    tagsContainer.appendChild(span);
+                });
+            }
+
+            // Linkler
+            const linksContainer = document.getElementById('info-links');
+            linksContainer.innerHTML = '';
+            if (item.links && item.links.length > 0) {
+                item.links.forEach(link => {
+                    const a = document.createElement('a');
+                    a.href = link.url;
+                    a.target = '_blank';
+                    a.className = 'text-blue-600 hover:text-blue-800 hover:underline font-medium';
+                    a.textContent = link.name || 'Open';
+                    linksContainer.appendChild(a);
+                });
+            }
+
+            modalMedia.innerHTML = '<div class="loading-spinner"></div>';
+
+            setTimeout(() => {
+                modalMedia.innerHTML = '';
+                
+                if (item.type === 'video') {
+                    if (item.url.includes('youtube.com') || item.url.includes('youtu.be')) {
+                        modalMedia.innerHTML = `<iframe src="${item.url}" allowfullscreen></iframe>`;
+                    } else {
+                        modalMedia.innerHTML = `<video controls autoplay class="w-full h-full"><source src="${item.url}" type="video/mp4"></video>`;
+                    }
+                } else if (item.type === 'image') {
+                    modalMedia.innerHTML = `<img src="${item.url}" alt="${item.name}">`;
+                } else if (item.type === 'html' || item.type === 'link') {
+                    modalMedia.innerHTML = `<iframe src="${item.url}" class="bg-white w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+                } else if (item.type === 'text') {
+                    modalMedia.innerHTML = `<pre class="bg-gray-100 p-4 text-sm font-mono overflow-auto w-full h-full text-left whitespace-pre-wrap">${item.content}</pre>`;
+                } else if (item.type === 'glb') {
+                    const container = document.createElement('div');
+                    container.style.width = '100%';
+                    container.style.height = '100%';
+                    modalMedia.appendChild(container);
+                    loadGLB(item.url, container);
+                }
+            }, 300);
+
+            modal.style.display = 'flex';
+        }
+
+        // Modalı Kapat
+        function closeModal() {
+            modal.style.display = 'none';
+            modalMedia.innerHTML = '';
+        }
+
+        closeBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // 3D Model Yükleyici (Three.js) - İLK KODDAN GERİ GETİRİLEN ORİJİNAL AYARLAR
+        function loadGLB(modelUrl, container) {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'absolute top-0 left-0 w-full h-full flex items-center justify-center bg-transparent z-10 text-white';
+            loadingOverlay.innerHTML = 'Loading...';
+            container.appendChild(loadingOverlay);
+            container.style.position = 'relative';
+
+            const scene = new THREE.Scene();
+            // Arka planı transparan (null) bırakıyoruz ki CSS arka planı görünsün
+            // scene.background = new THREE.Color(0xf0f0f0); 
+
+            const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.01, 1000);
+            camera.position.set(0, 1, 4);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.physicallyCorrectLights = true;
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enablePan = true;
+            controls.minDistance = 0.001;
+            controls.maxDistance = 100;
+            controls.autoRotate = true; // Otomatik dönme açık başlıyor
+            controls.autoRotateSpeed = 1.0;
+            controls.target.set(0, 0.5, 0);
+            controls.minPolarAngle = Math.PI / 4;
+            controls.maxPolarAngle = Math.PI / 1.5;
+            controls.enabled = true;
+            controls.update();
+
+            // KULLANICI ETKİLEŞİMİNDE AUTO ROTATE DURDURMA
+            controls.addEventListener('start', function() {
+                controls.autoRotate = false;
+            });
+
+            // --- İLK KODDAKİ IŞIKLANDIRMA AYARLARI ---
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            dirLight.position.set(5, 5, 5);
+            scene.add(dirLight);
+
+            // --- İLK KODDAKİ HDRI AYARLARI (PMREMGenerator & RGBELoader) ---
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+            
+            new THREE.RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', texture => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = envMap;
+                texture.dispose();
+                pmremGenerator.dispose();
+            });
+
+            let mixer = null;
+
+            // GLB Yükleme
+            const gltfLoader = new THREE.GLTFLoader();
+            const dracoLoader = new THREE.DRACOLoader();
+            dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+            gltfLoader.setDRACOLoader(dracoLoader);
+            gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+            
+            gltfLoader.load(modelUrl, gltf => {
+                const model = gltf.scene;
+                const bbox = new THREE.Box3().setFromObject(model);
+                const center = bbox.getCenter(new THREE.Vector3());
+                model.position.x = -center.x;
+                model.position.z = -center.z;
+                model.position.y = -0.8;
+                scene.add(model);
+                loadingOverlay.style.display = 'none';
+
+                // Animasyonlar
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach(clip => {
+                        const action = mixer.clipAction(clip);
+                        action.setLoop(THREE.LoopRepeat);
+                        action.play();
+                    });
+                }
+            }, undefined, error => {
+                console.error('GLB yükleme hatası:', error);
+                loadingOverlay.innerHTML = 'Error loading model';
+            });
+
+            // Animasyon Döngüsü
+            const clock = new THREE.Clock();
+            function animate() {
+                if (modal.style.display === 'none') return;
+                requestAnimationFrame(animate);
+                if (mixer) mixer.update(clock.getDelta());
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // Yeniden Boyutlandırma
+            const resizeObserver = new ResizeObserver(() => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                camera.aspect = newWidth / newHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(newWidth, newHeight);
+            });
+            resizeObserver.observe(container);
+        }
+
+        // Başlat
+        renderDesktop();
+
+    </script>
+</body>
+</html>
